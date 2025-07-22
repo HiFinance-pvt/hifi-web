@@ -18,12 +18,12 @@ export class Firebase {
 	constructor() {
 		this.auth = getAuth(
 			initializeApp({
-				apiKey: env.API_KEY,
-				authDomain: env.AUTH_DOMAIN,
-				projectId: env.PROJECT_ID,
-				storageBucket: env.STORAGE_BUCKET,
-				messagingSenderId: env.MESSAGING_SENDER_ID,
-				appId: env.APP_ID,
+				apiKey: env.NEXT_PUBLIC_API_KEY,
+				authDomain: env.NEXT_PUBLIC_AUTH_DOMAIN,
+				projectId: env.NEXT_PUBLIC_PROJECT_ID,
+				storageBucket: env.NEXT_PUBLIC_STORAGE_BUCKET,
+				messagingSenderId: env.NEXT_PUBLIC_MESSAGING_SENDER_ID,
+				appId: env.NEXT_PUBLIC_APP_ID,
 			})
 		);
 		this.provider = new GoogleAuthProvider();
