@@ -11,7 +11,6 @@ export const env = createEnv({
 		APP_ID: z.string().min(1),
 	},
 	client: {
-		NEXT_PUBLIC_PUBLISHABLE_KEY: z.string().min(1),
 	},
 	// If you're using Next.js < 13.4.4, you'll need to specify the runtimeEnv manually
 	runtimeEnv: {
@@ -21,6 +20,5 @@ export const env = createEnv({
 		STORAGE_BUCKET: process.env.STORAGE_BUCKET,
 		MESSAGING_SENDER_ID: process.env.MESSAGING_SENDER_ID,
 		APP_ID: process.env.APP_ID,
-		NEXT_PUBLIC_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_PUBLISHABLE_KEY,
 	},
 });
