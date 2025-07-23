@@ -93,8 +93,6 @@ class Firebase {
 
       // Handle specific Firebase Auth errors
       switch (error.code) {
-        case "auth/user-not-found":
-          throw new Error("No account found with this email");
         case "auth/wrong-password":
           throw new Error("Incorrect password");
         case "auth/invalid-email":
@@ -154,21 +152,11 @@ class Firebase {
   }
 
   authStateChanged(callback: (user: User | null) => void) {
-    try {
       return onAuthStateChanged(this.auth, callback);
-    } catch (error: any) {
-      console.error("Failed to set up auth state listener:", error);
-      throw new Error("Failed to set up authentication listener");
-    }
   }
 
   getCurrentUser() {
-    try {
       return this.auth.currentUser;
-    } catch (error: any) {
-      console.error("Failed to get current user:", error);
-      return null;
-    }
   }
 }
 
