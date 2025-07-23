@@ -11,7 +11,7 @@ import {
 } from "firebase/auth";
 import { env } from "../env/env";
 
-export class Firebase {
+class Firebase {
 	auth: ReturnType<typeof getAuth>;
 	provider: GoogleAuthProvider;
 
@@ -89,3 +89,5 @@ export class Firebase {
 		return this.auth.currentUser;
 	}
 }
+
+export const firebase = new Firebase();
