@@ -1,11 +1,7 @@
 import React from 'react'
 
-type Props = {}
-
-const page = (props: Props) => {
+export default function SebiAgentPage() {
   return (
-    <div>SEBI Agent</div>
+    <div>Sebi Agent</div>
   )
 }
-
-export default page

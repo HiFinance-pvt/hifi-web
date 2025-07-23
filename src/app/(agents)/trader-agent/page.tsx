@@ -1,11 +1,7 @@
 import React from 'react'
 
-type Props = {}
-
-const page = (props: Props) => {
+export default function TraderAgentPage() {
   return (
     <div>Trader Agent</div>
   )
 }
-
-export default page

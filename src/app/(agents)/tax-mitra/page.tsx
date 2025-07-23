@@ -1,11 +1,7 @@
 import React from 'react'
 
-type Props = {}
-
-const page = (props: Props) => {
+export default function TaxMitraPage() {
   return (
     <div>Tax Mitra</div>
   )
 }
-
-export default page
