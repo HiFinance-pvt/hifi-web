@@ -1,15 +1,12 @@
-import React from 'react'
 
 type Props = {
-    children: React.ReactNode
+  children: React.ReactNode
 }
 
-const layout = ({children}: Props) => {
+export default function IntegrationsLayout({ children }: Props) {
   return (
     <div>
-        {children}
+      {children}
     </div>
   )
 }
-
-export default layout

@@ -1,9 +1,6 @@
-import React from 'react'
 
-const page = () => {
+export default function IntegrationsPage() {
   return (
     <div>Integrations</div>
   )
 }
-
-export default page     

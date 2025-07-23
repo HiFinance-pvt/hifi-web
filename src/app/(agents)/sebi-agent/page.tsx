@@ -1,9 +1,7 @@
 import React from 'react'
 
-const page = () => {
+export default function SebiAgentPage() {
   return (
     <div>Sebi Agent</div>
   )
 }
-
-export default page

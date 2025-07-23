@@ -1,9 +1,7 @@
 import React from 'react'
 
-const page = () => {
+export default function TaxMitraPage() {
   return (
     <div>Tax Mitra</div>
   )
 }
-
-export default page
