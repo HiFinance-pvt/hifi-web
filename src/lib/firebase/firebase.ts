@@ -12,7 +12,7 @@ import {
 import { env } from "../env/env";
 
 export class Firebase {
-	auth: any;
+	auth: ReturnType<typeof getAuth>;
 	provider: GoogleAuthProvider;
 
 	constructor() {
