@@ -24,17 +24,22 @@ class Firebase {
   db: Firestore;
 
   constructor() {
-    const app = initializeApp({
-      apiKey: env.NEXT_PUBLIC_API_KEY,
-      authDomain: env.NEXT_PUBLIC_AUTH_DOMAIN,
-      projectId: env.NEXT_PUBLIC_PROJECT_ID,
-      storageBucket: env.NEXT_PUBLIC_STORAGE_BUCKET,
-      messagingSenderId: env.NEXT_PUBLIC_MESSAGING_SENDER_ID,
-      appId: env.NEXT_PUBLIC_APP_ID,
-    });
-    this.provider = new GoogleAuthProvider();
-    this.auth = getAuth(app);
-    this.db = getFirestore(app);
+    try {
+      const app = initializeApp({
+        apiKey: env.NEXT_PUBLIC_API_KEY,
+        authDomain: env.NEXT_PUBLIC_AUTH_DOMAIN,
+        projectId: env.NEXT_PUBLIC_PROJECT_ID,
+        storageBucket: env.NEXT_PUBLIC_STORAGE_BUCKET,
+        messagingSenderId: env.NEXT_PUBLIC_MESSAGING_SENDER_ID,
+        appId: env.NEXT_PUBLIC_APP_ID,
+      });
+      this.provider = new GoogleAuthProvider();
+      this.auth = getAuth(app);
+      this.db = getFirestore(app);
+    } catch (error) {
+      console.error("Failed to initialize Firebase:", error);
+      throw new Error("Firebase initialization failed");
+    }
   }
 
   async createUserWithCredential(credential: {
@@ -58,8 +63,20 @@ class Firebase {
       });
 
       return userCredential;
-    } catch (error) {
-      throw error;
+    } catch (error: any) {
+      console.error("Failed to create user with credentials:", error);
+
+      // Handle specific Firebase Auth errors
+      switch (error.code) {
+        case "auth/email-already-in-use":
+          throw new Error("Email is already registered");
+        case "auth/weak-password":
+          throw new Error("Password is too weak");
+        case "auth/invalid-email":
+          throw new Error("Invalid email address");
+        default:
+          throw new Error("Failed to create user account");
+      }
     }
   }
 
@@ -71,8 +88,22 @@ class Firebase {
         credential.password
       );
       return userCredential;
-    } catch (error) {
-      throw error;
+    } catch (error: any) {
+      console.error("Failed to sign in with credentials:", error);
+
+      // Handle specific Firebase Auth errors
+      switch (error.code) {
+        case "auth/user-not-found":
+          throw new Error("No account found with this email");
+        case "auth/wrong-password":
+          throw new Error("Incorrect password");
+        case "auth/invalid-email":
+          throw new Error("Invalid email address");
+        case "auth/user-disabled":
+          throw new Error("This account has been disabled");
+        default:
+          throw new Error("Failed to sign in");
+      }
     }
   }
 
@@ -96,25 +127,48 @@ class Firebase {
       }
 
       return userCredential;
-    } catch (error) {
-      throw error;
+    } catch (error: any) {
+      console.error("Failed to authenticate with Google:", error);
+
+      // Handle specific Firebase Auth errors
+      switch (error.code) {
+        case "auth/popup-closed-by-user":
+          throw new Error("Authentication cancelled by user");
+        case "auth/popup-blocked":
+          throw new Error("Popup was blocked by browser");
+        case "auth/cancelled-popup-request":
+          throw new Error("Authentication request cancelled");
+        default:
+          throw new Error("Failed to authenticate with Google");
+      }
     }
   }
 
   async logout() {
     try {
       await signOut(this.auth);
-    } catch (error) {
-      throw error;
+    } catch (error: any) {
+      console.error("Failed to sign out:", error);
+      throw new Error("Failed to sign out");
     }
   }
 
   authStateChanged(callback: (user: User | null) => void) {
-    return onAuthStateChanged(this.auth, callback);
+    try {
+      return onAuthStateChanged(this.auth, callback);
+    } catch (error: any) {
+      console.error("Failed to set up auth state listener:", error);
+      throw new Error("Failed to set up authentication listener");
+    }
   }
 
   getCurrentUser() {
-    return this.auth.currentUser;
+    try {
+      return this.auth.currentUser;
+    } catch (error: any) {
+      console.error("Failed to get current user:", error);
+      return null;
+    }
   }
 }
 
