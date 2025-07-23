@@ -4,8 +4,6 @@ import React from "react";
 import Hero from "@/components/landing/Hero";
 import ProductOverview from "@/components/landing/ProductOverview";
 import UseCases from "@/components/landing/UseCases";
-import Testimonials from "@/components/landing/Testimonials";
-import ContactForm from "@/components/landing/ContactForm";
 import Footer from "@/components/landing/Footer";
 import DevelopedBy from "@/components/landing/DevelopedBy";
 

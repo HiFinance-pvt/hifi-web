@@ -136,7 +136,9 @@ const ChromaGrid: React.FC<ChromaGridProps> = ({
   };
 
   const handleCardClick = (url?: string) => {
-    if (url) window.open(url, "_blank", "noopener,noreferrer");
+    if (url && typeof window !== "undefined") {
+      window.open(url, "_blank", "noopener,noreferrer");
+    }
   };
 
   const handleCardMove: React.MouseEventHandler<HTMLElement> = (e) => {

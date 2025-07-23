@@ -59,8 +59,8 @@ export default function ContactForm() {
             </h2>
             <p className="text-xl text-gray-300 mb-8 leading-relaxed">
               Have questions about HiFi? Want to learn more about our AI
-              financial agents? We're here to help you start your journey to
-              financial freedom.
+              financial agents? We&apos;re here to help you start your journey
+              to financial freedom.
             </p>
 
             {/* Contact info */}
@@ -120,8 +120,8 @@ export default function ContactForm() {
                       Message Sent Securely!
                     </h3>
                     <p className="text-gray-300">
-                      We'll get back to you within 24 hours with personalized
-                      insights.
+                      We&apos;ll get back to you within 24 hours with
+                      personalized insights.
                     </p>
                   </motion.div>
                 ) : (

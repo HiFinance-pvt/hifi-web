@@ -1,5 +1,4 @@
 "use client";
-import CircularText from "@/ui/components/CircularText";
 import TextPressure from "@/ui/components/TextPressure";
 import TextType from "@/ui/components/TextType";
 

@@ -188,7 +188,9 @@ export default function PixelCard({
   );
   const timePreviousRef = useRef(performance.now());
   const reducedMotion = useRef(
-    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    typeof window !== "undefined"
+      ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
+      : false
   ).current;
 
   const variantCfg: VariantConfig = VARIANTS[variant] || VARIANTS.default;
@@ -255,7 +257,7 @@ export default function PixelCard({
     let allIdle = true;
     for (let i = 0; i < pixelsRef.current.length; i++) {
       const pixel = pixelsRef.current[i];
-      // @ts-ignore
+      // @ts-expect-error - Dynamic method call on Pixel class
       pixel[fnName]();
       if (!pixel.isIdle) {
         allIdle = false;

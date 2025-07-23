@@ -544,6 +544,9 @@ const useMobileDetection = () => {
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
+    // Check if we're in browser environment
+    if (typeof window === "undefined") return;
+
     const checkMobile = () =>
       setIsMobile(window.innerWidth <= MOBILE_BREAKPOINT);
 
