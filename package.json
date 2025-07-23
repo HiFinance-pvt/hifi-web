@@ -13,11 +13,14 @@
   },
   "dependencies": {
     "@heroicons/react": "^2.2.0",
+    "@t3-oss/env-nextjs": "^0.13.8",
+    "firebase": "^12.0.0",
     "framer-motion": "^12.23.6",
     "gsap": "^3.13.0",
     "next": "15.4.2",
     "react": "19.1.0",
-    "react-dom": "19.1.0"
+    "react-dom": "19.1.0",
+    "zod": "^4.0.5"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -27,9 +30,6 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "15.4.2",
-    "eslint-config-prettier": "^10.1.8",
-    "prettier": "^3.6.2",
-    "tailwindcss": "^4",
-    "typescript": "^5"
+    "tailwindcss": "^4.0.0"
   }
 }
