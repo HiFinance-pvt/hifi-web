@@ -6,16 +6,17 @@ import { env } from "../../config/env";
 
 import { Auth } from "./auth";
 import { Profile } from "./profile";
+import { Adk } from "./adk";
 
 class ApiSdk {
   private readonly _authAxios: Axios;
   private readonly _platformAxios: Axios;
   private readonly _apiAxios: Axios;
-  
+
   // API modules
   auth: Auth;
   profile: Profile;
-
+  adk: Adk;
   constructor() {
     // Create axios instances with different base URLs
     this._authAxios = this.createAxiosInstance(env.NEXT_PUBLIC_AUTH_API_URL);
@@ -25,6 +26,7 @@ class ApiSdk {
     // Initialize API modules
     this.auth = new Auth(this._authAxios, this._platformAxios);
     this.profile = new Profile(this._platformAxios);
+    this.adk = new Adk(this._apiAxios);
   }
 
   private createAxiosInstance(baseURL: string): Axios {
@@ -55,13 +57,13 @@ class ApiSdk {
     }
 
     // Also try setting cookies manually for cross-domain issues
-    const refreshToken = 
+    const refreshToken =
       Cookies.get("refresh_token") || localStorage.getItem("refresh_token");
-    
+
     if (accessToken && refreshToken) {
       // Set as cookie string for cross-domain issues
       config.headers = config.headers || {};
-      config.headers.Cookie = 
+      config.headers.Cookie =
         `access_token=${accessToken}; refresh_token=${refreshToken}`;
     }
 
@@ -76,7 +78,7 @@ class ApiSdk {
   private handleError(error: any): void {
     // Handle API errors
     console.error("API Error:", error.response?.status, error.config?.url, error.message);
-    
+
     // Handle token expiration
     if (error.response?.status === 401) {
       this.handleTokenExpiration();
@@ -87,7 +89,7 @@ class ApiSdk {
     // Clear tokens
     Cookies.remove("access_token");
     Cookies.remove("refresh_token");
-    
+
     if (typeof window !== "undefined") {
       localStorage.removeItem("access_token");
       localStorage.removeItem("refresh_token");
@@ -115,12 +117,12 @@ class ApiSdk {
 
   // Token management utilities
   setTokens(accessToken: string, refreshToken: string): void {
-    Cookies.set("access_token", accessToken, { 
+    Cookies.set("access_token", accessToken, {
       expires: 7, // 7 days
       secure: env.NODE_ENV === "production",
       sameSite: "lax"
     });
-    Cookies.set("refresh_token", refreshToken, { 
+    Cookies.set("refresh_token", refreshToken, {
       expires: 30, // 30 days
       secure: env.NODE_ENV === "production",
       sameSite: "lax"
@@ -136,7 +138,7 @@ class ApiSdk {
   clearTokens(): void {
     Cookies.remove("access_token");
     Cookies.remove("refresh_token");
-    
+
     if (typeof window !== "undefined") {
       localStorage.removeItem("access_token");
       localStorage.removeItem("refresh_token");
@@ -144,8 +146,8 @@ class ApiSdk {
   }
 
   getAccessToken(): string | undefined {
-    return Cookies.get("access_token") || 
-           (typeof window !== "undefined" ? localStorage.getItem("access_token") || undefined : undefined);
+    return Cookies.get("access_token") ||
+      (typeof window !== "undefined" ? localStorage.getItem("access_token") || undefined : undefined);
   }
 }
 
