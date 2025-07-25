@@ -1,12 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import {
   Chat,
   SessionMessage,
   SessionMessages,
-  SessionMessagePanel,
-  SessionMessagesHeader,
   ChatTheme,
 } from "reachat";
 
@@ -15,15 +13,14 @@ import { useChat } from "@/hooks/useChat";
 import { Sidebar } from "@/components/Sidebar";
 import { WelcomeScreen } from "@/components/WelcomeScreen";
 import { hiFiTheme } from "@/theme/hifi-theme";
-import { APP_CONFIG, ALL_SESSIONS } from "@/constants/mockData";
+import { ALL_SESSIONS } from "@/constants/mockData";
 import { QuickAction } from "@/types/chat";
 import { ChatInput } from "@/components/dashboard";
-import Particles from "@/ui/components/Particles";
 
 export default function HiFiDashboard() {
   const {
     sessions,
-    activeSession,
+    activeSession,  
     activeSessionId,
     isLoading,
     user,
@@ -171,18 +168,6 @@ export default function HiFiDashboard() {
            */}
         {/* )} */}
       </Chat>
-      <div className="absolute inset-0 w-screen h-screen">
-        <Particles
-          particleColors={["#ffffff", "#ffffff"]}
-          particleCount={200}
-          particleSpread={10}
-          speed={0.1}
-          particleBaseSize={100}
-          moveParticlesOnHover={true}
-          alphaParticles={false}
-          disableRotation={false}
-        />
-      </div>
     </div>
   );
 }

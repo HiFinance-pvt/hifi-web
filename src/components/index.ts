@@ -1,6 +1,7 @@
 // Custom Hi-Fi Chat Components
 export { WelcomeScreen } from "./WelcomeScreen";
 export { Sidebar } from "./Sidebar";
+export { AuthGuard } from "./AuthGuard";
 
 // Re-export commonly used types
 export type {
