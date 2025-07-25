@@ -1,12 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import {
-  Chat,
-  SessionMessage,
-  SessionMessages,
-  ChatTheme,
-} from "reachat";
+import { Chat, SessionMessage, SessionMessages, ChatTheme } from "reachat";
 
 // Custom components and hooks
 import { useChat } from "@/hooks/useChat";
@@ -21,7 +16,7 @@ import Particles from "@/ui/components/Particles";
 export default function HiFiDashboard() {
   const {
     sessions,
-    activeSession,  
+    activeSession,
     activeSessionId,
     isLoading,
     user,
@@ -75,6 +70,7 @@ export default function HiFiDashboard() {
           onDeleteSession={deleteSession}
           onNewSession={handleNewSession}
           onToggleStar={toggleSessionStar}
+          onRenameSession={updateSessionTitle}
         />
       </div>
       {/* Main Chat Area - Always wrapped in Chat component for theme context */}
