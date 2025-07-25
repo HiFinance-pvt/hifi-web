@@ -5,7 +5,7 @@ import ChromaGrid from "@/ui/components/ChromaGrid";
 
 const items = [
   {
-    image: "./profiles/adharbattulwar.jpg",
+    image: "https://xqak5dz869.ufs.sh/f/9bPBdXjSiv4IeABlBCYKyJ8jNPpV24cHROwYQuxMUoLIv9n6",
     title: "Adhar Battulwar",
     subtitle: "Full Stack Developer",
     handle: "@adhar_battulwar",
@@ -15,34 +15,34 @@ const items = [
     url: "https://github.com/adharbattulwar",
   },
   {
-    image: "https://i.pravatar.cc/300?img=2",
+    image: "https://xqak5dz869.ufs.sh/f/9bPBdXjSiv4Ihw7f4LVN7gFVroIWSOaqQP82KstjURYb5mvw",
     title: "Harsh Duche",
     subtitle: "Full Stack Developer",
-    handle: "@harshduche",
+    handle: "@harsh_duche",
     location: "Online",
     borderColor: "#10B981",
     gradient: "linear-gradient(180deg, #10B981, #000)",
-    url: "https://github.com/harshduche",
+    url: "https://github.com/ducheharsh",
   },
   {
-    image: "https://i.pravatar.cc/300?img=3",
-    title: "Mayank Bhatagare",
-    subtitle: "AI/ML Specialist",
-    handle: "@rohanml",
-    location: "Away",
+    image: "https://xqak5dz869.ufs.sh/f/9bPBdXjSiv4I2acOJnCQvEJurRil9mdqoFhpMYK1VIsO7QcB",
+    title: "Mayank Bhatgare",
+    subtitle: "UI/UX Designer",
+    handle: "@imbhatgare",
+    location: "Online",
     borderColor: "#8B5CF6",
     gradient: "linear-gradient(225deg, #8B5CF6, #000)",
-    url: "https://github.com/rohanml",
+    url: "https://github.com/mayankbhatgare10",
   },
   {
-    image: "https://i.pravatar.cc/300?img=4",
+    image: "https://xqak5dz869.ufs.sh/f/9bPBdXjSiv4IQlAJR9cne53xFvDGlPXoSykp4miL9sfCBHMt",
     title: "Aditya Tote",
-    subtitle: "Product Designer",
-    handle: "@snehadesigns",
+    subtitle: "Full Stack Developer",
+    handle: "@AdityaTote24",
     location: "Online",
     borderColor: "#F59E0B",
     gradient: "linear-gradient(165deg, #F59E0B, #000)",
-    url: "https://dribbble.com/snehadesigns",
+    url: "https://github.com/AdityaTote",
   },
 ];
 
@@ -60,7 +60,7 @@ export default function DevelopedBy() {
           </p>
         </div>
 
-        <div style={{ height: "600px", position: "relative" }}>
+        <div className="h-[600px] relative">
           <ChromaGrid
             items={items}
             radius={300}
