@@ -12,15 +12,16 @@ interface AuthGuardProps {
 export const AuthGuard: FC<AuthGuardProps> = ({ children }) => {
   // const { currentUser, loading } = useAuth();
   const router = useRouter();
+  const { currentUser, loading } = useAuth();
 
   useEffect(() => {
-    if (!localStorage.getItem(env.NEXT_PUBLIC_SSID) ) {
+    if (!currentUser || !localStorage.getItem(env.NEXT_PUBLIC_SSID) || loading) {
       router.push('/login');
     }
   }, [ router]);
 
   // Show loading spinner while checking authentication
-  if (!localStorage.getItem(env.NEXT_PUBLIC_SSID)) {
+  if (!localStorage.getItem(env.NEXT_PUBLIC_SSID) || loading || !currentUser) {
     return (
       <div className="min-h-screen min-w-screen bg-gray-900 flex items-center justify-center">
         <div className="relative">
@@ -32,7 +33,7 @@ export const AuthGuard: FC<AuthGuardProps> = ({ children }) => {
   }
 
   // Don't render children if user is not authenticated
-  if (!localStorage.getItem(env.NEXT_PUBLIC_SSID)) {
+  if (!localStorage.getItem(env.NEXT_PUBLIC_SSID) || loading || !currentUser ) {
     return null;
   }
 

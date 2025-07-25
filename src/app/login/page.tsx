@@ -9,12 +9,12 @@ import Dither from "@/ui/components/Dither";
 import { set } from "zod";
 import { getCurrentUser } from "@/lib/firebase/firebase";
 import { env } from "@/lib/env/env";
+import { toast } from "sonner";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const { signInWithEmail, signInWithGoogle } = useAuth();
   const router = useRouter();
   const user = getCurrentUser();
@@ -23,18 +23,18 @@ export default function LoginPage() {
     e.preventDefault();
 
     if (!email || !password) {
-      setError("Please fill in all fields");
+      toast.error("Please fill in all fields");
       return;
     }
 
     setLoading(true);
-    setError("");
 
     try {
       await signInWithEmail(email, password);
+      toast.success("Successfully signed in!");
       router.push("/dashboard");
     } catch (error: any) {
-      setError(getErrorMessage(error.code));
+      toast.error(getErrorMessage(error.code));
     } finally {
       // Set the User Token To local storage
       setLoading(false);
@@ -43,21 +43,23 @@ export default function LoginPage() {
 
   const handleGoogleLogin = async () => {
     setLoading(true);
-    setError("");
 
     try {
       await signInWithGoogle();
       console.log(await getCurrentUser()?.getIdToken());
       const token = await getCurrentUser()?.getIdToken();
-      
+
       if (token) {
         localStorage.setItem(env.NEXT_PUBLIC_SSID, token);
-      }else{
+        toast.success("Successfully signed in with Google!");
+      } else {
+        toast.error("Failed to get authentication token");
         router.push("/login");
+        return;
       }
       router.push("/dashboard");
     } catch (error: any) {
-      setError("Failed to sign in with Google");
+      toast.error("Failed to sign in with Google");
     } finally {
       setLoading(false);
     }
@@ -131,17 +133,6 @@ export default function LoginPage() {
             </motion.h1>
             <p className="text-gray-400">Sign in to your account</p>
           </div>
-
-          {/* Error message */}
-          {error && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 mb-6"
-            >
-              <p className="text-red-400 text-sm text-center">{error}</p>
-            </motion.div>
-          )}
 
           {/* Email/Password Form */}
           <form onSubmit={handleEmailLogin} className="space-y-6 w-full">

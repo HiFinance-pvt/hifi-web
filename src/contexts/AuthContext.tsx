@@ -75,6 +75,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const result = await createUserWithCredential({ email, password });
       setCurrentUser(result.user);
     } catch (error) {
+      
       console.error("Error signing up with email:", error);
       throw error;
     }
