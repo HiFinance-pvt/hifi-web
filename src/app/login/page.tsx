@@ -34,7 +34,7 @@ export default function LoginPage() {
       toast.success("Successfully signed in!");
       router.push("/dashboard");
     } catch (error: any) {
-      toast.error(getErrorMessage(error.code));
+      getErrorMessage(error.message);
     } finally {
       // Set the User Token To local storage
       setLoading(false);
@@ -59,24 +59,25 @@ export default function LoginPage() {
       }
       router.push("/dashboard");
     } catch (error: any) {
-      toast.error("Failed to sign in with Google");
+      getErrorMessage(error.message);
     } finally {
       setLoading(false);
     }
   };
 
   const getErrorMessage = (errorCode: string) => {
+    console.log(errorCode);
     switch (errorCode) {
-      case "auth/user-not-found":
+      case "No account found with this email address":
         return "No account found with this email address";
-      case "auth/wrong-password":
+      case "Incorrect password":
         return "Incorrect password";
-      case "auth/invalid-email":
+      case "Invalid email address":
         return "Invalid email address";
-      case "auth/too-many-requests":
+      case "Too many failed attempts. Please try again later":
         return "Too many failed attempts. Please try again later";
       default:
-        return "Failed to sign in. Please try again";
+        return;
     }
   };
 
