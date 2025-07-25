@@ -4,6 +4,9 @@ import React, { useState } from "react";
 import { User, ChatSession } from "@/types/chat";
 import { NAVIGATION_ITEMS } from "@/constants/mockData";
 import { Plus, Search } from "lucide-react";
+import { logout } from "@/lib/firebase/firebase";
+import { env } from "@/lib/env/env";
+import { useRouter } from "next/navigation";
 
 interface SidebarProps {
   user: User | null;
@@ -24,6 +27,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onDeleteSession,
   onNewSession,
 }) => {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredStarredSessions = starredSessions.filter(session =>
@@ -189,6 +193,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
             {NAVIGATION_ITEMS.map(item => (
               <button
                 key={item.id}
+                onClick={() => {
+                  if (item.label === "Sign Out") {
+                    logout();
+                    localStorage.removeItem(env.NEXT_PUBLIC_SSID);
+                    router.push("/login");
+                  }
+                  if (item.label === "Settings") {
+                    router.push("/settings");
+                  }
+                  if (item.label === "Agents Hub") {
+                    router.push("/agents");
+                  }
+                }}
                 className="w-full flex items-center space-x-3 p-2 rounded-lg text-gray-300 hover:text-white hover:bg-gray-700 transition-colors text-sm"
               >
                 <span>{item.icon}</span>

@@ -18,6 +18,17 @@ import {
 } from "firebase/firestore";
 import { env } from "../env/env";
 
+const app = initializeApp({
+  apiKey: env.NEXT_PUBLIC_FIREBASE_API_KEY,
+  authDomain: env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+  projectId: env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+  storageBucket: env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+  appId: env.NEXT_PUBLIC_FIREBASE_APP_ID,
+});
+const fbProvider = new GoogleAuthProvider();
+const fbAuth = getAuth(app);
+
 class Firebase {
   auth: ReturnType<typeof getAuth>;
   provider: GoogleAuthProvider;
@@ -25,16 +36,8 @@ class Firebase {
 
   constructor() {
     try {
-      const app = initializeApp({
-        apiKey: env.NEXT_PUBLIC_API_KEY,
-        authDomain: env.NEXT_PUBLIC_AUTH_DOMAIN,
-        projectId: env.NEXT_PUBLIC_PROJECT_ID,
-        storageBucket: env.NEXT_PUBLIC_STORAGE_BUCKET,
-        messagingSenderId: env.NEXT_PUBLIC_MESSAGING_SENDER_ID,
-        appId: env.NEXT_PUBLIC_APP_ID,
-      });
-      this.provider = new GoogleAuthProvider();
-      this.auth = getAuth(app);
+      this.auth = fbAuth;
+      this.provider = fbProvider;
       this.db = getFirestore(app);
     } catch (error) {
       console.error("Failed to initialize Firebase:", error);
@@ -152,20 +155,24 @@ class Firebase {
   }
 
   authStateChanged(callback: (user: User | null) => void) {
-      return onAuthStateChanged(this.auth, callback);
+    return onAuthStateChanged(this.auth, callback);
   }
 
   getCurrentUser() {
-      return this.auth.currentUser;
+    return this.auth.currentUser;
   }
 }
 
-export const {
-  auth,
-  createUserWithCredential,
-  signInWithCredential,
-  googleAuth,
-  logout,
-  authStateChanged,
-  getCurrentUser,
-} = new Firebase();
+// Create a single Firebase instance
+const firebase = new Firebase();
+
+// Export the bound methods and properties
+export const auth = firebase.auth;
+export const createUserWithCredential =
+  firebase.createUserWithCredential.bind(firebase);
+export const signInWithCredential =
+  firebase.signInWithCredential.bind(firebase);
+export const googleAuth = firebase.googleAuth.bind(firebase);
+export const logout = firebase.logout.bind(firebase);
+export const authStateChanged = firebase.authStateChanged.bind(firebase);
+export const getCurrentUser = firebase.getCurrentUser.bind(firebase);
