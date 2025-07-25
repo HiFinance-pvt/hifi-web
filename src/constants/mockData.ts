@@ -183,19 +183,64 @@ export const NAVIGATION_ITEMS = [
   {
     id: "agents-hub",
     label: "Agents Hub",
-    icon: "🤖",
+    icon: "https://xqak5dz869.ufs.sh/f/9bPBdXjSiv4IFohZsLPWtz9SeL3INaoxjGB5JZbvQuOHPXgf",
     href: "/agents",
   },
   {
     id: "settings",
-    label: "Settings", 
-    icon: "⚙️",
-    href: "/settings",
+    label: "Settings",
+    icon: "https://xqak5dz869.ufs.sh/f/9bPBdXjSiv4ItCty7d6XDQwygSuC1qrPxWn8NUJRZ7TtmMdi",
+    action: "settings",
   },
   {
     id: "sign-out",
-    label: "Sign Out",
-    icon: "🚪",
-    action: "signOut",
+    label: "Sign Out", 
+    icon: "https://xqak5dz869.ufs.sh/f/9bPBdXjSiv4ID2P0tm5vZs9k6EfaoRH3eWIVygtlS5XNujYA",
+    href: "/signOut",
   },
+  
+]; 
+
+// Agents data for the hub
+export const AGENTS = [
+  {
+    id: "sebi-agent",
+    name: "SEBI Agent",
+    description: "Your compliance watchdog. SEBI Agent ensures all your trades and financial decisions follow regulations. It flags risky moves, guides you through filings, and keeps your investments safe from shady waters.",
+    icon: "https://xqak5dz869.ufs.sh/f/9bPBdXjSiv4IyMOKb3qEQBdAb4x5v3j0GpDKhnCOtNw1I9YP",
+    color: "#BD8E17",
+    href: "/agents/sebi-agent",
+    features: ["Trade Compliance", "Risk Flagging", "Regulatory Filings"],
+    status: "active"
+  },
+  {
+    id: "tax-mitra",
+    name: "Tax-Mitra Agent",
+    description: "Your friendly tax sidekick. Tax-Mitra breaks down complex tax laws into human language. From ITR filing to deduction tracking—it helps you save smart, avoid fines, and stay stress-free every tax season.",
+    icon: "https://xqak5dz869.ufs.sh/f/9bPBdXjSiv4IQEFryYscne53xFvDGlPXoSykp4miL9sfCBHM",
+    color: "#99B720", 
+    href: "/agents/tax-mitra",
+    features: ["ITR Filing", "Deduction Tracking", "Tax Optimization"],
+    status: "active"
+  },
+  {
+    id: "debt-squasher",
+    name: "Debt-Squasher Agent", 
+    description: "Brutal on debt, soft on you. Debt-Squasher attacks your loans with ruthless efficiency—optimizing repayments, finding loopholes, and keeping EMI traps at bay. Think of it as your personal debt terminator.",
+    icon: "https://xqak5dz869.ufs.sh/f/9bPBdXjSiv4ITHTdQk1d0QJBp7Ci3hOcWArv9MnmeIS6xaby",
+    color: "#109CA3",
+    href: "/agents/debt-squasher",
+    features: ["Repayment Optimization", "EMI Management", "Debt Strategy"],
+    status: "active"
+  },
+  {
+    id: "trader-agent",
+    name: "Trader Agent",
+    description: "Built for the bold. Trader Agent gives you real-time signals, market heatmaps, and intuitive charts. Whether you're scalping or swing trading, it's your AI-powered trading pitbull—always ready to hustle.",
+    icon: "https://xqak5dz869.ufs.sh/f/9bPBdXjSiv4Iz0m2F9yNHVDGZLkIBX1i8F6AeEQxgp2rb30l",
+    color: "#C54F51",
+    href: "/agents/trader-agent", 
+    features: ["Real-time Signals", "Market Heatmaps", "Trading Charts"],
+    status: "active"
+  }
 ]; 

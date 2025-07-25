@@ -191,6 +191,22 @@ export const useChat = () => {
     []
   );
 
+  // Toggle session star status
+  const toggleSessionStar = useCallback((sessionId: string) => {
+    setState((prev) => ({
+      ...prev,
+      sessions: prev.sessions.map((session) =>
+        session.id === sessionId
+          ? { 
+              ...session, 
+              category: session.category === "starred" ? "chats" : "starred",
+              updatedAt: new Date() 
+            }
+          : session
+      ),
+    }));
+  }, []);
+
   return {
     // State
     sessions: state.sessions,
@@ -208,6 +224,7 @@ export const useChat = () => {
     stopMessage,
     handleFileUpload,
     updateSessionTitle,
+    toggleSessionStar,
   };
 };
 
