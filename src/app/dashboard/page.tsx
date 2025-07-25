@@ -16,6 +16,7 @@ import { hiFiTheme } from "@/theme/hifi-theme";
 import { ALL_SESSIONS } from "@/constants/mockData";
 import { QuickAction } from "@/types/chat";
 import { ChatInput } from "@/components/dashboard";
+import Particles from "@/ui/components/Particles";
 
 export default function HiFiDashboard() {
   const {
@@ -32,6 +33,7 @@ export default function HiFiDashboard() {
     stopMessage,
     handleFileUpload,
     updateSessionTitle,
+    toggleSessionStar,
   } = useChat();
 
   // Initialize with sample data on first load
@@ -72,6 +74,7 @@ export default function HiFiDashboard() {
           onSelectSession={selectSession}
           onDeleteSession={deleteSession}
           onNewSession={handleNewSession}
+          onToggleStar={toggleSessionStar}
         />
       </div>
       {/* Main Chat Area - Always wrapped in Chat component for theme context */}
@@ -168,6 +171,18 @@ export default function HiFiDashboard() {
            */}
         {/* )} */}
       </Chat>
+      <div className="absolute inset-0 w-screen h-screen">
+        <Particles
+          particleColors={["#ffffff", "#ffffff"]}
+          particleCount={200}
+          particleSpread={10}
+          speed={0.1}
+          particleBaseSize={100}
+          moveParticlesOnHover={false}
+          alphaParticles={false}
+          disableRotation={false}
+        />
+      </div>
     </div>
   );
 }
