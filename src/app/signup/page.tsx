@@ -8,13 +8,13 @@ import { useAuth } from "@/contexts/AuthContext";
 import { getCurrentUser } from "@/lib/firebase/firebase";
 import { env } from "@/lib/env";
 import Dither from "@/ui/components/Dither";
+import { toast } from "sonner"; // Import toast for error messages
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const { signUpWithEmail, signInWithGoogle } = useAuth();
   const user = getCurrentUser();
   const router = useRouter();
@@ -23,22 +23,21 @@ export default function SignupPage() {
     e.preventDefault();
 
     if (!email || !password || !confirmPassword) {
-      setError("Please fill in all fields");
+      toast.error("Please fill in all fields");
       return;
     }
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match");
+      toast.error("Passwords do not match");
       return;
     }
 
     if (password.length < 6) {
-      setError("Password must be at least 6 characters long");
+      toast.error("Password must be at least 6 characters long");
       return;
     }
 
     setLoading(true);
-    setError("");
 
     try {
       await signUpWithEmail(email, password);
@@ -50,7 +49,7 @@ export default function SignupPage() {
       }
       router.push("/dashboard");
     } catch (error: any) {
-      setError(getErrorMessage(error.code));
+      getErrorMessage(error.message);
     } finally {
       setLoading(false);
     }
@@ -58,7 +57,6 @@ export default function SignupPage() {
 
   const handleGoogleSignup = async () => {
     setLoading(true);
-    setError("");
 
     try {
       await signInWithGoogle();
@@ -70,24 +68,29 @@ export default function SignupPage() {
       }
       router.push("/dashboard");
     } catch (error: any) {
-      setError("Failed to sign up with Google");
+      getErrorMessage(error.message);
     } finally {
       setLoading(false);
     }
   };
 
   const getErrorMessage = (errorCode: string) => {
+    console.log(errorCode);
     switch (errorCode) {
-      case "auth/email-already-in-use":
-        return "An account with this email already exists";
-      case "auth/invalid-email":
-        return "Invalid email address";
-      case "auth/weak-password":
-        return "Password is too weak. Use at least 6 characters";
-      case "auth/operation-not-allowed":
-        return "Email/password accounts are not enabled";
+      case "Email is already registered":
+        toast.error("An account with this email already exists");
+        return;
+      case "Invalid email address":
+        toast.error("Invalid email address");
+        return;
+      case "Password is too weak. Use at least 6 characters":
+        toast.error("Password is too weak. Use at least 6 characters");
+        return;
+      case "Email/password accounts are not enabled":
+        toast.error("Email/password accounts are not enabled");
+        return;
       default:
-        return "Failed to create account. Please try again";
+        return;
     }
   };
 
@@ -144,17 +147,6 @@ export default function SignupPage() {
             </motion.h1>
             <p className="text-gray-400">Create your account</p>
           </div>
-
-          {/* Error message */}
-          {error && (
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 mb-6"
-            >
-              <p className="text-red-400 text-sm text-center">{error}</p>
-            </motion.div>
-          )}
 
           {/* Email/Password Form */}
           <form onSubmit={handleEmailSignup} className="space-y-6 w-full">
