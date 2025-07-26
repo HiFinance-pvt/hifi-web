@@ -1,13 +1,30 @@
-import { z } from 'zod';
+import { string, z } from 'zod';
 
 // Define schemas for common nested objects
 
 const ContentPartSchema = z.object({
-    functionCall: z.any().nullable().optional(), // Can be a specific FunctionCallSchema if structure is consistent
+    functionCall: z.object({
+        args: z.record(z.string(), z.any()).optional(),
+        id: z.string().optional(),
+        name: z.string(),
+        text: z.string().nullable().optional(),
+    }).nullable().optional(),
     text: z.string().nullable().optional(),
     fileData: z.any().nullable().optional(),
     executableCode: z.any().nullable().optional(),
-    functionResponse: z.any().nullable().optional(), // Can be a specific FunctionResponseSchema if structure is consistent
+    functionResponse: z.object({
+        id: z.string(),
+        name: z.string().optional(),
+        response: z.object({
+            result: z.object({
+                content: z.array(z.object({
+                    text: z.string(),
+                    type: z.string(),
+                })).optional(),
+                isError: z.boolean(),
+            }).nullable().optional(),
+        }).optional(),
+    }).nullable().optional(),
     videoMetadata: z.any().nullable().optional(),
     thought: z.any().nullable().optional(),
     codeExecutionResult: z.any().nullable().optional(),
@@ -97,8 +114,6 @@ const UsageMetadataSchema = z.object({
 
 export type UsageMetadata = z.infer<typeof UsageMetadataSchema>;
 
-// Define schemas for different response types
-
 // Create Session Response
 export const CreateSessionResponseSchema = z.object({
     message: z.string(),
@@ -114,7 +129,7 @@ export const CreateSessionResponseSchema = z.object({
 
 export type CreateSessionResponse = z.infer<typeof CreateSessionResponseSchema>;
 
-// Event Schema (used in Get Session and Send Message Response)
+// Enhanced Event Schema with better function handling
 export const EventSchema = z.object({
     id: z.string(),
     groundingMetadata: z.any().nullable(),
@@ -127,14 +142,30 @@ export const EventSchema = z.object({
     turnComplete: z.any().nullable(),
     customMetadata: z.any().nullable(),
     timestamp: z.number(),
-    content: ContentSchema.optional(), // Content is present for user/model turns
+    content: ContentSchema.optional(),
     errorMessage: z.any().nullable().optional(),
     usageMetadata: UsageMetadataSchema.optional().nullable(),
     actions: ActionsSchema.optional(),
-    longRunningToolIds: z.any().nullable().optional(), // Typo in source as 'longRunning Toollds'
+    longRunningToolIds: z.any().nullable().optional(),
 });
 
 export type Event = z.infer<typeof EventSchema>;
+
+// New schema for processed messages
+export const ProcessedMessageSchema = z.object({
+    id: z.string(),
+    author: z.string(),
+    timestamp: z.number(),
+    type: z.enum(['user', 'assistant', 'function_call', 'function_response', 'thought']),
+    text: z.string().optional(),
+    functionName: z.string().optional(),
+    functionArgs: z.record(z.string(), z.any()).optional(),
+    functionResponse: z.any().optional(),
+    isError: z.boolean().optional(),
+    isPartial: z.boolean().optional(),
+});
+
+export type ProcessedMessage = z.infer<typeof ProcessedMessageSchema>;
 
 // Get Session Response
 export const GetSessionResponseSchema = z.object({
@@ -157,11 +188,24 @@ export const DeleteSessionResponseSchema = z.object({
 
 export type DeleteSessionResponse = z.infer<typeof DeleteSessionResponseSchema>;
 
+export const SendSpecificContentPartsSchema = z.object({
+    function_call: z.object({
+        id: z.string().nullable().optional(),
+        name: z.string().nullable().optional(),
+        args: z.object().nullable().optional()
+    }).nullable().optional()
+})
 
+export const SendSpecificContentSchema = z.object({
+    parts: z.array(z.union([ContentPartSchema, SendSpecificContentPartsSchema])),
+    role: z.string().optional(),
+});
+
+export type SendSpecificContent = z.infer<typeof SendSpecificContentSchema>;
 
 // Send Message Response (This corresponds to the individual messages within the "events" array or top-level responses)
 export const SendMessageResponseSchema = z.object({
-    content: ContentSchema.optional(),
+    content: z.union([ContentSchema, SendSpecificContentSchema]).optional(),
     usage_metadata: UsageMetadataSchema.optional(),
     invocation_id: z.string().optional(),
     author: z.string(),
