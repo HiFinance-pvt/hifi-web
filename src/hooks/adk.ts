@@ -25,6 +25,16 @@ export function useCreateSessionMutation() {
     });
 }
 
+export function useDeleteSessionMutation() {
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: (sessionId: string) => api.adk.deleteSession(sessionId),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['adk', 'sessions'] });
+        },
+    });
+}
+
 export function useGetSessionQuery(sessionId: string | undefined) {
     return useQuery({
         queryKey: ['adk', 'session', sessionId],
