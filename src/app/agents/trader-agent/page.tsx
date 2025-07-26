@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Sidebar } from "@/components/Sidebar";
+
 import Particles from "@/ui/components/Particles";
 import TextType from "@/ui/TextAnimations/TextType/TextType";
 import { useChat } from "@/hooks/useChat";
@@ -18,7 +18,7 @@ import {
   TrendingUp,
   LineChart,
   BarChart,
-  Wifi, 
+  Wifi,
   X,
   CandlestickChart,
   PieChart,
@@ -198,216 +198,6 @@ const ConnectionPopup: React.FC<{
         </div>
       </div>
     </div>
-  );
-};
-
-// Header Controls Component
-const HeaderControls: React.FC = () => {
-  const [language, setLanguage] = useState("EN");
-  const [fiConnected, setFiConnected] = useState(true);
-  const [showFiTooltip, setShowFiTooltip] = useState(false);
-  const [showLangDropdown, setShowLangDropdown] = useState(false);
-  const [showConnectionPopup, setShowConnectionPopup] = useState(false);
-  const [isConnecting, setIsConnecting] = useState(false);
-
-  const languages = [
-    { code: "EN", name: "English" },
-    { code: "HI", name: "हिंदी" },
-    { code: "GU", name: "ગુજરાતી" },
-    { code: "MR", name: "मराठी" },
-  ];
-
-  const handleFiToggle = () => {
-    setFiConnected(!fiConnected);
-    setShowFiTooltip(false);
-    setShowConnectionPopup(true);
-  };
-
-  return (
-    <>
-      <div className="fixed top-2 right-2 sm:top-4 sm:right-4 z-50 flex items-center space-x-2 sm:space-x-3">
-        {/* Language Selector */}
-        <div className="relative">
-          <button
-            onClick={() => setShowLangDropdown(!showLangDropdown)}
-            className="flex items-center space-x-1 px-2 py-1.5 sm:px-3 sm:py-2 bg-gray-900/80 border border-gray-700/50 rounded-full backdrop-blur-sm hover:bg-gray-800/90 transition-all duration-300 ease-out w-12 h-12 justify-center transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl"
-          >
-            <Globe className="w-4 h-4 text-gray-300 hover:text-white transition-colors duration-300 ease-out" />
-          </button>
-
-          {showLangDropdown && (
-            <div className="absolute top-full mt-2 right-0 w-36 bg-gray-900/95 border border-gray-700/50 rounded-lg backdrop-blur-sm shadow-xl popup-animation">
-              {languages.map((lang) => (
-                <button
-                  key={lang.code}
-                  onClick={() => {
-                    setLanguage(lang.code);
-                    setShowLangDropdown(false);
-                  }}
-                  className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-800/70 transition-all duration-200 ease-out transform hover:scale-105 hover:translate-x-1 ${
-                    language === lang.code
-                      ? "text-emerald-400 bg-emerald-500/10"
-                      : "text-gray-300"
-                  } ${lang.code === languages[0].code ? "rounded-t-lg" : ""} ${
-                    lang.code === languages[languages.length - 1].code
-                      ? "rounded-b-lg"
-                      : ""
-                  }`}
-                >
-                  {lang.name}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Fi Toggle */}
-        <div
-          className="relative"
-          onMouseEnter={() => setShowFiTooltip(true)}
-          onMouseLeave={() => {
-            // Small delay to allow moving to tooltip
-            setTimeout(() => setShowFiTooltip(false), 150);
-          }}
-        >
-          <button
-            className={`relative w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 backdrop-blur-sm transition-all duration-200 flex items-center justify-center ${
-              fiConnected
-                ? "bg-emerald-500/20 border-emerald-500/50 hover:bg-emerald-500/30"
-                : "bg-red-500/20 border-red-500/50 hover:bg-red-500/30"
-            }`}
-          >
-            {/* Outer glow ring */}
-            <div
-              className={`absolute inset-0 rounded-full animate-pulse ${
-                fiConnected ? "bg-emerald-400/20" : "bg-red-400/20"
-              }`}
-            />
-
-            {/* Fi icon in center */}
-            <div className="relative z-10 flex items-center justify-center">
-              <img
-                src={
-                  fiConnected
-                    ? "https://xqak5dz869.ufs.sh/f/9bPBdXjSiv4IehfPx9KyJ8jNPpV24cHROwYQuxMUoLIv9n6S"
-                    : "https://xqak5dz869.ufs.sh/f/9bPBdXjSiv4IVSvVCH71tHP9Q3GfOo7m650V8qacgeNAFTyE"
-                }
-                alt={fiConnected ? "Fi Connected" : "Fi Disconnected"}
-                className="w-3 h-3 sm:w-4 sm:h-4 object-contain relative z-10 drop-shadow-md"
-                style={{
-                  filter: "brightness(1.2) contrast(1.1)",
-                  maxWidth: "16px",
-                  maxHeight: "16px",
-                }}
-                onError={(e) => {
-                  // Fallback to text if image fails to load
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = "none";
-                  const fallback = document.createElement("span");
-                  fallback.textContent = "Fi";
-                  fallback.className = `text-sm font-bold ${
-                    fiConnected ? "text-emerald-400" : "text-red-400"
-                  }`;
-                  target.parentNode?.appendChild(fallback);
-                }}
-              />
-            </div>
-
-            {/* Status dot at bottom border */}
-            <div
-              className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 w-2 h-2 rounded-full border border-gray-900 ${
-                fiConnected ? "bg-emerald-400" : "bg-red-400"
-              }`}
-            />
-          </button>
-
-          {showFiTooltip && (
-            <div
-              className="absolute top-full mt-3 right-0 w-72 bg-gray-900/98 border border-gray-600/50 rounded-xl backdrop-blur-md shadow-2xl z-60 overflow-hidden popup-animation"
-              onMouseEnter={() => setShowFiTooltip(true)}
-              onMouseLeave={() => setShowFiTooltip(false)}
-            >
-              <div className="px-4 py-3 bg-gradient-to-r from-gray-800/50 to-gray-700/50 border-b border-gray-600/30 relative">
-                <div className="flex items-center space-x-3">
-                  <div
-                    className={`w-3 h-3 rounded-full ${
-                      fiConnected ? "bg-emerald-400" : "bg-red-400"
-                    } animate-pulse shadow-lg`}
-                  />
-                  <span className="text-sm font-semibold text-white">
-                    Fi Account Status
-                  </span>
-                </div>
-                <button
-                  onClick={() => setShowFiTooltip(false)}
-                  className="absolute top-2 right-2 p-1 text-gray-400 hover:text-white transition-colors rounded"
-                >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
-              </div>
-
-              <div className="p-4">
-                <div className="mb-4">
-                  <div
-                    className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                      fiConnected
-                        ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-                        : "bg-red-500/20 text-red-400 border border-red-500/30"
-                    }`}
-                  >
-                    {fiConnected ? "Connected" : "Disconnected"}
-                  </div>
-                </div>
-
-                <p className="text-xs text-gray-300 leading-relaxed mb-4">
-                  {fiConnected
-                    ? "Your Fi account is connected and syncing financial data securely. All features are available."
-                    : "Connect your Fi account to sync financial data and unlock all premium features."}
-                </p>
-
-                <button
-                  onClick={handleFiToggle}
-                  className={`w-full px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg border ${
-                    fiConnected
-                      ? "bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20 hover:border-red-500/50"
-                      : "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-500/50"
-                  }`}
-                >
-                  {fiConnected ? "Disconnect Account" : "Connect Account"}
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Notifications */}
-        <button className="relative w-12 h-12 bg-gray-900/80 border border-gray-700/50 rounded-full backdrop-blur-sm hover:bg-gray-800/90 transition-all duration-300 ease-out flex items-center justify-center transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl">
-          <Bell className="w-4 h-4 text-gray-300 hover:text-white transition-colors duration-300 ease-out" />
-          <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full flex items-center justify-center animate-pulse shadow-lg">
-            <span className="text-xs text-white font-medium">3</span>
-          </div>
-        </button>
-      </div>
-
-      {/* Connection Status Popup */}
-      <ConnectionPopup
-        isVisible={showConnectionPopup}
-        isConnected={fiConnected}
-        onClose={() => setShowConnectionPopup(false)}
-      />
-    </>
   );
 };
 
@@ -591,25 +381,9 @@ export default function TraderAgentPage() {
   return (
     <div
       ref={containerRef}
-      className="flex flex-col lg:flex-row h-screen w-screen bg-[#111827] overflow-hidden smooth-entry"
+      className="flex flex-col h-full w-full bg-transparent overflow-hidden smooth-entry"
+      style={{ pointerEvents: "auto" }}
     >
-      {/* Header Controls */}
-      <HeaderControls />
-
-      {/* Sidebar */}
-      <div className="relative z-10 w-full lg:w-auto lg:flex-shrink-0">
-        <Sidebar
-          user={user}
-          // starredSessions={sessionsByCategory.starred}
-          // chatSessions={sessionsByCategory.chats}
-          activeSessionId={activeSessionId}
-          onSelectSession={selectSession}
-          onDeleteSession={deleteSession}
-          onNewSession={createNewSession}
-          onToggleStar={toggleSessionStar}
-        />
-      </div>
-
       {/* Particles Background - Full Screen */}
       <div className="fixed inset-0 w-screen h-screen z-0 blur-sm opacity-70">
         <Particles
