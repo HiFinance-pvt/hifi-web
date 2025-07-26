@@ -16,7 +16,8 @@ import {
   getDoc,
   Firestore,
 } from "firebase/firestore";
-import { env } from "../env";
+import { env } from "../env/env";
+import { toast } from "sonner";
 
 const app = initializeApp({
   apiKey: env.NEXT_PUBLIC_FIREBASE_API_KEY,
@@ -134,12 +135,16 @@ class Firebase {
       // Handle specific Firebase Auth errors
       switch (error.code) {
         case "auth/popup-closed-by-user":
+          toast.error("Authentication cancelled by user");
           throw new Error("Authentication cancelled by user");
         case "auth/popup-blocked":
+          toast.error("Popup was blocked by browser");
           throw new Error("Popup was blocked by browser");
         case "auth/cancelled-popup-request":
+          toast.error("Authentication request cancelled");
           throw new Error("Authentication request cancelled");
         default:
+          toast.error("Failed to authenticate with Google");
           throw new Error("Failed to authenticate with Google");
       }
     }
