@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { User, ChatSession } from "@/types/chat";
 import { NAVIGATION_ITEMS } from "@/constants/mockData";
+import { useSessionStore } from "@/stores/sessionStore";
 import {
   Plus,
   Search,
@@ -14,27 +15,24 @@ import {
   PanelLeftClose,
   MessageSquare,
   Edit2,
+  Loader2,
 } from "lucide-react";
 import { logout } from "@/lib/firebase/firebase";
-import { env } from "@/lib/env/env";
+import { env } from "@/lib/env";
 import { useRouter } from "next/navigation";
 
 interface SidebarProps {
   user: User | null;
-  starredSessions: ChatSession[];
-  chatSessions: ChatSession[];
   activeSessionId: string | null;
   onSelectSession: (sessionId: string) => void;
   onDeleteSession: (sessionId: string) => void;
   onNewSession: () => void;
-  onToggleStar: (sessionId: string) => void;
+  onToggleStar?: (sessionId: string) => void;
   onRenameSession?: (sessionId: string, newTitle: string) => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
   user,
-  starredSessions,
-  chatSessions,
   activeSessionId,
   onSelectSession,
   onDeleteSession,
@@ -48,18 +46,67 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState("");
 
-  const filteredStarredSessions = starredSessions.filter((session) =>
-    session.title.toLowerCase().includes(searchQuery.toLowerCase())
+  // Session store integration
+  const {
+    sessions: rawSessions,
+    isLoading,
+    error,
+    fetchSessions,
+    createSession,
+    updateSession,
+    removeSession,
+    startPeriodicSync,
+    stopPeriodicSync,
+  } = useSessionStore();
+
+  // Initialize sessions on mount
+  useEffect(() => {
+    const initializeSessions = async () => {
+      // Fetch sessions if we don't have any
+      if (rawSessions.length === 0) {
+        await fetchSessions();
+      }
+
+      // Start periodic sync
+      startPeriodicSync();
+    };
+
+    initializeSessions();
+
+    // Cleanup on unmount
+    return () => {
+      stopPeriodicSync();
+    };
+  }, [fetchSessions, startPeriodicSync, stopPeriodicSync, rawSessions.length]);
+
+  // Transform API sessions to ChatSession format
+  const transformedSessions: ChatSession[] = rawSessions.map((session) => ({
+    id: session.id,
+    title: session.appName || `Session ${session.id.slice(0, 8)}`,
+    category: "chats" as const, // Default to chats, you can add starring logic later
+    createdAt: new Date(session.lastUpdateTime),
+    updatedAt: new Date(session.lastUpdateTime),
+    conversations: [], // You can transform events to conversations if needed
+  }));
+
+  // Filter sessions based on search
+  const filteredStarredSessions = transformedSessions.filter(
+    (session) =>
+      session.category === "starred" &&
+      session.title?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const filteredChatSessions = chatSessions.filter((session) =>
-    session.title.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredChatSessions = transformedSessions.filter(
+    (session) =>
+      session.category === "chats" &&
+      session.title?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const formatDate = (date: Date) => {
+  const formatDate = (date: Date | number) => {
+    const dateObj = typeof date === "number" ? new Date(date) : date;
     const now = new Date();
     const diffInHours = Math.floor(
-      (now.getTime() - date.getTime()) / (1000 * 60 * 60)
+      (now.getTime() - dateObj.getTime()) / (1000 * 60 * 60)
     );
 
     if (diffInHours < 24) {
@@ -99,14 +146,28 @@ export const Sidebar: React.FC<SidebarProps> = ({
     onSelectSession(sessionId);
   };
 
-  const handleDeleteSession = (sessionId: string, e: React.MouseEvent) => {
+  const handleDeleteSession = async (
+    sessionId: string,
+    e: React.MouseEvent
+  ) => {
     e.stopPropagation();
-    onDeleteSession(sessionId);
+    try {
+      await removeSession(sessionId);
+      onDeleteSession(sessionId);
+    } catch (error) {
+      console.error("Failed to delete session:", error);
+    }
   };
 
   const handleToggleStar = (sessionId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    onToggleStar(sessionId);
+    const session = transformedSessions.find((s) => s.id === sessionId);
+    if (session) {
+      const newCategory = session.category === "starred" ? "chats" : "starred";
+      // Update in store - you might need to add custom metadata for starring
+      updateSession(sessionId, { lastUpdateTime: Date.now() });
+      onToggleStar?.(sessionId);
+    }
   };
 
   const handleStartRename = (
@@ -119,9 +180,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
     setEditingTitle(currentTitle);
   };
 
-  const handleSaveRename = (sessionId: string) => {
+  const handleSaveRename = async (sessionId: string) => {
     if (onRenameSession && editingTitle.trim()) {
-      onRenameSession(sessionId, editingTitle.trim());
+      try {
+        // Update in API/store - you might need to modify the updateSession to handle appName
+        await updateSession(sessionId, { appName: editingTitle.trim() });
+        onRenameSession(sessionId, editingTitle.trim());
+      } catch (error) {
+        console.error("Failed to rename session:", error);
+      }
     }
     setEditingSessionId(null);
     setEditingTitle("");
@@ -130,6 +197,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const handleCancelRename = () => {
     setEditingSessionId(null);
     setEditingTitle("");
+  };
+
+  const handleNewSession = async () => {
+    try {
+      const newSession = await createSession();
+      if (newSession) {
+        onSelectSession(newSession.id);
+      }
+    } catch (error) {
+      console.error("Failed to create session:", error);
+      // Fallback to the parent's new session handler
+      onNewSession();
+    }
   };
 
   const SessionItem: React.FC<{ session: ChatSession; isStarred: boolean }> = ({
@@ -226,6 +306,45 @@ export const Sidebar: React.FC<SidebarProps> = ({
     );
   };
 
+  const LoadingState = () => (
+    <div className="flex items-center justify-center py-8">
+      <div className="flex items-center space-x-2 text-gray-400">
+        <Loader2 className="w-4 h-4 animate-spin" />
+        <span className="text-sm">Loading sessions...</span>
+      </div>
+    </div>
+  );
+
+  const ErrorState = () => (
+    <div className="px-4 py-4">
+      <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+        <div className="flex items-center space-x-2 text-red-400 mb-2">
+          <svg
+            className="w-4 h-4"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 15.5c-.77.833.192 2.5 1.732 2.5z"
+            />
+          </svg>
+          <span className="text-sm font-medium">Error loading sessions</span>
+        </div>
+        <p className="text-xs text-red-300 mb-3">{error}</p>
+        <button
+          onClick={() => fetchSessions(true, true)}
+          className="text-xs bg-red-500/20 hover:bg-red-500/30 px-2 py-1 rounded transition-colors duration-200"
+        >
+          Retry
+        </button>
+      </div>
+    </div>
+  );
+
   if (isCollapsed) {
     return (
       <div className="flex flex-col h-full border-r border-gray-700/15 bg-gray-900/20 backdrop-blur-sm transition-all duration-500 ease-in-out w-16">
@@ -263,11 +382,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           {/* New Chat Button */}
           <button
-            onClick={onNewSession}
+            onClick={handleNewSession}
             className="w-10 h-10 bg-teal-600 hover:bg-teal-700 rounded-lg flex items-center justify-center transition-all duration-400 ease-out transform hover:scale-110 hover:shadow-lg hover:shadow-teal-500/40"
             title="New Chat"
+            disabled={isLoading}
           >
-            <Plus className="w-4 h-4 text-white transition-transform duration-300 ease-out hover:rotate-90" />
+            {isLoading ? (
+              <Loader2 className="w-4 h-4 text-white animate-spin" />
+            ) : (
+              <Plus className="w-4 h-4 text-white transition-transform duration-300 ease-out hover:rotate-90" />
+            )}
           </button>
         </div>
 
@@ -362,7 +486,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2 duration-300 ease-out group-focus-within:text-teal-400 z-10 pointer-events-none" />
           <input
             type="text"
-            placeholder="Search..."
+            placeholder="Search sessions..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-2 border border-gray-600/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/30 transition-all duration-400 ease-out backdrop-blur-sm relative z-0"
@@ -371,18 +495,31 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* New Chat Button */}
         <button
-          onClick={onNewSession}
-          className="w-full mt-3 flex items-center justify-center space-x-2 p-2 bg-teal-600 hover:bg-teal-700 rounded-lg text-white transition-all duration-300 ease-out hover:scale-105"
+          onClick={handleNewSession}
+          disabled={isLoading}
+          className="w-full mt-3 flex items-center justify-center space-x-2 p-2 bg-teal-600 hover:bg-teal-700 disabled:bg-teal-600/50 disabled:cursor-not-allowed rounded-lg text-white transition-all duration-300 ease-out hover:scale-105 disabled:hover:scale-100"
         >
-          <Plus className="w-4 h-4 text-white" />
-          <span className="text-sm font-medium">New Chat</span>
+          {isLoading ? (
+            <Loader2 className="w-4 h-4 text-white animate-spin" />
+          ) : (
+            <Plus className="w-4 h-4 text-white" />
+          )}
+          <span className="text-sm font-medium">
+            {isLoading ? "Creating..." : "New Chat"}
+          </span>
         </button>
       </div>
 
       {/* Sessions */}
       <div className="flex-1 overflow-y-auto px-4 pb-4 animate-in slide-in-from-left-2 duration-500 ease-out">
+        {/* Error State */}
+        {error && <ErrorState />}
+
+        {/* Loading State */}
+        {isLoading && transformedSessions.length === 0 && <LoadingState />}
+
         {/* Starred Sessions */}
-        {filteredStarredSessions.length > 0 && (
+        {!isLoading && !error && filteredStarredSessions.length > 0 && (
           <div className="mb-6">
             <h3 className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-3 transition-colors duration-300 ease-out hover:text-gray-300">
               Starred
@@ -404,7 +541,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         )}
 
         {/* Chat Sessions */}
-        {filteredChatSessions.length > 0 && (
+        {!isLoading && !error && filteredChatSessions.length > 0 && (
           <div>
             <h3 className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-3 transition-colors duration-300 ease-out hover:text-gray-300">
               Chats
@@ -428,12 +565,40 @@ export const Sidebar: React.FC<SidebarProps> = ({
         )}
 
         {/* No sessions found */}
-        {filteredStarredSessions.length === 0 &&
-          filteredChatSessions.length === 0 && (
+        {!isLoading &&
+          !error &&
+          filteredStarredSessions.length === 0 &&
+          filteredChatSessions.length === 0 &&
+          transformedSessions.length > 0 && (
             <div className="text-center py-8 animate-in fade-in duration-600 ease-out">
-              <p className="text-gray-500 text-sm">No sessions found</p>
+              <p className="text-gray-500 text-sm">
+                No sessions match your search
+              </p>
             </div>
           )}
+
+        {/* Empty state */}
+        {!isLoading && !error && transformedSessions.length === 0 && (
+          <div className="text-center py-8 animate-in fade-in duration-600 ease-out">
+            <div className="flex flex-col items-center space-y-3">
+              <MessageSquare className="w-12 h-12 text-gray-600" />
+              <div>
+                <p className="text-gray-400 text-sm font-medium">
+                  No chat sessions yet
+                </p>
+                <p className="text-gray-500 text-xs mt-1">
+                  Start a new conversation to get started
+                </p>
+              </div>
+              <button
+                onClick={handleNewSession}
+                className="px-4 py-2 bg-teal-600 hover:bg-teal-700 rounded-lg text-white text-sm transition-colors duration-200"
+              >
+                Start First Chat
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* User Profile Section */}
