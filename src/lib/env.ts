@@ -10,6 +10,7 @@ export const env = createEnv({
     NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: z.string().min(1),
     NEXT_PUBLIC_FIREBASE_APP_ID: z.string().min(1),
     NEXT_PUBLIC_SSID: z.string().min(1),
+    NEXT_PUBLIC_FI_MCP_SERVER_URL: z.string().min(1),
     NEXT_PUBLIC_API_URL: z.string().min(1),
   },
   server: {
@@ -27,6 +28,7 @@ export const env = createEnv({
       process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
     NEXT_PUBLIC_FIREBASE_APP_ID: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
     NEXT_PUBLIC_SSID: process.env.NEXT_PUBLIC_SSID,
+    NEXT_PUBLIC_FI_MCP_SERVER_URL: process.env.NEXT_PUBLIC_FI_MCP_SERVER_URL,
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
     NODE_ENV: process.env.NODE_ENV,
   },
