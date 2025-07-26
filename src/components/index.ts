@@ -2,6 +2,8 @@
 export { WelcomeScreen } from "./WelcomeScreen";
 export { Sidebar } from "./Sidebar";
 export { AuthGuard } from "./AuthGuard";
+export { LanguageSelector } from "./LanguageSelector";
+export { TranslatedText } from "./TranslatedText";
 
 // Re-export commonly used types
 export type {

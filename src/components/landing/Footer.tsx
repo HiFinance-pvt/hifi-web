@@ -3,9 +3,11 @@
 import React from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { useLanguageStore } from "@/stores/languageStore";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
+  const { currentLanguage } = useLanguageStore();
 
   const footerLinks = {
     product: [

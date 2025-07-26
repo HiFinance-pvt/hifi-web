@@ -1,11 +1,11 @@
 "use client";
-import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider, theme } from "reablocks";
 import { AuthProvider } from "@/contexts/AuthContext";
 import "./globals.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
+import { useLanguageInit } from "@/hooks/useLanguageInit";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,10 +17,10 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-// export const metadata: Metadata = {
-//   title: "Hi-Fi Financial Assistant",
-//   description: "Your AI-powered financial assistant",
-// };
+function LanguageInitializer() {
+  useLanguageInit();
+  return null;
+}
 
 export default function RootLayout({
   children,
@@ -29,6 +29,7 @@ export default function RootLayout({
 }>) {
   // Ensure a single QueryClient instance per app
   const [queryClient] = useState(() => new QueryClient());
+
   return (
     <html lang="en">
       <head>
@@ -42,11 +43,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-
         <ThemeProvider theme={theme}>
           <QueryClientProvider client={queryClient}>
             <AuthProvider>
-              <div className="flex h-screen bg-gray-900">{children}</div>
+              <LanguageInitializer />
+              {children}
             </AuthProvider>
           </QueryClientProvider>
         </ThemeProvider>

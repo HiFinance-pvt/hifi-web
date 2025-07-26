@@ -6,6 +6,7 @@ import Particles from "@/ui/components/Particles";
 import TextType from "@/ui/TextAnimations/TextType/TextType";
 import { useChat } from "@/hooks/useChat";
 import { ALL_SESSIONS } from "@/constants/mockData";
+import { LanguageSelector } from "@/components/LanguageSelector";
 import {
   Globe,
   Bell,
@@ -203,19 +204,10 @@ const ConnectionPopup: React.FC<{
 
 // Header Controls Component
 const HeaderControls: React.FC = () => {
-  const [language, setLanguage] = useState("EN");
   const [fiConnected, setFiConnected] = useState(true);
   const [showFiTooltip, setShowFiTooltip] = useState(false);
-  const [showLangDropdown, setShowLangDropdown] = useState(false);
   const [showConnectionPopup, setShowConnectionPopup] = useState(false);
   const [isConnecting, setIsConnecting] = useState(false);
-
-  const languages = [
-    { code: "EN", name: "English" },
-    { code: "HI", name: "हिंदी" },
-    { code: "GU", name: "ગુજરાતી" },
-    { code: "MR", name: "मराठी" },
-  ];
 
   const handleFiToggle = () => {
     setFiConnected(!fiConnected);
@@ -227,39 +219,7 @@ const HeaderControls: React.FC = () => {
     <>
       <div className="fixed top-2 right-2 sm:top-4 sm:right-4 z-50 flex items-center space-x-2 sm:space-x-3">
         {/* Language Selector */}
-        <div className="relative">
-          <button
-            onClick={() => setShowLangDropdown(!showLangDropdown)}
-            className="flex items-center space-x-1 px-2 py-1.5 sm:px-3 sm:py-2 bg-gray-900/80 border border-gray-700/50 rounded-full backdrop-blur-sm hover:bg-gray-800/90 transition-all duration-300 ease-out w-12 h-12 justify-center transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl"
-          >
-            <Globe className="w-4 h-4 text-gray-300 hover:text-white transition-colors duration-300 ease-out" />
-          </button>
-
-          {showLangDropdown && (
-            <div className="absolute top-full mt-2 right-0 w-36 bg-gray-900/95 border border-gray-700/50 rounded-lg backdrop-blur-sm shadow-xl popup-animation">
-              {languages.map((lang) => (
-                <button
-                  key={lang.code}
-                  onClick={() => {
-                    setLanguage(lang.code);
-                    setShowLangDropdown(false);
-                  }}
-                  className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-800/70 transition-all duration-200 ease-out transform hover:scale-105 hover:translate-x-1 ${
-                    language === lang.code
-                      ? "text-emerald-400 bg-emerald-500/10"
-                      : "text-gray-300"
-                  } ${lang.code === languages[0].code ? "rounded-t-lg" : ""} ${
-                    lang.code === languages[languages.length - 1].code
-                      ? "rounded-b-lg"
-                      : ""
-                  }`}
-                >
-                  {lang.name}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+        <LanguageSelector />
 
         {/* Fi Toggle */}
         <div
