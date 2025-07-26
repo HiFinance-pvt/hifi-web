@@ -15,6 +15,7 @@ import { ALL_SESSIONS } from "@/constants/mockData";
 import { QuickAction } from "@/types/chat";
 import { ChatInput } from "@/components/dashboard";
 import { useCreateSessionMutation, useGetSessionQuery, useListSessionsQuery, useSendMessageMutation, useSessionMessagesQuery } from "@/hooks/adk";
+import Particles from "@/ui/components/Particles";
 
 export default function HiFiDashboard() {
   const sessionId = "1802999508192198656";
