@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { User, ChatSession } from "@/types/chat";
 import { NAVIGATION_ITEMS } from "@/constants/mockData";
 import { useSessionStore } from "@/stores/sessionStore";
+import { useDeleteSessionMutation } from "@/hooks/adk";
 import {
   Plus,
   Search,
@@ -56,6 +57,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
     createSession,
     removeSession,
   } = useSessionStore();
+
+  // Delete session mutation
+  const deleteSessionMutation = useDeleteSessionMutation();
 
   // Initialize sessions on mount
   useEffect(() => {
@@ -141,11 +145,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
     e: React.MouseEvent
   ) => {
     e.stopPropagation();
+
     try {
-      await removeSession(sessionId);
+      // Call the API to delete the session
+      await deleteSessionMutation.mutateAsync(sessionId);
+
+      // Remove from local state
+      removeSession(sessionId);
+
+      // Call parent handler to update UI state
       onDeleteSession(sessionId);
+
+      console.log(`Session ${sessionId} deleted successfully`);
     } catch (error) {
       console.error("Failed to delete session:", error);
+      // You might want to show a toast notification or error message here
     }
   };
 
@@ -202,6 +216,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
     isStarred,
   }) => {
     const isEditing = editingSessionId === session.id;
+    const isDeleting =
+      deleteSessionMutation.isPending &&
+      deleteSessionMutation.variables === session.id;
 
     return (
       <div
@@ -210,7 +227,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           activeSessionId === session.id
             ? "bg-teal-500/20 border border-teal-500/50 shadow-lg shadow-teal-500/10"
             : "hover:bg-gray-700/30 border border-transparent hover:border-gray-600/30"
-        }`}
+        } ${isDeleting ? "opacity-50 pointer-events-none" : ""}`}
       >
         <div className="flex-1 min-w-0">
           {isEditing ? (
@@ -250,6 +267,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               onClick={(e) => handleToggleStar(session.id, e)}
               className="p-1 rounded hover:bg-yellow-500/20 transition-all duration-300 ease-out transform hover:scale-110"
               title={isStarred ? "Unstar chat" : "Star chat"}
+              disabled={isDeleting}
             >
               <Star
                 className={`w-3 h-3 transition-all duration-300 ease-out ${
@@ -263,6 +281,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               onClick={(e) => handleStartRename(session.id, session.title, e)}
               className="p-1 rounded hover:bg-blue-500/20 transition-all duration-300 ease-out transform hover:scale-110"
               title="Rename chat"
+              disabled={isDeleting}
             >
               <Edit2 className="w-3 h-3 text-gray-400 hover:text-blue-400 transition-all duration-300 ease-out" />
             </button>
@@ -270,20 +289,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
               onClick={(e) => handleDeleteSession(session.id, e)}
               className="p-1 rounded hover:bg-red-500/20 transition-all duration-300 ease-out transform hover:scale-110"
               title="Delete chat"
+              disabled={isDeleting}
             >
-              <svg
-                className="w-3 h-3 text-gray-400 hover:text-red-400 transition-all duration-300 ease-out"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                />
-              </svg>
+              {isDeleting ? (
+                <Loader2 className="w-3 h-3 text-gray-400 animate-spin" />
+              ) : (
+                <svg
+                  className="w-3 h-3 text-gray-400 hover:text-red-400 transition-all duration-300 ease-out"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
+                </svg>
+              )}
             </button>
           </div>
         </div>
