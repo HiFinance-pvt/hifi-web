@@ -16,11 +16,12 @@ export function useListSessionsQuery() {
 }
 
 export function useCreateSessionMutation() {
-
-    return useQuery({
-        queryKey: ['adk', 'createSession'],
-        queryFn: () => api.adk.createSession(),
-
+    const queryClient = useQueryClient();
+    return useMutation({
+        mutationFn: () => api.adk.createSession(),
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ['adk', 'sessions'] });
+        },
     });
 }
 

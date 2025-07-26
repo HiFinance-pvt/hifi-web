@@ -10,8 +10,8 @@ import { useRouter } from "next/navigation";
 
 interface SidebarProps {
   user: User | null;
-  starredSessions: ChatSession[];
-  chatSessions: ChatSession[];
+  starredSessions: any[];
+  chatSessions: any[];
   activeSessionId: string | null;
   onSelectSession: (sessionId: string) => void;
   onDeleteSession: (sessionId: string) => void;
@@ -33,16 +33,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const [searchQuery, setSearchQuery] = useState("");
 
   const filteredStarredSessions = starredSessions.filter(session =>
-    session.title.toLowerCase().includes(searchQuery.toLowerCase())
+    (session.title || session.appName || `Session ${session.id}`).toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const filteredChatSessions = chatSessions.filter(session =>
-    session.title.toLowerCase().includes(searchQuery.toLowerCase())
+    (session.title || session.appName || `Session ${session.id}`).toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const formatDate = (date: Date) => {
+  const formatDate = (date: Date | number) => {
+    const dateObj = typeof date === 'number' ? new Date(date) : date;
     const now = new Date();
-    const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
+    const diffInHours = Math.floor((now.getTime() - dateObj.getTime()) / (1000 * 60 * 60));
 
     if (diffInHours < 24) {
       return "Today";
@@ -58,21 +59,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
     // Check if it's a URL (for custom uploaded images)
     if (iconValue.startsWith('http')) {
       return (
-        <img 
-          src={iconValue} 
-          alt="icon" 
+        <img
+          src={iconValue}
+          alt="icon"
           className="h-9 w-9 object-contain"
         />
       );
     }
-    
+
     // Fallback to lucide-react icons
     const iconMap: { [key: string]: React.ComponentType<any> } = {
       'Bot': Bot,
       'Settings': Settings,
       'LogOut': LogOut,
     };
-    
+
     const IconComponent = iconMap[iconValue];
     return IconComponent ? <IconComponent className="h-4 w-4" /> : <span>{iconValue}</span>;
   };
@@ -91,35 +92,34 @@ export const Sidebar: React.FC<SidebarProps> = ({
     onToggleStar(sessionId);
   };
 
-  const SessionItem: React.FC<{ session: ChatSession; isStarred: boolean }> = ({ session, isStarred }) => (
+  const SessionItem: React.FC<{ session: any; isStarred: boolean }> = ({ session, isStarred }) => (
     <div
       onClick={() => handleSessionClick(session.id)}
       className={`group flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all duration-200 ${activeSessionId === session.id
-          ? "bg-teal-500/20 border border-teal-500/50"
-          : "hover:bg-gray-700 border border-transparent"
+        ? "bg-teal-500/20 border border-teal-500/50"
+        : "hover:bg-gray-700 border border-transparent"
         }`}
     >
       <div className="flex-1 min-w-0">
         <p className={`text-sm truncate ${activeSessionId === session.id ? "text-teal-300" : "text-gray-200"
           }`}>
-          {session.title}
+          {session.title || session.appName || `Session ${session.id}`}
         </p>
       </div>
       <div className="flex items-center space-x-1 ml-2">
         <span className="text-xs text-gray-500">
-          {formatDate(session.updatedAt)}
+          {formatDate(session.updatedAt || session.lastUpdateTime)}
         </span>
         <button
           onClick={(e) => handleToggleStar(session.id, e)}
           className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-yellow-500/20 transition-all duration-200"
           title={isStarred ? "Unstar chat" : "Star chat"}
         >
-          <Star 
-            className={`w-3 h-3 transition-colors duration-200 ${
-              isStarred 
-                ? "text-yellow-400 fill-yellow-400" 
-                : "text-gray-400 hover:text-yellow-400"
-            }`}
+          <Star
+            className={`w-3 h-3 transition-colors duration-200 ${isStarred
+              ? "text-yellow-400 fill-yellow-400"
+              : "text-gray-400 hover:text-yellow-400"
+              }`}
           />
         </button>
         <button
