@@ -16,7 +16,7 @@ import {
   getDoc,
   Firestore,
 } from "firebase/firestore";
-import { env } from "../env/env";
+import { env } from "../env";
 import { toast } from "sonner";
 
 const app = initializeApp({

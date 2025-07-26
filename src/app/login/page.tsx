@@ -8,7 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import Dither from "@/ui/components/Dither";
 import { set } from "zod";
 import { getCurrentUser } from "@/lib/firebase/firebase";
-import { env } from "@/lib/env/env";
+import { env } from "@/lib/env";
 import { toast } from "sonner";
 
 export default function LoginPage() {

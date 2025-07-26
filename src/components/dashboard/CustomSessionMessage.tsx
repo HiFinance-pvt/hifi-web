@@ -17,28 +17,94 @@ const FunctionCallBadge = ({
   functionCall,
 }: {
   functionCall: FunctionCall;
-}) => (
-  <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-600/20 border border-blue-500/30 rounded-full text-xs text-blue-300 mb-2 mr-2">
-    <svg
-      className="w-3 h-3"
-      fill="none"
-      stroke="currentColor"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
-      />
-    </svg>
-    <span className="font-medium">{functionCall.name}</span>
-    <span className="text-blue-400">•</span>
-    <span className="text-xs opacity-80">{functionCall.description}</span>
-  </div>
-);
+}) => {
+  const [copied, setCopied] = useState(false);
 
-// JSON Dialog Component
+  const copyFunctionCall = async () => {
+    const functionData = {
+      name: functionCall.name,
+      description: functionCall.description,
+      parameters: functionCall.parameters,
+      result: functionCall.result,
+    };
+
+    try {
+      await navigator.clipboard.writeText(
+        JSON.stringify(functionData, null, 2)
+      );
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy function call data:", err);
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="inline-flex items-center gap-2 px-3 py-2 bg-blue-600/20 border border-blue-500/30 rounded-lg text-xs text-blue-300 mb-2 mr-2 group hover:bg-blue-600/30 transition-all duration-200"
+    >
+      <div className="flex items-center gap-2">
+        <svg
+          className="w-3 h-3 text-blue-400"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"
+          />
+        </svg>
+        <span className="font-medium">{functionCall.name}</span>
+        <span className="text-blue-400">•</span>
+        <span className="text-xs opacity-80">{functionCall.description}</span>
+      </div>
+
+      {/* Copy Button */}
+      <button
+        onClick={copyFunctionCall}
+        className="ml-2 p-1 rounded hover:bg-blue-500/20 transition-colors opacity-0 group-hover:opacity-100"
+        title="Copy function call details"
+      >
+        {copied ? (
+          <svg
+            className="w-3 h-3 text-green-400"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M5 13l4 4L19 7"
+            />
+          </svg>
+        ) : (
+          <svg
+            className="w-3 h-3"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+            />
+          </svg>
+        )}
+      </button>
+    </motion.div>
+  );
+};
+
+// Enhanced JSON Dialog Component
 const JsonDialog = ({
   isOpen,
   onClose,
@@ -50,39 +116,101 @@ const JsonDialog = ({
   jsonData: Record<string, any>;
   title?: string;
 }) => {
+  const [copied, setCopied] = useState(false);
+
+  const copyJson = async () => {
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(jsonData, null, 2));
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy JSON:", err);
+    }
+  };
+
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Backdrop */}
-      <div
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
       />
 
       {/* Dialog */}
-      <div className="relative w-full max-w-4xl max-h-[80vh] mx-4 bg-gray-800 rounded-2xl border border-gray-600 shadow-2xl">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        className="relative w-full max-w-4xl max-h-[80vh] mx-4 bg-gray-800 rounded-2xl border border-gray-600 shadow-2xl"
+      >
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-gray-600">
           <h3 className="text-lg font-semibold text-white">{title}</h3>
-          <button
-            onClick={onClose}
-            className="p-2 text-gray-400 hover:text-white transition-colors rounded-lg hover:bg-gray-700"
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+          <div className="flex items-center gap-2">
+            <button
+              onClick={copyJson}
+              className="flex items-center gap-2 px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white transition-colors rounded-lg text-sm"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
+              {copied ? (
+                <>
+                  <svg
+                    className="w-4 h-4 text-green-400"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M5 13l4 4L19 7"
+                    />
+                  </svg>
+                  <span className="text-green-400">Copied!</span>
+                </>
+              ) : (
+                <>
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                    />
+                  </svg>
+                  Copy
+                </>
+              )}
+            </button>
+            <button
+              onClick={onClose}
+              className="p-2 text-gray-400 hover:text-white transition-colors rounded-lg hover:bg-gray-700"
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </div>
         </div>
 
         {/* Content */}
@@ -91,7 +219,7 @@ const JsonDialog = ({
             {JSON.stringify(jsonData, null, 2)}
           </pre>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 };
@@ -101,12 +229,24 @@ export const CustomSessionMessage: React.FC<CustomSessionMessageProps> = ({
   isLast = false,
 }) => {
   const [jsonDialogOpen, setJsonDialogOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const formatTime = (date: Date) => {
     return new Intl.DateTimeFormat("en-US", {
       hour: "2-digit",
       minute: "2-digit",
     }).format(date);
+  };
+
+  const copyResponse = async () => {
+    try {
+      const { text } = getResponseData();
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy response:", err);
+    }
   };
 
   // Parse response data to extract text, function calls, and JSON
@@ -213,14 +353,18 @@ export const CustomSessionMessage: React.FC<CustomSessionMessageProps> = ({
             <div className="flex-1">
               {/* Function Call Badges */}
               {functionCalls.length > 0 && (
-                <div className="mb-2 flex flex-wrap">
-                  {functionCalls.map((functionCall) => (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mb-3 flex flex-wrap"
+                >
+                  {functionCalls.map((functionCall: FunctionCall) => (
                     <FunctionCallBadge
                       key={functionCall.id}
                       functionCall={functionCall}
                     />
                   ))}
-                </div>
+                </motion.div>
               )}
 
               <div
@@ -234,19 +378,26 @@ export const CustomSessionMessage: React.FC<CustomSessionMessageProps> = ({
                   {text}
                 </p>
 
-                {/* JSON Data Box */}
+                {/* Enhanced JSON Data Box */}
                 {jsonData && (
-                  <div className="mt-3 p-2 bg-gray-700/30 rounded-lg border border-gray-600/50">
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    className="mt-4 p-3 bg-gray-700/30 rounded-lg border border-gray-600/50"
+                  >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                        <span className="text-xs text-gray-400">
+                        <span className="text-xs text-gray-400 font-medium">
                           Function response data available
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          ({Object.keys(jsonData).length} keys)
                         </span>
                       </div>
                       <button
                         onClick={() => setJsonDialogOpen(true)}
-                        className="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-700/50 hover:bg-gray-600/50 border border-gray-600 rounded-lg text-xs text-gray-300 hover:text-white transition-colors"
+                        className="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-700/50 hover:bg-gray-600/50 border border-gray-600 rounded-lg text-xs text-gray-300 hover:text-white transition-all duration-200 hover:scale-105"
                       >
                         <svg
                           className="w-4 h-4"
@@ -264,7 +415,7 @@ export const CustomSessionMessage: React.FC<CustomSessionMessageProps> = ({
                         View JSON
                       </button>
                     </div>
-                  </div>
+                  </motion.div>
                 )}
               </div>
               <div className="flex justify-start mt-1">
@@ -277,28 +428,45 @@ export const CustomSessionMessage: React.FC<CustomSessionMessageProps> = ({
         </div>
       </div>
 
-      {/* Actions Row */}
+      {/* Enhanced Actions Row */}
       <div className="flex justify-start ml-11">
         <div className="flex items-center space-x-2">
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="p-1.5 text-gray-500 hover:text-[#04A66A] hover:bg-gray-700/50 rounded-lg transition-all duration-200"
+            onClick={copyResponse}
+            className="flex items-center gap-1 p-1.5 text-gray-500 hover:text-[#04A66A] hover:bg-gray-700/50 rounded-lg transition-all duration-200"
             title="Copy response"
           >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-              />
-            </svg>
+            {copied ? (
+              <svg
+                className="w-4 h-4 text-green-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+            ) : (
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                />
+              </svg>
+            )}
           </motion.button>
 
           <motion.button

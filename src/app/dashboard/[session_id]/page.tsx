@@ -228,8 +228,8 @@ export default function HiFiDashboard() {
             <div className="z-10 bg-none">
                 <Sidebar
                     user={user}
-                    starredSessions={sessionsByCategory.starred}
-                    chatSessions={sessionsByCategory.chats}
+                    // starredSessions={sessionsByCategory.starred}
+                    // chatSessions={sessionsByCategory.chats}
                     activeSessionId={activeSessionId}
                     onSelectSession={handleActiveSession}
                     onDeleteSession={deleteSession}
