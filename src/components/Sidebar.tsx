@@ -5,7 +5,7 @@ import { User, ChatSession } from "@/types/chat";
 import { NAVIGATION_ITEMS } from "@/constants/mockData";
 import { Plus, Search, Bot, Settings, LogOut, Star } from "lucide-react";
 import { logout } from "@/lib/firebase/firebase";
-import { env } from "@/lib/env/env";
+import { env } from "@/lib/env";
 import { useRouter } from "next/navigation";
 
 interface SidebarProps {
@@ -43,7 +43,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const formatDate = (date: Date) => {
     const now = new Date();
     const diffInHours = Math.floor((now.getTime() - date.getTime()) / (1000 * 60 * 60));
-    
+
     if (diffInHours < 24) {
       return "Today";
     } else if (diffInHours < 48) {
@@ -94,16 +94,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const SessionItem: React.FC<{ session: ChatSession; isStarred: boolean }> = ({ session, isStarred }) => (
     <div
       onClick={() => handleSessionClick(session.id)}
-      className={`group flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all duration-200 ${
-        activeSessionId === session.id
+      className={`group flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all duration-200 ${activeSessionId === session.id
           ? "bg-teal-500/20 border border-teal-500/50"
           : "hover:bg-gray-700 border border-transparent"
-      }`}
+        }`}
     >
       <div className="flex-1 min-w-0">
-        <p className={`text-sm truncate ${
-          activeSessionId === session.id ? "text-teal-300" : "text-gray-200"
-        }`}>
+        <p className={`text-sm truncate ${activeSessionId === session.id ? "text-teal-300" : "text-gray-200"
+          }`}>
           {session.title}
         </p>
       </div>
@@ -147,7 +145,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Search Bar */}
       <div className="p-4">
         <div className="relative flex items-center gap-2">
-          <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2"/>
+          <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
           <input
             type="text"
             placeholder="Search..."
@@ -156,13 +154,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
             className="w-full pl-10 pr-4 py-2 bg-gray-800 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-teal-500 transition-colors"
           />
         </div>
-        
+
         {/* New Chat Button */}
         <button
           onClick={onNewSession}
           className="w-full mt-3 flex items-center justify-center space-x-2 p-2 bg-teal-600 hover:bg-teal-700 rounded-lg text-white transition-colors relative"
         >
-          <Plus className="w-4 h-4 text-white absolute left-3 top-1/2 transform -translate-y-1/2"/>
+          <Plus className="w-4 h-4 text-white absolute left-3 top-1/2 transform -translate-y-1/2" />
           <span className="text-sm font-medium">New Chat</span>
         </button>
       </div>

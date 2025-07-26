@@ -8,7 +8,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import Dither from "@/ui/components/Dither";
 import { set } from "zod";
 import { getCurrentUser } from "@/lib/firebase/firebase";
-import { env } from "@/lib/env/env";
+import { env } from "@/lib/env";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -49,10 +49,10 @@ export default function LoginPage() {
       await signInWithGoogle();
       console.log(await getCurrentUser()?.getIdToken());
       const token = await getCurrentUser()?.getIdToken();
-      
+
       if (token) {
         localStorage.setItem(env.NEXT_PUBLIC_SSID, token);
-      }else{
+      } else {
         router.push("/login");
       }
       router.push("/dashboard");
