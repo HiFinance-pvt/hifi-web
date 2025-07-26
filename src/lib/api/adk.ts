@@ -1,5 +1,5 @@
 import type { Axios } from "axios";
-import { CreateSessionResponse, CreateSessionResponseSchema, GetSessionResponse, GetSessionResponseSchema, ListSessionsResponse, ListSessionsResponseSchema, SendMessageResponse, SendMessageResponseSchema } from "../validations/adk.schema";
+import { CreateSessionResponse, CreateSessionResponseSchema, DeleteSessionResponse, DeleteSessionResponseSchema, GetSessionResponse, GetSessionResponseSchema, ListSessionsResponse, ListSessionsResponseSchema, SendMessageResponse, SendMessageResponseSchema } from "../validations/adk.schema";
 import { env } from "../env";
 import { getCurrentUser } from "../firebase/firebase";
 
@@ -56,6 +56,16 @@ export class Adk {
         try {
             const response = await this.axios.post(`/adk/create-session`);
             return CreateSessionResponseSchema.parse(response.data);
+        } catch (e) {
+            console.log(e);
+            throw e;
+        }
+    }
+
+    async deleteSession(sessionId: string): Promise<DeleteSessionResponse> {
+        try {
+            const response = await this.axios.delete(`/adk/delete-session?session_id=${sessionId}`);
+            return DeleteSessionResponseSchema.parse(response.data);
         } catch (e) {
             console.log(e);
             throw e;

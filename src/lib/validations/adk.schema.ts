@@ -151,6 +151,14 @@ export const GetSessionResponseSchema = z.object({
 
 export type GetSessionResponse = z.infer<typeof GetSessionResponseSchema>;
 
+export const DeleteSessionResponseSchema = z.object({
+    message: z.string(),
+});
+
+export type DeleteSessionResponse = z.infer<typeof DeleteSessionResponseSchema>;
+
+
+
 // Send Message Response (This corresponds to the individual messages within the "events" array or top-level responses)
 export const SendMessageResponseSchema = z.object({
     content: ContentSchema.optional(),
