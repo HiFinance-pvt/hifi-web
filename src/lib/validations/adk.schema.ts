@@ -103,12 +103,12 @@ export type UsageMetadata = z.infer<typeof UsageMetadataSchema>;
 export const CreateSessionResponseSchema = z.object({
     message: z.string(),
     data: z.object({
-        lastUpdateTime: z.number(),
-        id: z.string(),
-        events: z.array(z.any()), // Events are empty for create session
-        state: z.record(z.string(), z.any()),
         userId: z.string(),
+        events: z.array(z.any()).optional().nullable(),
+        state: z.record(z.string(), z.any()).optional().nullable(),
         appName: z.string(),
+        id: z.string(),
+        lastUpdateTime: z.number(),
     }),
 });
 
@@ -129,7 +129,7 @@ export const EventSchema = z.object({
     timestamp: z.number(),
     content: ContentSchema.optional(), // Content is present for user/model turns
     errorMessage: z.any().nullable().optional(),
-    usageMetadata: UsageMetadataSchema.optional(),
+    usageMetadata: UsageMetadataSchema.optional().nullable(),
     actions: ActionsSchema.optional(),
     longRunningToolIds: z.any().nullable().optional(), // Typo in source as 'longRunning Toollds'
 });

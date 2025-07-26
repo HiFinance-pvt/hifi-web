@@ -5,6 +5,7 @@ import {
 } from '../lib/validations/adk.schema';
 import { useMemo, useState, useEffect } from 'react';
 import api from '@/lib/api';
+import { parseStringToJson } from '@/utils';
 
 // React Query hooks
 export function useListSessionsQuery() {
@@ -15,12 +16,11 @@ export function useListSessionsQuery() {
 }
 
 export function useCreateSessionMutation() {
-    const queryClient = useQueryClient();
-    return useMutation({
-        mutationFn: () => api.adk.createSession(),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ['adk', 'sessions'] });
-        },
+
+    return useQuery({
+        queryKey: ['adk', 'createSession'],
+        queryFn: () => api.adk.createSession(),
+
     });
 }
 
@@ -54,6 +54,7 @@ export function useSessionMessagesQuery(sessionId: string | undefined) {
     const [error, setError] = useState<Error | null>(null);
 
     useEffect(() => {
+        console.log('ndde')
         if (!sessionId) {
             setMessages([]);
             setLoading(false);
@@ -62,28 +63,45 @@ export function useSessionMessagesQuery(sessionId: string | undefined) {
         }
         setLoading(true);
         setError(null);
-        api.adk.getSession(sessionId)
-            .then((sessionData) => {
-                const events: Event[] = sessionData.data.events || [];
-                const filtered = events
-                    .filter((e) => e.content)
-                    .map((e) => {
-                        const content = e.content as Content;
-                        return {
-                            role: content.role,
-                            parts: content.parts,
-                            timestamp: e.timestamp,
-                            author: e.author,
-                        };
-                    });
-                setMessages(filtered);
-                setLoading(false);
-            })
-            .catch((err) => {
-                setError(err);
-                setMessages([]);
-                setLoading(false);
-            });
+        try {
+            api.adk.getSession(sessionId)
+                .then((sessionData) => {
+                    console.log('casd', sessionData)
+                    const events: Event[] = sessionData.data.events || [];
+                    const filtered = events
+                        .filter((e) => e.content)
+                        .map((e) => {
+                            const content = e.content as Content;
+                            if (e.author == 'user') {
+                                return {
+                                    author: e.author,
+                                    text: content.parts.map((part) => part.text).join(''),
+                                    timestamp: e.timestamp,
+                                }
+                            }
+                            for (const part of content.parts) {
+                                return {
+                                    author: e.author,
+                                    text: part.text,
+                                    function_called_name: part.functionCall?.args?.agent_name || part.functionResponse?.name || part.functionCall?.name || null,
+                                    function_response_content: parseStringToJson(part.functionResponse?.response?.result?.content?.map((c: any) => c.text)) || null,
+                                    function_call: part.functionCall,
+                                    function_response: part.functionResponse,
+                                    timestamp: e.timestamp,
+                                }
+                            }
+                        });
+                    setMessages(filtered);
+                    setLoading(false);
+                })
+                .catch((err) => {
+                    setError(err);
+                    setMessages([]);
+                    setLoading(false);
+                });
+        } catch (e) {
+            console.log(e);
+        }
     }, [sessionId]);
 
     return { messages, loading, error };

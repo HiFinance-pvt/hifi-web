@@ -1,45 +1,65 @@
-import { type Axios, type AxiosRequestConfig } from "axios";
+import axios, { type Axios, type AxiosRequestConfig } from "axios";
 import Cookies from "js-cookie";
 
 import { AxiosConfig } from "../../config/axios";
-import { env } from "../../config/env";
 
-import { Auth } from "./auth";
-import { Profile } from "./profile";
 import { Adk } from "./adk";
+import { env } from "@/lib/env";
+import { getCurrentUser } from "@/lib/firebase/firebase";
+
 
 class ApiSdk {
-  private readonly _authAxios: Axios;
-  private readonly _platformAxios: Axios;
+
   private readonly _apiAxios: Axios;
 
   // API modules
-  auth: Auth;
-  profile: Profile;
+
   adk: Adk;
   constructor() {
     // Create axios instances with different base URLs
-    this._authAxios = this.createAxiosInstance(env.NEXT_PUBLIC_AUTH_API_URL);
-    this._platformAxios = this.createAxiosInstance(env.NEXT_PUBLIC_PLATFORM_API_URL);
-    this._apiAxios = this.createAxiosInstance(env.NEXT_PUBLIC_API_URL);
 
-    // Initialize API modules
-    this.auth = new Auth(this._authAxios, this._platformAxios);
-    this.profile = new Profile(this._platformAxios);
+    this._apiAxios = this.createAxios(env.NEXT_PUBLIC_API_URL);
+
+
     this.adk = new Adk(this._apiAxios);
   }
 
-  private createAxiosInstance(baseURL: string): Axios {
-    const config = new AxiosConfig({
+  private createAxios(baseURL: string): Axios {
+    const ax = axios.create({
       baseURL,
-      prefix: "/",
-      onRequest: this.handleRequest.bind(this),
-      onResponse: this.handleResponse.bind(this),
-      onError: this.handleError.bind(this),
+      withCredentials: true,
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json',
+      },
+      adapter: 'fetch',
+      fetchOptions: { cache: 'no-store' },
     });
 
-    return config.instance;
+    // 👉 Attach interceptors here
+    ax.interceptors.request.use(async (config) => {
+      const user = getCurrentUser();
+      if (user) {
+        const token = await user.getIdToken();
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+      return config;
+    });
+
+    ax.interceptors.response.use(
+      (res) => {
+        this.handleResponse(res);
+        return res;
+      },
+      (err) => {
+        this.handleError(err);
+        return Promise.reject(err);
+      }
+    );
+
+    return ax;
   }
+
 
   private handleRequest(config: AxiosRequestConfig): AxiosRequestConfig {
     // Get access token from cookies or localStorage
@@ -102,14 +122,6 @@ class ApiSdk {
     }
   }
 
-  // Utility methods to access axios instances directly if needed
-  getAuthAxios(): Axios {
-    return this._authAxios;
-  }
-
-  getPlatformAxios(): Axios {
-    return this._platformAxios;
-  }
 
   getApiAxios(): Axios {
     return this._apiAxios;
@@ -155,8 +167,3 @@ class ApiSdk {
 const api = new ApiSdk();
 export default api;
 
-// Export types and classes for direct usage
-export { Auth } from "./auth";
-export { Profile } from "./profile";
-export type { LoginCredentials, RegisterData, AuthResponse } from "./auth";
-export type { UserProfile, UpdateProfileData } from "./profile";

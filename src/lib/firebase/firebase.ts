@@ -16,7 +16,7 @@ import {
   getDoc,
   Firestore,
 } from "firebase/firestore";
-import { env } from "../env/env";
+import { env } from "../env";
 
 const app = initializeApp({
   apiKey: env.NEXT_PUBLIC_FIREBASE_API_KEY,

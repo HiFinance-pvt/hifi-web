@@ -42,9 +42,12 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+
         <ThemeProvider theme={theme}>
           <QueryClientProvider client={queryClient}>
-            <div className="flex h-screen bg-gray-900">{children}</div>
+            <AuthProvider>
+              <div className="flex h-screen bg-gray-900">{children}</div>
+            </AuthProvider>
           </QueryClientProvider>
         </ThemeProvider>
       </body>
