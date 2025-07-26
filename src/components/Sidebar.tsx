@@ -88,13 +88,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const filteredStarredSessions = transformedSessions.filter(
     (session) =>
       session.category === "starred" &&
-      session.title?.toLowerCase().includes(searchQuery.toLowerCase())
+      session.id
   );
 
   const filteredChatSessions = transformedSessions.filter(
     (session) =>
       session.category === "chats" &&
-      session.title?.toLowerCase().includes(searchQuery.toLowerCase())
+      session.id
   );
 
   const formatDate = (date: Date | number) => {
@@ -252,7 +252,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   : "text-gray-200"
               }`}
             >
-              {session.title}
+              {session.id}
             </p>
           )}
         </div>
