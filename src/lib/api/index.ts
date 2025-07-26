@@ -6,6 +6,7 @@ import { AxiosConfig } from "../../config/axios";
 import { Adk } from "./adk";
 import { env } from "@/lib/env";
 import { getCurrentUser } from "@/lib/firebase/firebase";
+import { Kite } from "./kite.";
 
 
 class ApiSdk {
@@ -15,6 +16,7 @@ class ApiSdk {
   // API modules
 
   adk: Adk;
+  kite: Kite
   constructor() {
     // Create axios instances with different base URLs
 
@@ -22,6 +24,7 @@ class ApiSdk {
 
 
     this.adk = new Adk(this._apiAxios);
+    this.kite = new Kite(this._apiAxios);
   }
 
   private createAxios(baseURL: string): Axios {
