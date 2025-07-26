@@ -340,119 +340,155 @@ export const CustomSessionMessage: React.FC<CustomSessionMessageProps> = ({
         </div>
       </div>
 
-      {/* AI Response */}
-      <div className="flex justify-start">
-        <div className="max-w-3xl">
-          <div className="flex items-start space-x-3">
-            {/* AI Avatar */}
-            <div className="w-8 h-8 bg-gradient-to-br from-teal-500 to-blue-500 rounded-full flex items-center justify-center text-white text-sm font-medium flex-shrink-0">
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-              </svg>
-            </div>
-            <div className="flex-1">
-              {/* Function Call Badges */}
-              {functionCalls.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="mb-3 flex flex-wrap"
+      {/* AI Response - Only show if there's actual response content */}
+      {(conversation.response || conversation.adkMessage) && (
+        <div className="flex justify-start">
+          <div className="max-w-3xl">
+            <div className="flex items-start space-x-3">
+              {/* AI Avatar */}
+              <div className="w-8 h-8 bg-gradient-to-br from-teal-500 to-blue-500 rounded-full flex items-center justify-center text-white text-sm font-medium flex-shrink-0">
+                <svg
+                  className="w-4 h-4"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
                 >
-                  {functionCalls.map((functionCall: FunctionCall) => (
-                    <FunctionCallBadge
-                      key={functionCall.id}
-                      functionCall={functionCall}
-                    />
-                  ))}
-                </motion.div>
-              )}
-
-              <div
-                className={`backdrop-blur-sm text-gray-100 p-4 rounded-2xl rounded-tl-md shadow-lg ${
-                  functionCalls.length > 0
-                    ? "bg-gray-800/95 border border-blue-500/20"
-                    : "bg-gray-800/90 border border-gray-700/50"
-                }`}
-              >
-                <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                  {text}
-                </p>
-
-                {/* Enhanced JSON Data Box */}
-                {jsonData && (
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                {/* Function Call Badges */}
+                {functionCalls.length > 0 && (
                   <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    className="mt-4 p-3 bg-gray-700/30 rounded-lg border border-gray-600/50"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-3 flex flex-wrap"
                   >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                        <span className="text-xs text-gray-400 font-medium">
-                          Function response data available
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          ({Object.keys(jsonData).length} keys)
-                        </span>
-                      </div>
-                      <button
-                        onClick={() => setJsonDialogOpen(true)}
-                        className="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-700/50 hover:bg-gray-600/50 border border-gray-600 rounded-lg text-xs text-gray-300 hover:text-white transition-all duration-200 hover:scale-105"
-                      >
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                          />
-                        </svg>
-                        View JSON
-                      </button>
-                    </div>
+                    {functionCalls.map((functionCall: FunctionCall) => (
+                      <FunctionCallBadge
+                        key={functionCall.id}
+                        functionCall={functionCall}
+                      />
+                    ))}
                   </motion.div>
                 )}
-              </div>
-              <div className="flex justify-start mt-1">
-                <span className="text-xs text-gray-500">
-                  {formatTime(conversation.updatedAt)}
-                </span>
+
+                {/* Only show response content if there's actual text */}
+                {text && (
+                  <div
+                    className={`backdrop-blur-sm text-gray-100 p-4 rounded-2xl rounded-tl-md shadow-lg ${
+                      functionCalls.length > 0
+                        ? "bg-gray-800/95 border border-blue-500/20"
+                        : "bg-gray-800/90 border border-gray-700/50"
+                    }`}
+                  >
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                      {text}
+                    </p>
+
+                    {/* Enhanced JSON Data Box */}
+                    {jsonData && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        className="mt-4 p-3 bg-gray-700/30 rounded-lg border border-gray-600/50"
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                            <span className="text-xs text-gray-400 font-medium">
+                              Function response data available
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              ({Object.keys(jsonData).length} keys)
+                            </span>
+                          </div>
+                          <button
+                            onClick={() => setJsonDialogOpen(true)}
+                            className="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-700/50 hover:bg-gray-600/50 border border-gray-600 rounded-lg text-xs text-gray-300 hover:text-white transition-all duration-200 hover:scale-105"
+                          >
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                              />
+                            </svg>
+                            View JSON
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </div>
+                )}
+
+                {/* Show timestamp for response */}
+                {text && (
+                  <div className="flex justify-start mt-1">
+                    <span className="text-xs text-gray-500">
+                      {formatTime(conversation.updatedAt)}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* Enhanced Actions Row */}
-      <div className="flex justify-start ml-11">
-        <div className="flex items-center space-x-2">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={copyResponse}
-            className="flex items-center gap-1 p-1.5 text-gray-500 hover:text-[#04A66A] hover:bg-gray-700/50 rounded-lg transition-all duration-200"
-            title="Copy response"
-          >
-            {copied ? (
-              <svg
-                className="w-4 h-4 text-green-400"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-            ) : (
+      {/* Enhanced Actions Row - Only show if there's response content */}
+      {(conversation.response || conversation.adkMessage) && text && (
+        <div className="flex justify-start ml-11">
+          <div className="flex items-center space-x-2">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={copyResponse}
+              className="flex items-center gap-1 p-1.5 text-gray-500 hover:text-[#04A66A] hover:bg-gray-700/50 rounded-lg transition-all duration-200"
+              title="Copy response"
+            >
+              {copied ? (
+                <svg
+                  className="w-4 h-4 text-green-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              ) : (
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                  />
+                </svg>
+              )}
+            </motion.button>
+
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="p-1.5 text-gray-500 hover:text-[#04A66A] hover:bg-gray-700/50 rounded-lg transition-all duration-200"
+              title="Regenerate response"
+            >
               <svg
                 className="w-4 h-4"
                 fill="none"
@@ -463,55 +499,34 @@ export const CustomSessionMessage: React.FC<CustomSessionMessageProps> = ({
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   strokeWidth={2}
-                  d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                 />
               </svg>
-            )}
-          </motion.button>
+            </motion.button>
 
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="p-1.5 text-gray-500 hover:text-[#04A66A] hover:bg-gray-700/50 rounded-lg transition-all duration-200"
-            title="Regenerate response"
-          >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="p-1.5 text-gray-500 hover:text-red-400 hover:bg-gray-700/50 rounded-lg transition-all duration-200"
+              title="Delete conversation"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
-              />
-            </svg>
-          </motion.button>
-
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="p-1.5 text-gray-500 hover:text-red-400 hover:bg-gray-700/50 rounded-lg transition-all duration-200"
-            title="Delete conversation"
-          >
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-              />
-            </svg>
-          </motion.button>
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                />
+              </svg>
+            </motion.button>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* JSON Dialog */}
       {jsonData && (
