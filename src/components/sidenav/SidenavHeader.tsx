@@ -6,4 +6,4 @@ const SidenavHeader = () => (
   </div>
 );
 
-export default SidenavHeader; 
+export default SidenavHeader;
