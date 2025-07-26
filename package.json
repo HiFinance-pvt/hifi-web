@@ -35,8 +35,11 @@
     "react-dom": "19.1.0",
     "react-hook-form": "^7.60.0",
     "react-icons": "^5.5.0",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
     "sonner": "^2.0.6",
     "three": "^0.178.0",
+    "uuid": "^11.1.0",
     "zod": "^4.0.5",
     "zustand": "^5.0.6"
   },

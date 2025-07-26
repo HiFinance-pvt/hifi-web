@@ -19,7 +19,7 @@ import {
   TrendingUp,
   LineChart,
   BarChart,
-  Wifi,
+  Wifi, 
   X,
   CandlestickChart,
   PieChart,
@@ -560,8 +560,8 @@ export default function TraderAgentPage() {
       <div className="relative z-10 w-full lg:w-auto lg:flex-shrink-0">
         <Sidebar
           user={user}
-          starredSessions={sessionsByCategory.starred}
-          chatSessions={sessionsByCategory.chats}
+          // starredSessions={sessionsByCategory.starred}
+          // chatSessions={sessionsByCategory.chats}
           activeSessionId={activeSessionId}
           onSelectSession={selectSession}
           onDeleteSession={deleteSession}

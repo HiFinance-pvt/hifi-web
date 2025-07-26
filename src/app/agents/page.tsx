@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import { v4 as uuidv4 } from "uuid";
 import Link from "next/link";
 import { Sidebar } from "@/components/Sidebar";
 import Particles from "@/ui/components/Particles";
@@ -24,6 +25,11 @@ import {
   X,
 } from "lucide-react";
 import { gsap } from "gsap";
+import { env } from "@/lib/env";
+import { useRouter } from "next/navigation";
+import { checkMCPSession } from "@/lib/api/mcp";
+import { useQueryClient } from "@tanstack/react-query";
+import { useCheckSession } from "@/hooks/useCheckSession";
 
 // Using real chat hook - same as dashboard
 
@@ -49,7 +55,6 @@ const addScrollbarStyle = () => {
 const AgentCard: React.FC<{ agent: (typeof AGENTS)[0] }> = ({ agent }) => {
   const [isHovered, setIsHovered] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
-
   const handleCardMove: React.MouseEventHandler<HTMLElement> = (e) => {
     const c = e.currentTarget as HTMLElement;
     const rect = c.getBoundingClientRect();
@@ -70,10 +75,22 @@ const AgentCard: React.FC<{ agent: (typeof AGENTS)[0] }> = ({ agent }) => {
       href={agent.href}
       className="block w-full max-w-full xl:min-w-[320px] xl:w-[320px] h-[350px] sm:h-[380px] xl:h-[400px] agents-card-unique"
     >
+    <Link
+      href={agent.href}
+      className="block w-full max-w-full xl:min-w-[320px] xl:w-[320px] h-[350px] sm:h-[380px] xl:h-[400px] agents-card-unique"
+    >
       <div
         ref={cardRef}
         onMouseMove={handleCardMove}
         className="group relative flex flex-col w-full h-full rounded-[16px] sm:rounded-[20px] overflow-hidden border border-gray-800/50 transition-all duration-300 cursor-pointer bg-black/40 backdrop-blur-sm hover:border-opacity-80"
+        style={
+          {
+            "--card-border": agent.color,
+            "--spotlight-color": hexToRgba(agent.color, 0.15),
+            "--agent-color": agent.color,
+            borderColor: `${agent.color}20`,
+          } as React.CSSProperties
+        }
         style={
           {
             "--card-border": agent.color,
@@ -180,11 +197,17 @@ const ConnectionPopup: React.FC<{
   const [animationStage, setAnimationStage] = useState<
     "initial" | "transition" | "final"
   >("initial");
+  const [animationStage, setAnimationStage] = useState<
+    "initial" | "transition" | "final"
+  >("initial");
 
   useEffect(() => {
     if (isVisible) {
       // Animation sequence
       const stages = [
+        { stage: "initial", delay: 0 },
+        { stage: "transition", delay: 300 },
+        { stage: "final", delay: 800 },
         { stage: "initial", delay: 0 },
         { stage: "transition", delay: 300 },
         { stage: "final", delay: 800 },
@@ -201,8 +224,10 @@ const ConnectionPopup: React.FC<{
         onClose();
       }, 3500);
 
+
       return () => clearTimeout(timer);
     } else {
+      setAnimationStage("initial");
       setAnimationStage("initial");
     }
   }, [isVisible, onClose]);
@@ -231,7 +256,30 @@ const ConnectionPopup: React.FC<{
             bgColor: "bg-emerald-500/20",
             glowing: true,
           };
+        case "initial":
+          return {
+            color: "text-gray-400",
+            bgColor: "bg-gray-500/20",
+            glowing: false,
+          };
+        case "transition":
+          return {
+            color: "text-emerald-400",
+            bgColor: "bg-emerald-500/20",
+            glowing: false,
+          };
+        case "final":
+          return {
+            color: "text-emerald-400",
+            bgColor: "bg-emerald-500/20",
+            glowing: true,
+          };
         default:
+          return {
+            color: "text-gray-400",
+            bgColor: "bg-gray-500/20",
+            glowing: false,
+          };
           return {
             color: "text-gray-400",
             bgColor: "bg-gray-500/20",
@@ -254,7 +302,25 @@ const ConnectionPopup: React.FC<{
             bgColor: "bg-gray-500/20",
             glowing: false,
           };
+        case "initial":
+          return {
+            color: "text-emerald-400",
+            bgColor: "bg-emerald-500/20",
+            glowing: false,
+          };
+        case "transition":
+        case "final":
+          return {
+            color: "text-gray-400",
+            bgColor: "bg-gray-500/20",
+            glowing: false,
+          };
         default:
+          return {
+            color: "text-gray-400",
+            bgColor: "bg-gray-500/20",
+            glowing: false,
+          };
           return {
             color: "text-gray-400",
             bgColor: "bg-gray-500/20",
@@ -273,10 +339,13 @@ const ConnectionPopup: React.FC<{
           {/* Enhanced Animation Icon */}
           <div className="mb-4 sm:mb-6 relative">
             <div
+            <div
               className={`w-12 h-12 sm:w-16 sm:h-16 mx-auto rounded-full flex items-center justify-center transition-all duration-500 ease-out ${bgColor}`}
             >
               <Wifi
+              <Wifi
                 className={`w-6 h-6 sm:w-8 sm:h-8 transition-all duration-500 ease-out ${color} ${
+                  glowing ? "drop-shadow-lg filter" : ""
                   glowing ? "drop-shadow-lg filter" : ""
                 }`}
                 style={
@@ -287,7 +356,16 @@ const ConnectionPopup: React.FC<{
                       }
                     : {}
                 }
+                style={
+                  glowing
+                    ? {
+                        filter:
+                          "drop-shadow(0 0 8px rgb(52 211 153 / 0.6)) drop-shadow(0 0 16px rgb(52 211 153 / 0.4))",
+                      }
+                    : {}
+                }
               />
+
 
               {/* Dynamic glow effects */}
               {glowing && (
@@ -303,8 +381,12 @@ const ConnectionPopup: React.FC<{
           <div className="transition-all duration-300 ease-out">
             <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 transition-all duration-300">
               Fi-Account {isConnected ? "Connected" : "Disconnected"}
+              Fi-Account {isConnected ? "Connected" : "Disconnected"}
             </h3>
             <p className="text-xs sm:text-sm text-gray-400 mb-4 sm:mb-6 transition-all duration-300">
+              {isConnected
+                ? "Your financial data is now syncing securely."
+                : "Your Fi account has been safely disconnected."}
               {isConnected
                 ? "Your financial data is now syncing securely."
                 : "Your Fi account has been safely disconnected."}
@@ -326,14 +408,28 @@ const ConnectionPopup: React.FC<{
 
 // Header Controls Component
 const HeaderControls: React.FC = () => {
-  const [fiConnected, setFiConnected] = useState(true);
   const [showFiTooltip, setShowFiTooltip] = useState(false);
   const [showConnectionPopup, setShowConnectionPopup] = useState(false);
+  const [sessionId, setSessionId] = useState<string>("");
+  const queryClient = useQueryClient();
+  // const router = useRouter();
+
+  const { data, error, isPending } = useCheckSession(sessionId);
+
+  const languages = [
+    { code: "EN", name: "English" },
+    { code: "HI", name: "हिंदी" },
+    { code: "GU", name: "ગુજરાતી" },
+    { code: "MR", name: "मराठी" },
+  ];
 
   const handleFiToggle = () => {
-    setFiConnected(!fiConnected);
-    setShowFiTooltip(false);
-    setShowConnectionPopup(true);
+    const sessionId = `mcp-server-${uuidv4()}`;
+    setSessionId(sessionId);
+    window.open(
+      `${env.NEXT_PUBLIC_FI_MCP_SERVER_URL}/mockWebPage?sessionId=${sessionId}`
+    );
+    queryClient.invalidateQueries({ queryKey: ["check-session", sessionId] });
   };
 
   // Add scrollbar style
@@ -355,7 +451,7 @@ const HeaderControls: React.FC = () => {
         >
           <button
             className={`relative w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 backdrop-blur-sm transition-all duration-200 flex items-center justify-center ${
-              fiConnected
+              data?.valid
                 ? "bg-emerald-500/20 border-emerald-500/50 hover:bg-emerald-500/30"
                 : "bg-red-500/20 border-red-500/50 hover:bg-red-500/30"
             }`}
@@ -363,7 +459,7 @@ const HeaderControls: React.FC = () => {
             {/* Outer glow ring */}
             <div
               className={`absolute inset-0 rounded-full animate-pulse ${
-                fiConnected ? "bg-emerald-400/20" : "bg-red-400/20"
+                data?.valid ? "bg-emerald-400/20" : "bg-red-400/20"
               }`}
             />
 
@@ -371,11 +467,11 @@ const HeaderControls: React.FC = () => {
             <div className="relative z-10 flex items-center justify-center">
               <img
                 src={
-                  fiConnected
+                  data?.valid
                     ? "https://xqak5dz869.ufs.sh/f/9bPBdXjSiv4IehfPx9KyJ8jNPpV24cHROwYQuxMUoLIv9n6S"
                     : "https://xqak5dz869.ufs.sh/f/9bPBdXjSiv4IVSvVCH71tHP9Q3GfOo7m650V8qacgeNAFTyE"
                 }
-                alt={fiConnected ? "Fi Connected" : "Fi Disconnected"}
+                alt={data?.valid ? "Fi Connected" : "Fi DisconfiConnected"}
                 className="w-3 h-3 sm:w-4 sm:h-4 object-contain relative z-10 drop-shadow-md"
                 style={{
                   filter: "brightness(1.2) contrast(1.1)",
@@ -389,7 +485,7 @@ const HeaderControls: React.FC = () => {
                   const fallback = document.createElement("span");
                   fallback.textContent = "Fi";
                   fallback.className = `text-sm font-bold ${
-                    fiConnected ? "text-emerald-400" : "text-red-400"
+                    data?.valid ? "text-emerald-400" : "text-red-400"
                   }`;
                   target.parentNode?.appendChild(fallback);
                 }}
@@ -399,7 +495,7 @@ const HeaderControls: React.FC = () => {
             {/* Status dot at bottom border */}
             <div
               className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 w-2 h-2 rounded-full border border-gray-900 ${
-                fiConnected ? "bg-emerald-400" : "bg-red-400"
+                data?.valid ? "bg-emerald-400" : "bg-red-400"
               }`}
             />
           </button>
@@ -415,7 +511,7 @@ const HeaderControls: React.FC = () => {
                 <div className="flex items-center space-x-3">
                   <div
                     className={`w-3 h-3 rounded-full ${
-                      fiConnected ? "bg-emerald-400" : "bg-red-400"
+                      data?.valid ? "bg-emerald-400" : "bg-red-400"
                     } animate-pulse shadow-lg`}
                   />
                   <span className="text-sm font-semibold text-white">
@@ -429,17 +525,17 @@ const HeaderControls: React.FC = () => {
                 <div className="mb-4">
                   <div
                     className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                      fiConnected
+                      data?.valid
                         ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
                         : "bg-red-500/20 text-red-400 border border-red-500/30"
                     }`}
                   >
-                    {fiConnected ? "Connected" : "Disconnected"}
+                    {data?.valid ? "Connected" : "Disconnected"}
                   </div>
                 </div>
 
                 <p className="text-xs text-gray-300 leading-relaxed mb-4">
-                  {fiConnected
+                  {data?.valid
                     ? "Your Fi account is connected and syncing financial data securely. All features are available."
                     : "Connect your Fi account to sync financial data and unlock all premium features."}
                 </p>
@@ -447,12 +543,12 @@ const HeaderControls: React.FC = () => {
                 <button
                   onClick={handleFiToggle}
                   className={`w-full px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg border ${
-                    fiConnected
+                    data?.valid
                       ? "bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20 hover:border-red-500/50"
                       : "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-500/50"
                   }`}
                 >
-                  {fiConnected ? "Disconnect Account" : "Connect Account"}
+                  {data?.valid ? "Disconnect Account" : "Connect Account"}
                 </button>
               </div>
             </div>
@@ -467,11 +563,19 @@ const HeaderControls: React.FC = () => {
           </div>
         </button>
       </div>
+        {/* Notifications */}
+        <button className="relative p-1.5 sm:p-2 bg-gray-900/80 border border-gray-700/50 rounded-lg backdrop-blur-sm hover:bg-gray-800/80 transition-all duration-200">
+          <Bell className="w-3 h-3 sm:w-4 sm:h-4 text-gray-300" />
+          <div className="absolute -top-1 -right-1 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-red-500 rounded-full flex items-center justify-center">
+            <span className="text-xs text-white font-medium">3</span>
+          </div>
+        </button>
+      </div>
 
       {/* Connection Status Popup */}
       <ConnectionPopup
         isVisible={showConnectionPopup}
-        isConnected={fiConnected}
+        isConnected={data?.valid || false}
         onClose={() => setShowConnectionPopup(false)}
       />
     </>
@@ -544,8 +648,8 @@ export default function AgentsHubPage() {
       <div className="relative z-10 w-full lg:w-auto lg:flex-shrink-0">
         <Sidebar
           user={user}
-          starredSessions={sessionsByCategory.starred}
-          chatSessions={sessionsByCategory.chats}
+          // starredSessions={sessionsByCategory.starred}
+          // chatSessions={sessionsByCategory.chats}
           activeSessionId={activeSessionId}
           onSelectSession={selectSession}
           onDeleteSession={deleteSession}
@@ -555,6 +659,10 @@ export default function AgentsHubPage() {
       </div>
 
       {/* Main Content Area */}
+      <div
+        className="flex-1 relative overflow-hidden z-10 min-h-0 min-w-0"
+        style={{ pointerEvents: "auto" }}
+      >
       <div
         className="flex-1 relative overflow-hidden z-10 min-h-0 min-w-0"
         style={{ pointerEvents: "auto" }}
@@ -588,6 +696,7 @@ export default function AgentsHubPage() {
                   ))}
                 </div>
               </div>
+
 
               {/* Desktop: Horizontal Scroll */}
               <div className="hidden xl:block w-full">
@@ -659,6 +768,19 @@ export default function AgentsHubPage() {
             </div>
           </div>
         </div>
+      </div>
+
+      <div className="absolute inset-0 w-screen h-screen">
+        <Particles
+          particleColors={["#ffffff", "#ffffff"]}
+          particleCount={200}
+          particleSpread={10}
+          speed={0.1}
+          particleBaseSize={100}
+          moveParticlesOnHover={false}
+          alphaParticles={false}
+          disableRotation={false}
+        />
       </div>
 
       <div className="absolute inset-0 w-screen h-screen">

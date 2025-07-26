@@ -2,6 +2,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider, theme } from "reablocks";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { Toaster } from "sonner";
 import "./globals.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";

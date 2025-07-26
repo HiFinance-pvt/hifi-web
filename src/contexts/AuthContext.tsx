@@ -55,7 +55,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const result = await googleAuth();
       setCurrentUser(result.user);
     } catch (error) {
-      console.error("Error signing in with Google:", error);
       throw error;
     }
   };
@@ -65,7 +64,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const result = await signInWithCredential({ email, password });
       setCurrentUser(result.user);
     } catch (error) {
-      console.error("Error signing in with email:", error);
       throw error;
     }
   };
@@ -75,7 +73,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const result = await createUserWithCredential({ email, password });
       setCurrentUser(result.user);
     } catch (error) {
-      console.error("Error signing up with email:", error);
       throw error;
     }
   };
@@ -85,7 +82,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       await logout();
       setCurrentUser(null);
     } catch (error) {
-      console.error("Error signing out:", error);
       throw error;
     }
   };

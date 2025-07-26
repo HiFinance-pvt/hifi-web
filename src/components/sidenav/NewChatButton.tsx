@@ -10,4 +10,4 @@ const NewChatButton = () => (
   </div>
 );
 
-export default NewChatButton; 
+export default NewChatButton;

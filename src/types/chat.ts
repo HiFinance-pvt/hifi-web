@@ -6,6 +6,31 @@ export interface User {
   role?: string;
 }
 
+export interface FunctionCall {
+  id: string;
+  name: string;
+  description: string;
+  parameters: Record<string, any>;
+  result?: any;
+}
+
+export interface ResponseData {
+  text: string;
+  functionCalls?: FunctionCall[];
+  jsonData?: Record<string, any>;
+}
+
+export interface AdkMessage {
+  text?: string;
+  function_called_name?: string;
+  function_call?: {
+    id?: string;
+    name?: string;
+    args?: Record<string, any>;
+  };
+  function_response_content?: Record<string, any>;
+}
+
 export interface ChatSession {
   id: string;
   title: string;
@@ -18,12 +43,13 @@ export interface ChatSession {
 export interface ChatConversation {
   id: string;
   question: string;
-  response?: string;
+  response?: string | ResponseData;
   isLoading?: boolean;
   createdAt: Date;
   updatedAt: Date;
   files?: ConversationFile[];
   sources?: ConversationSource[];
+  adkMessage?: AdkMessage;
 }
 
 export interface ConversationFile {
