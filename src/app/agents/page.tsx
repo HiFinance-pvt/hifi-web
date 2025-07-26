@@ -75,22 +75,10 @@ const AgentCard: React.FC<{ agent: (typeof AGENTS)[0] }> = ({ agent }) => {
       href={agent.href}
       className="block w-full max-w-full xl:min-w-[320px] xl:w-[320px] h-[350px] sm:h-[380px] xl:h-[400px] agents-card-unique"
     >
-    <Link
-      href={agent.href}
-      className="block w-full max-w-full xl:min-w-[320px] xl:w-[320px] h-[350px] sm:h-[380px] xl:h-[400px] agents-card-unique"
-    >
       <div
         ref={cardRef}
         onMouseMove={handleCardMove}
         className="group relative flex flex-col w-full h-full rounded-[16px] sm:rounded-[20px] overflow-hidden border border-gray-800/50 transition-all duration-300 cursor-pointer bg-black/40 backdrop-blur-sm hover:border-opacity-80"
-        style={
-          {
-            "--card-border": agent.color,
-            "--spotlight-color": hexToRgba(agent.color, 0.15),
-            "--agent-color": agent.color,
-            borderColor: `${agent.color}20`,
-          } as React.CSSProperties
-        }
         style={
           {
             "--card-border": agent.color,
@@ -197,9 +185,6 @@ const ConnectionPopup: React.FC<{
   const [animationStage, setAnimationStage] = useState<
     "initial" | "transition" | "final"
   >("initial");
-  const [animationStage, setAnimationStage] = useState<
-    "initial" | "transition" | "final"
-  >("initial");
 
   useEffect(() => {
     if (isVisible) {
@@ -223,7 +208,6 @@ const ConnectionPopup: React.FC<{
       const timer = setTimeout(() => {
         onClose();
       }, 3500);
-
 
       return () => clearTimeout(timer);
     } else {
@@ -339,13 +323,10 @@ const ConnectionPopup: React.FC<{
           {/* Enhanced Animation Icon */}
           <div className="mb-4 sm:mb-6 relative">
             <div
-            <div
               className={`w-12 h-12 sm:w-16 sm:h-16 mx-auto rounded-full flex items-center justify-center transition-all duration-500 ease-out ${bgColor}`}
             >
               <Wifi
-              <Wifi
                 className={`w-6 h-6 sm:w-8 sm:h-8 transition-all duration-500 ease-out ${color} ${
-                  glowing ? "drop-shadow-lg filter" : ""
                   glowing ? "drop-shadow-lg filter" : ""
                 }`}
                 style={
@@ -356,16 +337,7 @@ const ConnectionPopup: React.FC<{
                       }
                     : {}
                 }
-                style={
-                  glowing
-                    ? {
-                        filter:
-                          "drop-shadow(0 0 8px rgb(52 211 153 / 0.6)) drop-shadow(0 0 16px rgb(52 211 153 / 0.4))",
-                      }
-                    : {}
-                }
               />
-
 
               {/* Dynamic glow effects */}
               {glowing && (
@@ -563,29 +535,22 @@ const HeaderControls: React.FC = () => {
           </div>
         </button>
       </div>
-        {/* Notifications */}
-        <button className="relative p-1.5 sm:p-2 bg-gray-900/80 border border-gray-700/50 rounded-lg backdrop-blur-sm hover:bg-gray-800/80 transition-all duration-200">
-          <Bell className="w-3 h-3 sm:w-4 sm:h-4 text-gray-300" />
-          <div className="absolute -top-1 -right-1 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-red-500 rounded-full flex items-center justify-center">
-            <span className="text-xs text-white font-medium">3</span>
-          </div>
-        </button>
-      </div>
 
       {/* Connection Status Popup */}
-      <ConnectionPopup
-        isVisible={showConnectionPopup}
-        isConnected={data?.valid || false}
-        onClose={() => setShowConnectionPopup(false)}
-      />
+      {typeof showConnectionPopup !== "undefined" && (
+        <ConnectionPopup
+          isVisible={showConnectionPopup}
+          isConnected={!!data?.valid}
+          onClose={() => setShowConnectionPopup(false)}
+        />
+      )}
     </>
   );
 };
 
-export default function AgentsHubPage() {
+function AgentsPage() {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Use the same chat hook as dashboard for synchronized data
   const {
     sessions,
     activeSession,
@@ -613,29 +578,6 @@ export default function AgentsHubPage() {
     }
   }, [sessions.length, createNewSession]);
 
-  // Simplified mouse tracking for agent card gradients only
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (containerRef.current) {
-        const rect = containerRef.current.getBoundingClientRect();
-        const x = ((e.clientX - rect.left) / rect.width) * 100;
-        const y = ((e.clientY - rect.top) / rect.height) * 100;
-
-        // Set CSS variables for agent card gradients
-        containerRef.current.style.setProperty("--mouse-x", `${x}%`);
-        containerRef.current.style.setProperty("--mouse-y", `${y}%`);
-      }
-    };
-
-    const container = containerRef.current;
-    if (container) {
-      container.addEventListener("mousemove", handleMouseMove);
-      return () => {
-        container.removeEventListener("mousemove", handleMouseMove);
-      };
-    }
-  }, []);
-
   return (
     <div
       ref={containerRef}
@@ -659,10 +601,6 @@ export default function AgentsHubPage() {
       </div>
 
       {/* Main Content Area */}
-      <div
-        className="flex-1 relative overflow-hidden z-10 min-h-0 min-w-0"
-        style={{ pointerEvents: "auto" }}
-      >
       <div
         className="flex-1 relative overflow-hidden z-10 min-h-0 min-w-0"
         style={{ pointerEvents: "auto" }}
@@ -696,7 +634,6 @@ export default function AgentsHubPage() {
                   ))}
                 </div>
               </div>
-
 
               {/* Desktop: Horizontal Scroll */}
               <div className="hidden xl:block w-full">
@@ -798,3 +735,5 @@ export default function AgentsHubPage() {
     </div>
   );
 }
+
+export default AgentsPage;

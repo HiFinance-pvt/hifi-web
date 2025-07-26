@@ -33,7 +33,7 @@ import { ProcessedMessage } from "@/lib/validations/adk.schema";
 export default function HiFiDashboard() {
     const params = useParams();
     const router = useRouter();
-    const sessionId = useMemo(() => params.session_id as string, [params.session_id]);
+    const sessionId = useMemo(() => params?.session_id as string, [params?.session_id]);
 
     const [currentMessage, setCurrentMessage] = useState("");
     const [pendingUserMsg, setPendingUserMsg] = useState<string | null>(null);
