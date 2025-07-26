@@ -49,6 +49,7 @@ export default function LoginPage() {
       console.log(await getCurrentUser()?.getIdToken());
       const token = await getCurrentUser()?.getIdToken();
 
+
       if (token) {
         localStorage.setItem(env.NEXT_PUBLIC_SSID, token);
         toast.success("Successfully signed in with Google!");

@@ -3,7 +3,7 @@
 import { FC, ReactNode, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { env } from '@/lib/env/env';
+import { env } from '@/lib/env';
 
 interface AuthGuardProps {
   children: ReactNode;
@@ -18,7 +18,7 @@ export const AuthGuard: FC<AuthGuardProps> = ({ children }) => {
     if (!currentUser || !localStorage.getItem(env.NEXT_PUBLIC_SSID) || loading) {
       router.push('/login');
     }
-  }, [ router]);
+  }, [router]);
 
   // Show loading spinner while checking authentication
   if (!localStorage.getItem(env.NEXT_PUBLIC_SSID) || loading || !currentUser) {

@@ -6,7 +6,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import { getCurrentUser } from "@/lib/firebase/firebase";
-import { env } from "@/lib/env/env";
+import { env } from "@/lib/env";
 import Dither from "@/ui/components/Dither";
 import { toast } from "sonner"; // Import toast for error messages
 
@@ -44,7 +44,7 @@ export default function SignupPage() {
       const token = await getCurrentUser()?.getIdToken();
       if (token) {
         localStorage.setItem(env.NEXT_PUBLIC_SSID, token);
-      }else{
+      } else {
         router.push("/signup");
       }
       router.push("/dashboard");
@@ -63,7 +63,7 @@ export default function SignupPage() {
       const token = await getCurrentUser()?.getIdToken();
       if (token) {
         localStorage.setItem(env.NEXT_PUBLIC_SSID, token);
-      }else{
+      } else {
         router.push("/signup");
       }
       router.push("/dashboard");
@@ -97,14 +97,14 @@ export default function SignupPage() {
   return (
     <div className="min-h-screen w-full bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-end p-4">
       <div className="w-full h-full absolute inset-0">
-      {/* Animated background dots */}
-      <Dither
-        waveColor={[0, 0.5, 0]}
-        disableAnimation={false}
-        enableMouseInteraction={true}
-        mouseRadius={0.3}
-        colorNum={4}
-        waveAmplitude={0.3}
+        {/* Animated background dots */}
+        <Dither
+          waveColor={[0, 0.5, 0]}
+          disableAnimation={false}
+          enableMouseInteraction={true}
+          mouseRadius={0.3}
+          colorNum={4}
+          waveAmplitude={0.3}
           waveFrequency={3}
           waveSpeed={0.05}
         />

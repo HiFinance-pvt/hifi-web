@@ -10,7 +10,11 @@ export const env = createEnv({
     NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: z.string().min(1),
     NEXT_PUBLIC_FIREBASE_APP_ID: z.string().min(1),
     NEXT_PUBLIC_SSID: z.string().min(1),
-  }, // If you're using Next.js < 13.4.4, you'll need to specify the runtimeEnv manually
+    NEXT_PUBLIC_API_URL: z.string().min(1),
+  },
+  server: {
+    NODE_ENV: z.string().min(1),
+  },
   runtimeEnv: {
     NEXT_PUBLIC_FIREBASE_API_KEY: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
     NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN:
@@ -23,5 +27,7 @@ export const env = createEnv({
       process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
     NEXT_PUBLIC_FIREBASE_APP_ID: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
     NEXT_PUBLIC_SSID: process.env.NEXT_PUBLIC_SSID,
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+    NODE_ENV: process.env.NODE_ENV,
   },
 });
