@@ -7,6 +7,8 @@ import { Toaster } from "sonner";
 import "./globals.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
+import { usePathname } from "next/navigation";
+import HeaderControls from "@/components/HeaderControls";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -30,6 +32,12 @@ export default function RootLayout({
 }>) {
   // Ensure a single QueryClient instance per app
   const [queryClient] = useState(() => new QueryClient());
+  const pathname = usePathname();
+
+  // Routes that should NOT have the header
+  const excludedRoutes = ["/login", "/signup", "/overview"];
+  const shouldShowHeader = !excludedRoutes.includes(pathname);
+
   return (
     <html lang="en">
       <head>
@@ -43,11 +51,15 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-
         <ThemeProvider theme={theme}>
           <QueryClientProvider client={queryClient}>
             <AuthProvider>
-              <div className="flex h-screen bg-gray-900">{children}</div>
+              <div className="flex h-screen bg-gray-900">
+                {/* Shared Header Controls - Excluded from login, signup, overview */}
+                {shouldShowHeader && <HeaderControls />}
+                {children}
+              </div>
+              <Toaster />
             </AuthProvider>
           </QueryClientProvider>
         </ThemeProvider>

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { User, ChatSession } from "@/types/chat";
+import { ChatSession } from "@/types/chat";
 import { NAVIGATION_ITEMS } from "@/constants/mockData";
 import { useSessionStore } from "@/stores/sessionStore";
 import { useDeleteSessionMutation } from "@/hooks/adk";
@@ -21,9 +21,10 @@ import {
 import { logout } from "@/lib/firebase/firebase";
 import { env } from "@/lib/env";
 import { useRouter } from "next/navigation";
+import { getCurrentUser } from "@/lib/firebase/firebase";
+import Image from "next/image";
 
 interface SidebarProps {
-  user: User | null;
   activeSessionId: string | null;
   onSelectSession: (sessionId: string) => void;
   onDeleteSession: (sessionId: string) => void;
@@ -33,7 +34,6 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
-  user,
   activeSessionId,
   onSelectSession,
   onDeleteSession,
@@ -46,6 +46,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState("");
+  const user = getCurrentUser();
 
   // Use sessionStore from main branch for real API calls
   const {
@@ -410,15 +411,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
             {/* User Avatar */}
             <div className="flex justify-center mb-3">
               <div className="relative group">
-                <div className="w-8 h-8 bg-gradient-to-br from-teal-400 to-blue-500 rounded-full flex items-center justify-center hover:scale-125 transition-all duration-400 ease-out hover:shadow-lg hover:shadow-teal-500/40">
-                  <span className="text-white font-medium text-xs transition-all duration-300 ease-out">
-                    {user.name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")}
+                <div className="w-8 h-8 rounded-full overflow-hidden bg-gradient-to-br from-teal-400 to-blue-500 flex items-center justify-center hover:scale-125 transition-all duration-400 ease-out hover:shadow-lg hover:shadow-teal-500/40">
+                  <span className="text-white font-medium text-xs transition-all overflow-hidden rounded-full duration-300 ease-out">
+                    <Image
+                      src={user.photoURL || ""}
+                      alt="User Avatar"
+                      width={40}
+                      height={40}
+                      className="rounded-full w-full h-full overflow-hidden object-cover"
+                    />
                   </span>
                 </div>
-                {user.isVerified && (
+                {user.emailVerified && (
                   <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-teal-500 rounded-full flex items-center justify-center transition-all duration-400 ease-out group-hover:scale-150">
                     <svg
                       className="w-2 h-2 text-white"
@@ -631,15 +635,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* User Info */}
           <div className="flex items-center space-x-3 mb-4 group">
             <div className="relative">
-              <div className="w-10 h-10 bg-gradient-to-br from-teal-400 to-blue-500 rounded-full flex items-center justify-center hover:scale-125 transition-all duration-400 ease-out hover:shadow-lg hover:shadow-teal-500/40">
+              <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-teal-400 to-blue-500 flex items-center justify-center hover:scale-125 transition-all duration-400 ease-out hover:shadow-lg hover:shadow-teal-500/40">
                 <span className="text-white font-medium text-sm transition-all duration-300 ease-out">
-                  {user.name
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")}
+                  <Image
+                    src={user.photoURL || ""}
+                    alt="User Avatar"
+                    width={40}
+                    height={40}
+                    className="rounded-full w-full h-full overflow-hidden object-cover"
+                  />
                 </span>
               </div>
-              {user.isVerified && (
+              {user.emailVerified && (
                 <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-teal-500 rounded-full flex items-center justify-center transition-all duration-400 ease-out group-hover:scale-150">
                   <svg
                     className="w-2.5 h-2.5 text-white"
@@ -657,13 +664,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
             <div className="flex-1">
               <p className="text-white font-medium text-sm transition-colors duration-300 ease-out">
-                {user.name}
+                {user.displayName}
               </p>
-              {user.role && (
+              {/* {user.role && (
                 <p className="text-teal-400 text-xs transition-colors duration-300 ease-out">
                   {user.role}
-                </p>
-              )}
+                </p> */}
             </div>
           </div>
 
