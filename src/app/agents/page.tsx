@@ -8,6 +8,8 @@ import Particles from "@/ui/components/Particles";
 import ChromaGrid from "@/ui/components/ChromaGrid";
 import { useChat } from "@/hooks/useChat";
 import { ALL_SESSIONS, AGENTS } from "@/constants/mockData";
+import { LanguageSelector } from "@/components/LanguageSelector";
+import { TranslatedText } from "@/components/TranslatedText";
 import {
   ArrowRight,
   Bot,
@@ -30,6 +32,24 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useCheckSession } from "@/hooks/useCheckSession";
 
 // Using real chat hook - same as dashboard
+
+// Add CSS for hiding scrollbar
+const addScrollbarStyle = () => {
+  const style = document.createElement("style");
+  style.textContent = `
+    .hide-scrollbar {
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+    .hide-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+  `;
+  document.head.appendChild(style);
+  return () => {
+    document.head.removeChild(style);
+  };
+};
 
 // Agent Card Component with ChromaGrid styling
 const AgentCard: React.FC<{ agent: (typeof AGENTS)[0] }> = ({ agent }) => {
@@ -110,10 +130,10 @@ const AgentCard: React.FC<{ agent: (typeof AGENTS)[0] }> = ({ agent }) => {
           </div>
 
           <h3 className="text-base sm:text-lg font-semibold text-white mb-2">
-            {agent.name}
+            <TranslatedText>{agent.name}</TranslatedText>
           </h3>
           <p className="text-xs sm:text-sm text-gray-300 leading-relaxed line-clamp-3 sm:line-clamp-4 mb-3 sm:mb-4">
-            {agent.description}
+            <TranslatedText>{agent.description}</TranslatedText>
           </p>
         </div>
 
@@ -136,7 +156,7 @@ const AgentCard: React.FC<{ agent: (typeof AGENTS)[0] }> = ({ agent }) => {
                   border: `1px solid ${hexToRgba(agent.color, 0.2)}`,
                 }}
               >
-                {feature}
+                <TranslatedText>{feature}</TranslatedText>
               </span>
             ))}
           </div>
@@ -173,6 +193,9 @@ const ConnectionPopup: React.FC<{
         { stage: "initial", delay: 0 },
         { stage: "transition", delay: 300 },
         { stage: "final", delay: 800 },
+        { stage: "initial", delay: 0 },
+        { stage: "transition", delay: 300 },
+        { stage: "final", delay: 800 },
       ];
 
       stages.forEach(({ stage, delay }) => {
@@ -188,6 +211,7 @@ const ConnectionPopup: React.FC<{
 
       return () => clearTimeout(timer);
     } else {
+      setAnimationStage("initial");
       setAnimationStage("initial");
     }
   }, [isVisible, onClose]);
@@ -216,7 +240,30 @@ const ConnectionPopup: React.FC<{
             bgColor: "bg-emerald-500/20",
             glowing: true,
           };
+        case "initial":
+          return {
+            color: "text-gray-400",
+            bgColor: "bg-gray-500/20",
+            glowing: false,
+          };
+        case "transition":
+          return {
+            color: "text-emerald-400",
+            bgColor: "bg-emerald-500/20",
+            glowing: false,
+          };
+        case "final":
+          return {
+            color: "text-emerald-400",
+            bgColor: "bg-emerald-500/20",
+            glowing: true,
+          };
         default:
+          return {
+            color: "text-gray-400",
+            bgColor: "bg-gray-500/20",
+            glowing: false,
+          };
           return {
             color: "text-gray-400",
             bgColor: "bg-gray-500/20",
@@ -239,7 +286,25 @@ const ConnectionPopup: React.FC<{
             bgColor: "bg-gray-500/20",
             glowing: false,
           };
+        case "initial":
+          return {
+            color: "text-emerald-400",
+            bgColor: "bg-emerald-500/20",
+            glowing: false,
+          };
+        case "transition":
+        case "final":
+          return {
+            color: "text-gray-400",
+            bgColor: "bg-gray-500/20",
+            glowing: false,
+          };
         default:
+          return {
+            color: "text-gray-400",
+            bgColor: "bg-gray-500/20",
+            glowing: false,
+          };
           return {
             color: "text-gray-400",
             bgColor: "bg-gray-500/20",
@@ -288,8 +353,12 @@ const ConnectionPopup: React.FC<{
           <div className="transition-all duration-300 ease-out">
             <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 transition-all duration-300">
               Fi-Account {isConnected ? "Connected" : "Disconnected"}
+              Fi-Account {isConnected ? "Connected" : "Disconnected"}
             </h3>
             <p className="text-xs sm:text-sm text-gray-400 mb-4 sm:mb-6 transition-all duration-300">
+              {isConnected
+                ? "Your financial data is now syncing securely."
+                : "Your Fi account has been safely disconnected."}
               {isConnected
                 ? "Your financial data is now syncing securely."
                 : "Your Fi account has been safely disconnected."}
@@ -309,10 +378,179 @@ const ConnectionPopup: React.FC<{
   );
 };
 
-export default function AgentsHubPage() {
+// Header Controls Component
+const HeaderControls: React.FC = () => {
+  const [showFiTooltip, setShowFiTooltip] = useState(false);
+  const [showConnectionPopup, setShowConnectionPopup] = useState(false);
+  const [sessionId, setSessionId] = useState<string>("");
+  const queryClient = useQueryClient();
+  // const router = useRouter();
+
+  const { data, error, isPending } = useCheckSession(sessionId);
+
+  const languages = [
+    { code: "EN", name: "English" },
+    { code: "HI", name: "हिंदी" },
+    { code: "GU", name: "ગુજરાતી" },
+    { code: "MR", name: "मराठी" },
+  ];
+
+  const handleFiToggle = () => {
+    const sessionId = `mcp-server-${uuidv4()}`;
+    setSessionId(sessionId);
+    window.open(
+      `${env.NEXT_PUBLIC_FI_MCP_SERVER_URL}/mockWebPage?sessionId=${sessionId}`
+    );
+    queryClient.invalidateQueries({ queryKey: ["check-session", sessionId] });
+  };
+
+  // Add scrollbar style
+  useEffect(() => {
+    return addScrollbarStyle();
+  }, []);
+
+  return (
+    <>
+      <div className="fixed top-2 right-2 sm:top-4 sm:right-4 z-50 flex items-center space-x-2 sm:space-x-3">
+        {/* Language Selector */}
+        <LanguageSelector />
+
+        {/* Fi Toggle - Circular Design */}
+        <div
+          className="relative"
+          onMouseEnter={() => setShowFiTooltip(true)}
+          onMouseLeave={() => setShowFiTooltip(false)}
+        >
+          <button
+            className={`relative w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 backdrop-blur-sm transition-all duration-200 flex items-center justify-center ${
+              data?.valid
+                ? "bg-emerald-500/20 border-emerald-500/50 hover:bg-emerald-500/30"
+                : "bg-red-500/20 border-red-500/50 hover:bg-red-500/30"
+            }`}
+          >
+            {/* Outer glow ring */}
+            <div
+              className={`absolute inset-0 rounded-full animate-pulse ${
+                data?.valid ? "bg-emerald-400/20" : "bg-red-400/20"
+              }`}
+            />
+
+            {/* Fi icon in center */}
+            <div className="relative z-10 flex items-center justify-center">
+              <img
+                src={
+                  data?.valid
+                    ? "https://xqak5dz869.ufs.sh/f/9bPBdXjSiv4IehfPx9KyJ8jNPpV24cHROwYQuxMUoLIv9n6S"
+                    : "https://xqak5dz869.ufs.sh/f/9bPBdXjSiv4IVSvVCH71tHP9Q3GfOo7m650V8qacgeNAFTyE"
+                }
+                alt={data?.valid ? "Fi Connected" : "Fi DisconfiConnected"}
+                className="w-3 h-3 sm:w-4 sm:h-4 object-contain relative z-10 drop-shadow-md"
+                style={{
+                  filter: "brightness(1.2) contrast(1.1)",
+                  maxWidth: "16px",
+                  maxHeight: "16px",
+                }}
+                onError={(e) => {
+                  // Fallback to text if image fails to load
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = "none";
+                  const fallback = document.createElement("span");
+                  fallback.textContent = "Fi";
+                  fallback.className = `text-sm font-bold ${
+                    data?.valid ? "text-emerald-400" : "text-red-400"
+                  }`;
+                  target.parentNode?.appendChild(fallback);
+                }}
+              />
+            </div>
+
+            {/* Status dot at bottom border */}
+            <div
+              className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 w-2 h-2 rounded-full border border-gray-900 ${
+                data?.valid ? "bg-emerald-400" : "bg-red-400"
+              }`}
+            />
+          </button>
+
+          {showFiTooltip && (
+            <div
+              className="absolute top-full mt-3 right-0 w-72 bg-gray-900/98 border border-gray-600/50 rounded-xl backdrop-blur-md shadow-2xl z-60 overflow-hidden"
+              onMouseEnter={() => setShowFiTooltip(true)}
+              onMouseLeave={() => setShowFiTooltip(false)}
+            >
+              {/* Header */}
+              <div className="px-4 py-3 bg-gradient-to-r from-gray-800/50 to-gray-700/50 border-b border-gray-600/30">
+                <div className="flex items-center space-x-3">
+                  <div
+                    className={`w-3 h-3 rounded-full ${
+                      data?.valid ? "bg-emerald-400" : "bg-red-400"
+                    } animate-pulse shadow-lg`}
+                  />
+                  <span className="text-sm font-semibold text-white">
+                    Fi Account Status
+                  </span>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="p-4">
+                <div className="mb-4">
+                  <div
+                    className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                      data?.valid
+                        ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                        : "bg-red-500/20 text-red-400 border border-red-500/30"
+                    }`}
+                  >
+                    {data?.valid ? "Connected" : "Disconnected"}
+                  </div>
+                </div>
+
+                <p className="text-xs text-gray-300 leading-relaxed mb-4">
+                  {data?.valid
+                    ? "Your Fi account is connected and syncing financial data securely. All features are available."
+                    : "Connect your Fi account to sync financial data and unlock all premium features."}
+                </p>
+
+                <button
+                  onClick={handleFiToggle}
+                  className={`w-full px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg border ${
+                    data?.valid
+                      ? "bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20 hover:border-red-500/50"
+                      : "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-500/50"
+                  }`}
+                >
+                  {data?.valid ? "Disconnect Account" : "Connect Account"}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Notifications */}
+        <button className="relative p-1.5 sm:p-2 bg-gray-900/80 border border-gray-700/50 rounded-lg backdrop-blur-sm hover:bg-gray-800/80 transition-all duration-200">
+          <Bell className="w-3 h-3 sm:w-4 sm:h-4 text-gray-300" />
+          <div className="absolute -top-1 -right-1 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-red-500 rounded-full flex items-center justify-center">
+            <span className="text-xs text-white font-medium">3</span>
+          </div>
+        </button>
+      </div>
+
+      {/* Connection Status Popup */}
+      {typeof showConnectionPopup !== "undefined" && (
+        <ConnectionPopup
+          isVisible={showConnectionPopup}
+          isConnected={!!data?.valid}
+          onClose={() => setShowConnectionPopup(false)}
+        />
+      )}
+    </>
+  );
+};
+
+function AgentsPage() {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Use the same chat hook as dashboard for synchronized data
   const {
     sessions,
     activeSession,
@@ -340,29 +578,6 @@ export default function AgentsHubPage() {
     }
   }, [sessions.length, createNewSession]);
 
-  // Simplified mouse tracking for agent card gradients only
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (containerRef.current) {
-        const rect = containerRef.current.getBoundingClientRect();
-        const x = ((e.clientX - rect.left) / rect.width) * 100;
-        const y = ((e.clientY - rect.top) / rect.height) * 100;
-
-        // Set CSS variables for agent card gradients
-        containerRef.current.style.setProperty("--mouse-x", `${x}%`);
-        containerRef.current.style.setProperty("--mouse-y", `${y}%`);
-      }
-    };
-
-    const container = containerRef.current;
-    if (container) {
-      container.addEventListener("mousemove", handleMouseMove);
-      return () => {
-        container.removeEventListener("mousemove", handleMouseMove);
-      };
-    }
-  }, []);
-
   return (
     <div
       ref={containerRef}
@@ -379,12 +594,14 @@ export default function AgentsHubPage() {
               <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-3 mb-4">
                 <Bot className="w-6 h-6 sm:w-8 sm:h-8 text-emerald-400" />
                 <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white">
-                  Agents Hub
+                  <TranslatedText>Agents Hub</TranslatedText>
                 </h1>
               </div>
               <p className="text-base sm:text-lg lg:text-xl text-gray-300 max-w-2xl">
-                Discover our specialized AI agents designed to help you with
-                various aspects of financial planning and management.
+                <TranslatedText>
+                  Discover our specialized AI agents designed to help you with
+                  various aspects of financial planning and management.
+                </TranslatedText>
               </p>
             </div>
 
@@ -414,7 +631,7 @@ export default function AgentsHubPage() {
             {/* Additional Info Section */}
             <div className="mt-8 lg:mt-16 p-4 sm:p-6 lg:p-8 rounded-xl lg:rounded-2xl bg-gradient-to-r from-gray-900/40 to-gray-800/40 border border-gray-700/50 max-w-4xl w-full backdrop-blur-sm">
               <h2 className="text-lg sm:text-xl lg:text-2xl font-semibold text-white mb-3 sm:mb-4">
-                Why Choose Our AI Agents?
+                <TranslatedText>Why Choose Our AI Agents?</TranslatedText>
               </h2>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 <div className="space-y-2">
@@ -423,12 +640,14 @@ export default function AgentsHubPage() {
                       <Brain className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-yellow-400" />
                     </div>
                     <h3 className="text-base sm:text-lg font-medium text-yellow-400">
-                      Expert Knowledge
+                      <TranslatedText>Expert Knowledge</TranslatedText>
                     </h3>
                   </div>
                   <p className="text-gray-300 text-xs sm:text-sm">
-                    Each agent is trained on domain-specific expertise to
-                    provide accurate and relevant guidance.
+                    <TranslatedText>
+                      Each agent is trained on domain-specific expertise to
+                      provide accurate and relevant guidance.
+                    </TranslatedText>
                   </p>
                 </div>
                 <div className="space-y-2">
@@ -437,12 +656,14 @@ export default function AgentsHubPage() {
                       <Zap className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-cyan-400" />
                     </div>
                     <h3 className="text-base sm:text-lg font-medium text-cyan-400">
-                      Real-time Insights
+                      <TranslatedText>Real-time Insights</TranslatedText>
                     </h3>
                   </div>
                   <p className="text-gray-300 text-xs sm:text-sm">
-                    Get up-to-date market data and regulatory information for
-                    informed decision making.
+                    <TranslatedText>
+                      Get up-to-date market data and regulatory information for
+                      informed decision making.
+                    </TranslatedText>
                   </p>
                 </div>
                 <div className="space-y-2 sm:col-span-2 lg:col-span-1">
@@ -451,12 +672,14 @@ export default function AgentsHubPage() {
                       <Target className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-red-400" />
                     </div>
                     <h3 className="text-base sm:text-lg font-medium text-red-400">
-                      Personalized Advice
+                      <TranslatedText>Personalized Advice</TranslatedText>
                     </h3>
                   </div>
                   <p className="text-gray-300 text-xs sm:text-sm">
-                    Receive customized recommendations based on your financial
-                    goals and risk profile.
+                    <TranslatedText>
+                      Receive customized recommendations based on your financial
+                      goals and risk profile.
+                    </TranslatedText>
                   </p>
                 </div>
               </div>
@@ -477,6 +700,21 @@ export default function AgentsHubPage() {
           disableRotation={false}
         />
       </div>
+
+      <div className="absolute inset-0 w-screen h-screen">
+        <Particles
+          particleColors={["#ffffff", "#ffffff"]}
+          particleCount={200}
+          particleSpread={10}
+          speed={0.1}
+          particleBaseSize={100}
+          moveParticlesOnHover={false}
+          alphaParticles={false}
+          disableRotation={false}
+        />
+      </div>
     </div>
   );
 }
+
+export default AgentsPage;

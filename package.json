@@ -12,6 +12,7 @@
     "lint:fix": "next lint --fix"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@heroicons/react": "^2.2.0",
     "@react-three/fiber": "^9.2.0",
     "@react-three/postprocessing": "^3.0.4",

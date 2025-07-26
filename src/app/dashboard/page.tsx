@@ -7,7 +7,12 @@ import { SessionCreationLoader } from "@/components/ui/CustomLoader";
 
 export default function DashboardRedirect() {
   const router = useRouter();
-  const { sessions, isLoading: sessionsLoading, fetchSessions, createSession } = useSessionStore();
+  const {
+    sessions,
+    isLoading: sessionsLoading,
+    fetchSessions,
+    createSession,
+  } = useSessionStore();
   const [isCreatingSession, setIsCreatingSession] = useState(false);
 
   useEffect(() => {
@@ -26,14 +31,16 @@ export default function DashboardRedirect() {
       } else {
         // Create a new session if none exist
         setIsCreatingSession(true);
-        createSession().then((newSession) => {
-          if (newSession) {
-            router.replace(`/dashboard/${newSession.id}`);
-          }
-          setIsCreatingSession(false);
-        }).catch(() => {
-          setIsCreatingSession(false);
-        });
+        createSession()
+          .then((newSession) => {
+            if (newSession) {
+              router.replace(`/dashboard/${newSession.id}`);
+            }
+            setIsCreatingSession(false);
+          })
+          .catch(() => {
+            setIsCreatingSession(false);
+          });
       }
     }
   }, [sessions, sessionsLoading, createSession, router]);
@@ -46,7 +53,9 @@ export default function DashboardRedirect() {
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mx-auto mb-4"></div>
           <p className="text-gray-400">
-            {sessionsLoading ? "Loading dashboard..." : "Creating new session..."}
+            {sessionsLoading
+              ? "Loading dashboard..."
+              : "Creating new session..."}
           </p>
         </div>
       )}
