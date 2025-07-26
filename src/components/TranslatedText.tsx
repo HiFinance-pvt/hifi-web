@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, JSX } from "react";
 import { useLanguageStore } from "@/stores/languageStore";
 
 interface TranslatedTextProps {
@@ -44,6 +44,6 @@ export function TranslatedText({
       .catch(() => setDisplayText(children));
   }, [children, currentLanguage.code, getTranslation, translateText, isClient]);
 
-  const Component = as;
-  return <Component className={className}>{displayText}</Component>;
+  const Component = as as keyof JSX.IntrinsicElements;
+  return React.createElement(Component, { className }, displayText ?? "");
 }

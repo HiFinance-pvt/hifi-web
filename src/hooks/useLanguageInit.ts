@@ -25,7 +25,7 @@ export function useLanguageInit() {
       );
 
       // Check if we already have translations for this page
-      const existingTranslations = getPageTranslations(pathname);
+      const existingTranslations = getPageTranslations(pathname ?? "");
 
       const timer = setTimeout(async () => {
         // If we have cached translations for this page, apply them immediately
@@ -125,15 +125,15 @@ export function useLanguageInit() {
         const textsToTranslate: string[] = [];
         const textNodes: Text[] = [];
 
-        let textNode;
-        while ((textNode = walker.nextNode()) as Text) {
+        let textNode = walker.nextNode();
+        while (textNode !== null) {
           const text = textNode.textContent?.trim();
           if (text && text.length >= 2) {
             textsToTranslate.push(text);
-            textNodes.push(textNode);
+            textNodes.push(textNode as Text);
           }
+          textNode = walker.nextNode();
         }
-
         console.log(
           `Found ${textsToTranslate.length} translatable elements on page: ${pathname}`
         );
@@ -156,7 +156,8 @@ export function useLanguageInit() {
           const batchPromises = batch.map(async (text, batchIndex) => {
             const actualIndex = i + batchIndex;
             try {
-              const translated = await translateText(text, pathname);
+              // Fix: Ensure pathname is always a string (not null)
+              const translated = await translateText(text, pathname ?? undefined);
 
               // Apply translation to DOM immediately
               const node = textNodes[actualIndex];
@@ -183,7 +184,7 @@ export function useLanguageInit() {
         }
 
         // Store all new translations for this page
-        if (Object.keys(newTranslations).length > 0) {
+        if (Object.keys(newTranslations).length > 0 && pathname) {
           setPageTranslations(pathname, newTranslations);
           console.log(
             `Stored ${

@@ -22,7 +22,7 @@ import Particles from "@/ui/components/Particles";
 export default function HiFiDashboard() {
     const params = useParams();
     const router = useRouter();
-    const sessionId = params.session_id as string;
+    const sessionId = params?.session_id as string;
 
     const [currentMessage, setCurrentMessage] = useState("");
     const [adkConversations, setAdkConversations] = useState<any[]>([]);
