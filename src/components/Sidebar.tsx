@@ -104,7 +104,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const formatDate = (date: Date | number) => {
     const dateObj = typeof date === "number" ? new Date(date) : date;
+    const dateObj = typeof date === "number" ? new Date(date) : date;
     const now = new Date();
+    const diffInHours = Math.floor(
+      (now.getTime() - dateObj.getTime()) / (1000 * 60 * 60)
+    );
     const diffInHours = Math.floor(
       (now.getTime() - dateObj.getTime()) / (1000 * 60 * 60)
     );
@@ -122,13 +126,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const getIcon = (iconValue: string) => {
     // Check if it's a URL (for custom uploaded images)
     if (iconValue.startsWith("http")) {
+    if (iconValue.startsWith("http")) {
       return (
+        <img src={iconValue} alt="icon" className="h-9 w-9 object-contain" />
         <img src={iconValue} alt="icon" className="h-9 w-9 object-contain" />
       );
     }
 
     // Fallback to lucide-react icons
     const iconMap: { [key: string]: React.ComponentType<any> } = {
+      Bot: Bot,
+      Settings: Settings,
+      LogOut: LogOut,
       Bot: Bot,
       Settings: Settings,
       LogOut: LogOut,
@@ -140,12 +149,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
     ) : (
       <span>{iconValue}</span>
     );
+    return IconComponent ? (
+      <IconComponent className="h-4 w-4" />
+    ) : (
+      <span>{iconValue}</span>
+    );
   };
 
   const handleSessionClick = (sessionId: string) => {
     onSelectSession(sessionId);
   };
 
+  const handleDeleteSession = async (
+    sessionId: string,
+    e: React.MouseEvent
+  ) => {
   const handleDeleteSession = async (
     sessionId: string,
     e: React.MouseEvent
@@ -679,4 +697,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
       )}
     </div>
   );
+};
+
 };
