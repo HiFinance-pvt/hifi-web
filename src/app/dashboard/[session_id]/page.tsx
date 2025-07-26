@@ -113,7 +113,6 @@ export default function HiFiDashboard() {
     }, [sessionId, refetchMessages]);
 
     const {
-        user,
         selectSession,
         deleteSession,
         stopMessage,
@@ -422,7 +421,6 @@ export default function HiFiDashboard() {
             {/* Custom Sidebar */}
             <div className="z-10 bg-none">
                 <Sidebar
-                    user={user}
                     // starredSessions={sessionsByCategory.starred}
                     // chatSessions={sessionsByCategory.chats}
                     activeSessionId={activeSessionId}

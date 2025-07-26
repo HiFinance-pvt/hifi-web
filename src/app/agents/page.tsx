@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import Link from "next/link";
-import { Sidebar } from "@/components/Sidebar";
+
 import Particles from "@/ui/components/Particles";
 import ChromaGrid from "@/ui/components/ChromaGrid";
 import { useChat } from "@/hooks/useChat";
@@ -581,30 +581,11 @@ function AgentsPage() {
   return (
     <div
       ref={containerRef}
-      className="flex flex-col lg:flex-row h-screen w-screen bg-[#111827] overflow-hidden agents-page-container"
+      className="flex flex-col h-full w-full bg-transparent overflow-hidden agents-page-container"
+      style={{ pointerEvents: "auto" }}
     >
-      {/* Header Controls */}
-      <HeaderControls />
-
-      {/* Sidebar - Same data as dashboard */}
-      <div className="relative z-10 w-full lg:w-auto lg:flex-shrink-0">
-        <Sidebar
-          user={user}
-          // starredSessions={sessionsByCategory.starred}
-          // chatSessions={sessionsByCategory.chats}
-          activeSessionId={activeSessionId}
-          onSelectSession={selectSession}
-          onDeleteSession={deleteSession}
-          onNewSession={createNewSession}
-          onToggleStar={toggleSessionStar}
-        />
-      </div>
-
-      {/* Main Content Area */}
-      <div
-        className="flex-1 relative overflow-hidden z-10 min-h-0 min-w-0"
-        style={{ pointerEvents: "auto" }}
-      >
+      {/* Content */}
+      <div className="flex-1 relative overflow-hidden z-10 min-h-0 min-w-0">
         {/* Content */}
         <div className="agents-section relative z-10 h-full overflow-y-auto overflow-x-hidden">
           <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 w-full">
