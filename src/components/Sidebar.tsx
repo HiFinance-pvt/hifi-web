@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { User, ChatSession } from "@/types/chat";
 import { NAVIGATION_ITEMS } from "@/constants/mockData";
-import { Plus, Search } from "lucide-react";
+import { Plus, Search, Bot, Settings, LogOut, Star } from "lucide-react";
 import { logout } from "@/lib/firebase/firebase";
 import { env } from "@/lib/env";
 import { useRouter } from "next/navigation";
@@ -16,6 +16,7 @@ interface SidebarProps {
   onSelectSession: (sessionId: string) => void;
   onDeleteSession: (sessionId: string) => void;
   onNewSession: () => void;
+  onToggleStar: (sessionId: string) => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -26,6 +27,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onSelectSession,
   onDeleteSession,
   onNewSession,
+  onToggleStar,
 }) => {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
@@ -52,6 +54,29 @@ export const Sidebar: React.FC<SidebarProps> = ({
     }
   };
 
+  const getIcon = (iconValue: string) => {
+    // Check if it's a URL (for custom uploaded images)
+    if (iconValue.startsWith('http')) {
+      return (
+        <img 
+          src={iconValue} 
+          alt="icon" 
+          className="h-9 w-9 object-contain"
+        />
+      );
+    }
+    
+    // Fallback to lucide-react icons
+    const iconMap: { [key: string]: React.ComponentType<any> } = {
+      'Bot': Bot,
+      'Settings': Settings,
+      'LogOut': LogOut,
+    };
+    
+    const IconComponent = iconMap[iconValue];
+    return IconComponent ? <IconComponent className="h-4 w-4" /> : <span>{iconValue}</span>;
+  };
+
   const handleSessionClick = (sessionId: string) => {
     onSelectSession(sessionId);
   };
@@ -61,7 +86,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
     onDeleteSession(sessionId);
   };
 
-  const SessionItem: React.FC<{ session: ChatSession }> = ({ session }) => (
+  const handleToggleStar = (sessionId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    onToggleStar(sessionId);
+  };
+
+  const SessionItem: React.FC<{ session: ChatSession; isStarred: boolean }> = ({ session, isStarred }) => (
     <div
       onClick={() => handleSessionClick(session.id)}
       className={`group flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all duration-200 ${activeSessionId === session.id
@@ -75,13 +105,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {session.title}
         </p>
       </div>
-      <div className="flex items-center space-x-2 ml-2">
+      <div className="flex items-center space-x-1 ml-2">
         <span className="text-xs text-gray-500">
           {formatDate(session.updatedAt)}
         </span>
         <button
+          onClick={(e) => handleToggleStar(session.id, e)}
+          className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-yellow-500/20 transition-all duration-200"
+          title={isStarred ? "Unstar chat" : "Star chat"}
+        >
+          <Star 
+            className={`w-3 h-3 transition-colors duration-200 ${
+              isStarred 
+                ? "text-yellow-400 fill-yellow-400" 
+                : "text-gray-400 hover:text-yellow-400"
+            }`}
+          />
+        </button>
+        <button
           onClick={(e) => handleDeleteSession(session.id, e)}
           className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-500/20 transition-all duration-200"
+          title="Delete chat"
         >
           <svg className="w-3 h-3 text-gray-400 hover:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -131,7 +175,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </h3>
             <div className="space-y-1">
               {filteredStarredSessions.map(session => (
-                <SessionItem key={session.id} session={session} />
+                <SessionItem key={session.id} session={session} isStarred={true} />
               ))}
             </div>
           </div>
@@ -145,7 +189,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </h3>
             <div className="space-y-1">
               {filteredChatSessions.map(session => (
-                <SessionItem key={session.id} session={session} />
+                <SessionItem key={session.id} session={session} isStarred={false} />
               ))}
             </div>
           </div>
@@ -206,7 +250,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 }}
                 className="w-full flex items-center space-x-3 p-2 rounded-lg text-gray-300 hover:text-white hover:bg-gray-700 transition-colors text-sm"
               >
-                <span>{item.icon}</span>
+                {getIcon(item.icon)}
                 <span>{item.label}</span>
               </button>
             ))}

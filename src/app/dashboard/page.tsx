@@ -42,6 +42,7 @@ export default function HiFiDashboard() {
     stopMessage,
     handleFileUpload,
     updateSessionTitle,
+    toggleSessionStar,
   } = useChat();
 
   // Convert ADK messages to chat conversations format (from backend)
@@ -155,6 +156,7 @@ export default function HiFiDashboard() {
           onSelectSession={selectSession}
           onDeleteSession={deleteSession}
           onNewSession={handleNewSession}
+          onToggleStar={toggleSessionStar}
         />
       </div>
       {/* Main Chat Area - Always wrapped in Chat component for theme context */}
@@ -298,6 +300,18 @@ export default function HiFiDashboard() {
           </div>
         </div>
       </Chat>
+      <div className="absolute inset-0 w-screen h-screen">
+        <Particles
+          particleColors={["#ffffff", "#ffffff"]}
+          particleCount={200}
+          particleSpread={10}
+          speed={0.1}
+          particleBaseSize={100}
+          moveParticlesOnHover={false}
+          alphaParticles={false}
+          disableRotation={false}
+        />
+      </div>
     </div>
   );
 }
