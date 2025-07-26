@@ -46,41 +46,31 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState("");
 
-  // Session store integration
+  // Use sessionStore from main branch for real API calls
   const {
-    sessions: rawSessions,
+    sessions,
     isLoading,
     error,
+    updateSession,
     fetchSessions,
     createSession,
-    updateSession,
     removeSession,
-    startPeriodicSync,
-    stopPeriodicSync,
   } = useSessionStore();
 
   // Initialize sessions on mount
   useEffect(() => {
     const initializeSessions = async () => {
       // Fetch sessions if we don't have any
-      if (rawSessions.length === 0) {
+      if (sessions.length === 0) {
         await fetchSessions();
       }
-
-      // Start periodic sync
-      startPeriodicSync();
     };
 
     initializeSessions();
-
-    // Cleanup on unmount
-    return () => {
-      stopPeriodicSync();
-    };
-  }, [fetchSessions, startPeriodicSync, stopPeriodicSync, rawSessions.length]);
+  }, [fetchSessions, sessions.length]);
 
   // Transform API sessions to ChatSession format
-  const transformedSessions: ChatSession[] = rawSessions.map((session) => ({
+  const transformedSessions: ChatSession[] = sessions.map((session: any) => ({
     id: session.id,
     title: session.appName || `Session ${session.id.slice(0, 8)}`,
     category: "chats" as const, // Default to chats, you can add starring logic later
@@ -104,11 +94,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const formatDate = (date: Date | number) => {
     const dateObj = typeof date === "number" ? new Date(date) : date;
-    const dateObj = typeof date === "number" ? new Date(date) : date;
     const now = new Date();
-    const diffInHours = Math.floor(
-      (now.getTime() - dateObj.getTime()) / (1000 * 60 * 60)
-    );
     const diffInHours = Math.floor(
       (now.getTime() - dateObj.getTime()) / (1000 * 60 * 60)
     );
@@ -126,9 +112,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const getIcon = (iconValue: string) => {
     // Check if it's a URL (for custom uploaded images)
     if (iconValue.startsWith("http")) {
-    if (iconValue.startsWith("http")) {
       return (
-        <img src={iconValue} alt="icon" className="h-9 w-9 object-contain" />
         <img src={iconValue} alt="icon" className="h-9 w-9 object-contain" />
       );
     }
@@ -138,17 +122,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
       Bot: Bot,
       Settings: Settings,
       LogOut: LogOut,
-      Bot: Bot,
-      Settings: Settings,
-      LogOut: LogOut,
     };
 
     const IconComponent = iconMap[iconValue];
-    return IconComponent ? (
-      <IconComponent className="h-4 w-4" />
-    ) : (
-      <span>{iconValue}</span>
-    );
     return IconComponent ? (
       <IconComponent className="h-4 w-4" />
     ) : (
@@ -164,10 +140,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
     sessionId: string,
     e: React.MouseEvent
   ) => {
-  const handleDeleteSession = async (
-    sessionId: string,
-    e: React.MouseEvent
-  ) => {
     e.stopPropagation();
     try {
       await removeSession(sessionId);
@@ -179,13 +151,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const handleToggleStar = (sessionId: string, e: React.MouseEvent) => {
     e.stopPropagation();
-    const session = transformedSessions.find((s) => s.id === sessionId);
-    if (session) {
-      const newCategory = session.category === "starred" ? "chats" : "starred";
-      // Update in store - you might need to add custom metadata for starring
-      updateSession(sessionId, { lastUpdateTime: Date.now() });
-      onToggleStar?.(sessionId);
-    }
+    // For now, just call the parent handler since starring logic needs to be implemented
+    onToggleStar?.(sessionId);
   };
 
   const handleStartRename = (
@@ -354,7 +321,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
         <p className="text-xs text-red-300 mb-3">{error}</p>
         <button
-          onClick={() => fetchSessions(true, true)}
+          onClick={() => fetchSessions()}
           className="text-xs bg-red-500/20 hover:bg-red-500/30 px-2 py-1 rounded transition-colors duration-200"
         >
           Retry
@@ -513,7 +480,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* New Chat Button */}
         <button
-          onClick={handleNewSession}
+          onClick={onNewSession}
           disabled={isLoading}
           className="w-full mt-3 flex items-center justify-center space-x-2 p-2 bg-teal-600 hover:bg-teal-700 disabled:bg-teal-600/50 disabled:cursor-not-allowed rounded-lg text-white transition-all duration-300 ease-out hover:scale-105 disabled:hover:scale-100"
         >
@@ -579,6 +546,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </div>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Loading State */}
+        {isLoading && (
+          <div className="text-center py-8">
+            <Loader2 className="w-6 h-6 text-gray-400 animate-spin mx-auto mb-2" />
+            <p className="text-gray-500 text-sm">Loading sessions...</p>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && (
+          <div className="text-center py-8">
+            <p className="text-red-500 text-sm">{error}</p>
           </div>
         )}
 
@@ -697,6 +679,4 @@ export const Sidebar: React.FC<SidebarProps> = ({
       )}
     </div>
   );
-};
-
 };
