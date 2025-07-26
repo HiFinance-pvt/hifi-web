@@ -15,37 +15,37 @@ import {
   CornerDownLeft,
   Paperclip,
   Mic,
-  TrendingUp,
-  LineChart,
-  BarChart,
+  Calculator,
+  FileText,
+  AlertCircle,
   Wifi,
   X,
-  CandlestickChart,
+  DollarSign,
   PieChart,
-  AlertTriangle,
+  TrendingDown,
 } from "lucide-react";
 
-// Trader Agent specific questions for TextType
-const TRADER_QUESTIONS = [
-  "How can I help with your trading decisions?",
-  "Want to analyze market trends?",
-  "Need help with portfolio management?",
-  "Looking for stock recommendations?",
-  "Want to understand technical indicators?",
-  "Need help with risk management?",
-  "Want to track market sentiment?",
-  "Looking for options trading guidance?",
+// Debt Squasher specific questions for TextType
+const DEBT_QUESTIONS = [
+  "How can I help manage your debt?",
+  "Want to improve your DTI ratio?",
+  "Need help with debt consolidation?",
+  "Looking for debt repayment strategies?",
+  "Want to understand your credit score?",
+  "Need help with loan refinancing?",
+  "Want to create a debt payoff plan?",
+  "Looking for budgeting guidance?",
 ];
 
-// Trader Agent specific suggestions
-const TRADER_SUGGESTIONS = [
-  "Analyze market trends for tech stocks",
-  "Calculate my portfolio risk metrics",
-  "Explain RSI and MACD indicators",
-  "Best options trading strategies",
-  "How to diversify my portfolio?",
-  "Track market sentiment analysis",
-  "Set up price movement alerts",
+// Debt Squasher specific suggestions
+const DEBT_SUGGESTIONS = [
+  "What is my current DTI ratio?",
+  "How to consolidate my debts?",
+  "Best strategy to pay off credit cards?",
+  "Should I refinance my loans?",
+  "How to improve my credit score?",
+  "Create a debt payoff timeline",
+  "Compare debt repayment methods",
 ];
 
 // Enhanced Connection Status Popup Component
@@ -419,7 +419,7 @@ const SuggestionButton: React.FC<{
   return (
     <button
       onClick={onClick}
-      className="px-6 py-3 bg-[rgba(30,31,34,0.6)] hover:bg-[rgba(30,31,34,0.8)] text-white text-sm rounded-lg border border-gray-600/30 hover:border-[#C54F51]/50 backdrop-blur-sm transition-all duration-300 ease-out transform hover:scale-105 shadow-lg hover:shadow-xl hover:shadow-[#C54F51]/20"
+      className="px-6 py-3 bg-[rgba(30,31,34,0.6)] hover:bg-[rgba(30,31,34,0.8)] text-white text-sm rounded-lg border border-gray-600/30 hover:border-[#109CA3]/50 backdrop-blur-sm transition-all duration-300 ease-out transform hover:scale-105 shadow-lg hover:shadow-xl hover:shadow-[#109CA3]/20"
     >
       {suggestion}
     </button>
@@ -441,7 +441,7 @@ const ChatInput: React.FC<{
 
   return (
     <div className="relative w-full">
-      <div className="flex items-center bg-gray-800/60 rounded-xl border border-gray-600/50 focus-within:border-[#C54F51]/60 focus-within:shadow-lg focus-within:shadow-[#C54F51]/20 transition-all duration-500 ease-out backdrop-blur-sm shadow-lg hover:shadow-xl transform hover:scale-[1.01]">
+      <div className="flex items-center bg-gray-800/60 rounded-xl border border-gray-600/50 focus-within:border-[#109CA3]/60 focus-within:shadow-lg focus-within:shadow-[#109CA3]/20 transition-all duration-500 ease-out backdrop-blur-sm shadow-lg hover:shadow-xl transform hover:scale-[1.01]">
         {/* Filter/Agent Button */}
         <div className="p-3">
           <div className="w-8 h-8 bg-gray-700/50 rounded-lg flex items-center justify-center hover:bg-gray-600/60 transition-all duration-300 ease-out transform hover:scale-105">
@@ -474,14 +474,14 @@ const ChatInput: React.FC<{
           </button>
 
           {/* Voice Button */}
-          <button className="p-2 text-[#C54F51] hover:text-[#C54F51]/80 transition-all duration-300 ease-out transform hover:scale-110 active:scale-95 rounded-lg hover:bg-[#C54F51]/10">
+          <button className="p-2 text-[#109CA3] hover:text-[#109CA3]/80 transition-all duration-300 ease-out transform hover:scale-110 active:scale-95 rounded-lg hover:bg-[#109CA3]/10">
             <Mic className="w-4 h-4" />
           </button>
 
           {/* Send Button - Prominent */}
           <button
             onClick={onSend}
-            className="ml-2 p-2.5 bg-[#C54F51] hover:bg-[#C54F51]/90 text-white rounded-lg transition-all duration-300 ease-out transform hover:scale-105 active:scale-95 shadow-md hover:shadow-lg hover:shadow-[#C54F51]/30"
+            className="ml-2 p-2.5 bg-[#109CA3] hover:bg-[#109CA3]/90 text-white rounded-lg transition-all duration-300 ease-out transform hover:scale-105 active:scale-95 shadow-md hover:shadow-lg hover:shadow-[#109CA3]/30"
           >
             <Send className="w-4 h-4" />
           </button>
@@ -491,7 +491,7 @@ const ChatInput: React.FC<{
   );
 };
 
-export default function TraderAgentPage() {
+export default function DebtSquasherPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [message, setMessage] = useState("");
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -544,7 +544,7 @@ export default function TraderAgentPage() {
   // Add auto-rotate functionality
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentQuestionIndex((prev) => (prev + 1) % TRADER_QUESTIONS.length);
+      setCurrentQuestionIndex((prev) => (prev + 1) % DEBT_QUESTIONS.length);
     }, 4000);
 
     return () => clearInterval(interval);
@@ -628,7 +628,7 @@ export default function TraderAgentPage() {
       <div className="flex-1 relative overflow-hidden z-10 min-h-0 min-w-0">
         {/* Content */}
         <div className="relative z-10 h-full flex flex-col">
-          {/* Trading Features Tooltips */}
+          {/* Debt Features Tooltips */}
           <div
             className="w-full px-8 pt-24 pb-8 smooth-entry"
             style={{ animationDelay: "0.1s" }}
@@ -636,20 +636,20 @@ export default function TraderAgentPage() {
             <div className="max-w-6xl mx-auto">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 <div
-                  className="space-y-2 bg-gray-800/30 backdrop-blur-sm rounded-xl p-4 border border-gray-700/50 hover:border-[#FF6B00]/50 transition-all duration-500 ease-out transform hover:scale-105 hover:-translate-y-1 shadow-lg hover:shadow-xl hover:shadow-[#FF6B00]/20 popup-animation"
+                  className="space-y-2 bg-gray-800/30 backdrop-blur-sm rounded-xl p-4 border border-gray-700/50 hover:border-[#109CA3]/50 transition-all duration-500 ease-out transform hover:scale-105 hover:-translate-y-1 shadow-lg hover:shadow-xl hover:shadow-[#109CA3]/20 popup-animation"
                   style={{ animationDelay: "0.2s" }}
                 >
                   <div className="flex items-center space-x-2 mb-2">
-                    <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-md bg-[#C54F51]/10 border border-[#C54F51]/30 flex items-center justify-center">
-                      <CandlestickChart className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-[#C54F51]" />
+                    <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-md bg-[#109CA3]/10 border border-[#109CA3]/30 flex items-center justify-center">
+                      <DollarSign className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-[#109CA3]" />
                     </div>
-                    <h3 className="text-base sm:text-lg font-medium text-[#C54F51]">
-                      Market Analysis
+                    <h3 className="text-base sm:text-lg font-medium text-[#109CA3]">
+                      Debt Analysis
                     </h3>
                   </div>
                   <p className="text-gray-300 text-xs sm:text-sm">
-                    Real-time market analysis with technical indicators and
-                    trend predictions.
+                    Analyze your debt-to-income ratio and get personalized debt
+                    reduction strategies.
                   </p>
                 </div>
 
@@ -662,11 +662,12 @@ export default function TraderAgentPage() {
                       <PieChart className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-green-400" />
                     </div>
                     <h3 className="text-base sm:text-lg font-medium text-green-400">
-                      Portfolio Insights
+                      Budget Planning
                     </h3>
                   </div>
                   <p className="text-gray-300 text-xs sm:text-sm">
-                    Advanced portfolio analytics and risk management strategies.
+                    Create smart budgets and track expenses to accelerate debt
+                    payoff.
                   </p>
                 </div>
 
@@ -676,15 +677,15 @@ export default function TraderAgentPage() {
                 >
                   <div className="flex items-center space-x-2 mb-2">
                     <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-md bg-orange-500/10 border border-orange-500/30 flex items-center justify-center">
-                      <AlertTriangle className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-orange-400" />
+                      <TrendingDown className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-orange-400" />
                     </div>
                     <h3 className="text-base sm:text-lg font-medium text-orange-400">
-                      Risk Alerts
+                      Debt Reduction
                     </h3>
                   </div>
                   <p className="text-gray-300 text-xs sm:text-sm">
-                    Smart alerts for market volatility and trading
-                    opportunities.
+                    Get optimized debt payoff plans using snowball or avalanche
+                    methods.
                   </p>
                 </div>
               </div>
@@ -693,15 +694,15 @@ export default function TraderAgentPage() {
 
           {/* Main Welcome Section */}
           <div className="flex-1 flex flex-col items-center justify-center px-8 smooth-entry">
-            {/* Trader Agent Logo */}
+            {/* Debt Squasher Logo */}
             <div
               className="mb-8 smooth-entry"
               style={{ animationDelay: "0.2s" }}
             >
-              <div className="w-20 h-20 md:w-24 md:h-24 mx-auto bg-[#C54F51]/20 rounded-full flex items-center justify-center border-2 border-[#C54F51]/30 backdrop-blur-sm shadow-lg hover:shadow-xl hover:shadow-[#C54F51]/20 transition-all duration-500 transform hover:scale-105">
+              <div className="w-20 h-20 md:w-24 md:h-24 mx-auto bg-[#109CA3]/20 rounded-full flex items-center justify-center border-2 border-[#109CA3]/30 backdrop-blur-sm shadow-lg hover:shadow-xl hover:shadow-[#109CA3]/20 transition-all duration-500 transform hover:scale-105">
                 <img
-                  src="https://xqak5dz869.ufs.sh/f/9bPBdXjSiv4Iz0m2F9yNHVDGZLkIBX1i8F6AeEQxgp2rb30l"
-                  alt="Trader Agent Logo"
+                  src="https://xqak5dz869.ufs.sh/f/9bPBdXjSiv4ITHTdQk1d0QJBp7Ci3hOcWArv9MnmeIS6xaby"
+                  alt="Debt Squasher Logo"
                   className="w-12 h-12 md:w-14 md:h-14 object-contain"
                 />
               </div>
@@ -710,19 +711,20 @@ export default function TraderAgentPage() {
             {/* Welcome Title */}
             <div className="text-center mb-8">
               <h1 className="text-5xl md:text-6xl font-bold text-white mb-6 transition-all duration-1000 ease-out transform hover:scale-105">
-                Welcome to <span className="text-[#C54F51]">Trader Agent</span>!
+                Welcome to <span className="text-[#109CA3]">Debt Squasher</span>
+                !
               </h1>
 
               {/* Animated Subtitle using TextType */}
               <div className="text-2xl md:text-3xl mb-8">
                 <TextType
                   key={currentQuestionIndex}
-                  text={TRADER_QUESTIONS[currentQuestionIndex]}
+                  text={DEBT_QUESTIONS[currentQuestionIndex]}
                   className="text-gray-400 transition-colors duration-1000 ease-out"
                   typingSpeed={50}
                   showCursor={true}
                   cursorCharacter="|"
-                  cursorClassName="text-[#C54F51] animate-pulse"
+                  cursorClassName="text-[#109CA3] animate-pulse"
                   cursorBlinkDuration={0.8}
                   loop={false}
                   variableSpeed={{ min: 30, max: 80 }}
@@ -748,7 +750,7 @@ export default function TraderAgentPage() {
               style={{ animationDelay: "0.4s" }}
             >
               <div className="flex flex-wrap justify-center gap-3">
-                {TRADER_SUGGESTIONS.slice(0, 7).map((suggestion, index) => (
+                {DEBT_SUGGESTIONS.slice(0, 7).map((suggestion, index) => (
                   <SuggestionButton
                     key={index}
                     suggestion={suggestion}
