@@ -3,7 +3,17 @@
 import React, { useState } from "react";
 import { User, ChatSession } from "@/types/chat";
 import { NAVIGATION_ITEMS } from "@/constants/mockData";
-import { Plus, Search, Bot, Settings, LogOut, Star } from "lucide-react";
+import { useDeleteSessionMutation } from "@/hooks/adk";
+import {
+  Plus,
+  Search,
+  Bot,
+  Settings,
+  LogOut,
+  Star,
+  Trash2,
+  Loader2,
+} from "lucide-react";
 import { logout } from "@/lib/firebase/firebase";
 import { env } from "@/lib/env";
 import { useRouter } from "next/navigation";
@@ -31,19 +41,31 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
-
-  const filteredStarredSessions = starredSessions.filter(session =>
-    (session.title || session.appName || `Session ${session.id}`).toLowerCase().includes(searchQuery.toLowerCase())
+  const [deletingSessionId, setDeletingSessionId] = useState<string | null>(
+    null
   );
 
-  const filteredChatSessions = chatSessions.filter(session =>
-    (session.title || session.appName || `Session ${session.id}`).toLowerCase().includes(searchQuery.toLowerCase())
+  // Session deletion hook
+  const deleteSessionMutation = useDeleteSessionMutation();
+
+  const filteredStarredSessions = starredSessions.filter((session) =>
+    (session.title || session.appName || `Session ${session.id}`)
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase())
+  );
+
+  const filteredChatSessions = chatSessions.filter((session) =>
+    (session.title || session.appName || `Session ${session.id}`)
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase())
   );
 
   const formatDate = (date: Date | number) => {
-    const dateObj = typeof date === 'number' ? new Date(date) : date;
+    const dateObj = typeof date === "number" ? new Date(date) : date;
     const now = new Date();
-    const diffInHours = Math.floor((now.getTime() - dateObj.getTime()) / (1000 * 60 * 60));
+    const diffInHours = Math.floor(
+      (now.getTime() - dateObj.getTime()) / (1000 * 60 * 60)
+    );
 
     if (diffInHours < 24) {
       return "Today";
@@ -57,34 +79,53 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const getIcon = (iconValue: string) => {
     // Check if it's a URL (for custom uploaded images)
-    if (iconValue.startsWith('http')) {
+    if (iconValue.startsWith("http")) {
       return (
-        <img
-          src={iconValue}
-          alt="icon"
-          className="h-9 w-9 object-contain"
-        />
+        <img src={iconValue} alt="icon" className="h-9 w-9 object-contain" />
       );
     }
 
     // Fallback to lucide-react icons
     const iconMap: { [key: string]: React.ComponentType<any> } = {
-      'Bot': Bot,
-      'Settings': Settings,
-      'LogOut': LogOut,
+      Bot: Bot,
+      Settings: Settings,
+      LogOut: LogOut,
     };
 
     const IconComponent = iconMap[iconValue];
-    return IconComponent ? <IconComponent className="h-4 w-4" /> : <span>{iconValue}</span>;
+    return IconComponent ? (
+      <IconComponent className="h-4 w-4" />
+    ) : (
+      <span>{iconValue}</span>
+    );
   };
 
   const handleSessionClick = (sessionId: string) => {
     onSelectSession(sessionId);
   };
 
-  const handleDeleteSession = (sessionId: string, e: React.MouseEvent) => {
+  const handleDeleteSession = async (
+    sessionId: string,
+    e: React.MouseEvent
+  ) => {
     e.stopPropagation();
-    onDeleteSession(sessionId);
+
+    try {
+      // Set loading state for this specific session
+      setDeletingSessionId(sessionId);
+
+      // Call the API to delete the session
+      await deleteSessionMutation.mutateAsync(sessionId);
+
+      // Call the parent's delete handler to update UI state
+      onDeleteSession(sessionId);
+    } catch (error) {
+      console.error("Failed to delete session:", error);
+      // You might want to show a toast notification here
+    } finally {
+      // Clear loading state
+      setDeletingSessionId(null);
+    }
   };
 
   const handleToggleStar = (sessionId: string, e: React.MouseEvent) => {
@@ -92,48 +133,64 @@ export const Sidebar: React.FC<SidebarProps> = ({
     onToggleStar(sessionId);
   };
 
-  const SessionItem: React.FC<{ session: any; isStarred: boolean }> = ({ session, isStarred }) => (
-    <div
-      onClick={() => handleSessionClick(session.id)}
-      className={`group flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all duration-200 ${activeSessionId === session.id
-        ? "bg-teal-500/20 border border-teal-500/50"
-        : "hover:bg-gray-700 border border-transparent"
-        }`}
-    >
-      <div className="flex-1 min-w-0">
-        <p className={`text-sm truncate ${activeSessionId === session.id ? "text-teal-300" : "text-gray-200"
-          }`}>
-          {session.title || session.appName || `Session ${session.id}`}
-        </p>
-      </div>
-      <div className="flex items-center space-x-1 ml-2">
-        <span className="text-xs text-gray-500">
-          {formatDate(session.updatedAt || session.lastUpdateTime)}
-        </span>
-        <button
-          onClick={(e) => handleToggleStar(session.id, e)}
-          className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-yellow-500/20 transition-all duration-200"
-          title={isStarred ? "Unstar chat" : "Star chat"}
-        >
-          <Star
-            className={`w-3 h-3 transition-colors duration-200 ${isStarred
-              ? "text-yellow-400 fill-yellow-400"
-              : "text-gray-400 hover:text-yellow-400"
+  const SessionItem: React.FC<{ session: any; isStarred: boolean }> = ({
+    session,
+    isStarred,
+  }) => {
+    const isDeleting = deletingSessionId === session.id;
+
+    return (
+      <div
+        onClick={() => !isDeleting && handleSessionClick(session.id)}
+        className={`group flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all duration-200 ${
+          activeSessionId === session.id
+            ? "bg-teal-500/20 border border-teal-500/50"
+            : "hover:bg-gray-700 border border-transparent"
+        } ${isDeleting ? "opacity-50 pointer-events-none" : ""}`}
+      >
+        <div className="flex-1 min-w-0">
+          <p
+            className={`text-sm truncate ${
+              activeSessionId === session.id ? "text-teal-300" : "text-gray-200"
+            }`}
+          >
+            {session.title || session.appName || `Session ${session.id}`}
+          </p>
+        </div>
+        <div className="flex items-center space-x-1 ml-2">
+          <span className="text-xs text-gray-500">
+            {formatDate(session.updatedAt || session.lastUpdateTime)}
+          </span>
+          <button
+            onClick={(e) => handleToggleStar(session.id, e)}
+            className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-yellow-500/20 transition-all duration-200"
+            title={isStarred ? "Unstar chat" : "Star chat"}
+            disabled={isDeleting}
+          >
+            <Star
+              className={`w-3 h-3 transition-colors duration-200 ${
+                isStarred
+                  ? "text-yellow-400 fill-yellow-400"
+                  : "text-gray-400 hover:text-yellow-400"
               }`}
-          />
-        </button>
-        <button
-          onClick={(e) => handleDeleteSession(session.id, e)}
-          className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-500/20 transition-all duration-200"
-          title="Delete chat"
-        >
-          <svg className="w-3 h-3 text-gray-400 hover:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-          </svg>
-        </button>
+            />
+          </button>
+          <button
+            onClick={(e) => handleDeleteSession(session.id, e)}
+            className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-red-500/20 transition-all duration-200"
+            title="Delete chat"
+            disabled={isDeleting}
+          >
+            {isDeleting ? (
+              <Loader2 className="w-3 h-3 text-gray-400 animate-spin" />
+            ) : (
+              <Trash2 className="w-3 h-3 text-gray-400 hover:text-red-400" />
+            )}
+          </button>
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="flex flex-col h-full w-80 border-r border-gray-700">
@@ -167,6 +224,35 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Sessions */}
       <div className="flex-1 overflow-y-auto px-4 pb-4">
+        {/* Delete session mutation error */}
+        {deleteSessionMutation.error && (
+          <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+            <div className="flex items-center space-x-2 text-red-400 mb-1">
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 15.5c-.77.833.192 2.5 1.732 2.5z"
+                />
+              </svg>
+              <span className="text-sm font-medium">
+                Failed to delete session
+              </span>
+            </div>
+            <p className="text-xs text-red-300">
+              {deleteSessionMutation.error instanceof Error
+                ? deleteSessionMutation.error.message
+                : "An unexpected error occurred"}
+            </p>
+          </div>
+        )}
+
         {/* Starred Sessions */}
         {filteredStarredSessions.length > 0 && (
           <div className="mb-6">
@@ -174,8 +260,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
               Starred
             </h3>
             <div className="space-y-1">
-              {filteredStarredSessions.map(session => (
-                <SessionItem key={session.id} session={session} isStarred={true} />
+              {filteredStarredSessions.map((session) => (
+                <SessionItem
+                  key={session.id}
+                  session={session}
+                  isStarred={true}
+                />
               ))}
             </div>
           </div>
@@ -188,19 +278,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
               Chats
             </h3>
             <div className="space-y-1">
-              {filteredChatSessions.map(session => (
-                <SessionItem key={session.id} session={session} isStarred={false} />
+              {filteredChatSessions.map((session) => (
+                <SessionItem
+                  key={session.id}
+                  session={session}
+                  isStarred={false}
+                />
               ))}
             </div>
           </div>
         )}
 
         {/* No sessions found */}
-        {filteredStarredSessions.length === 0 && filteredChatSessions.length === 0 && (
-          <div className="text-center py-8">
-            <p className="text-gray-500 text-sm">No sessions found</p>
-          </div>
-        )}
+        {filteredStarredSessions.length === 0 &&
+          filteredChatSessions.length === 0 && (
+            <div className="text-center py-8">
+              <p className="text-gray-500 text-sm">No sessions found</p>
+            </div>
+          )}
       </div>
 
       {/* User Profile Section */}
@@ -211,13 +306,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <div className="relative">
               <div className="w-10 h-10 bg-gradient-to-br from-teal-400 to-blue-500 rounded-full flex items-center justify-center">
                 <span className="text-white font-medium text-sm">
-                  {user.name.split(' ').map(n => n[0]).join('')}
+                  {user.name
+                    .split(" ")
+                    .map((n) => n[0])
+                    .join("")}
                 </span>
               </div>
               {user.isVerified && (
                 <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-teal-500 rounded-full flex items-center justify-center">
-                  <svg className="w-2.5 h-2.5 text-white" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  <svg
+                    className="w-2.5 h-2.5 text-white"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+                      clipRule="evenodd"
+                    />
                   </svg>
                 </div>
               )}
@@ -232,7 +338,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
           {/* Navigation Items */}
           <div className="space-y-1">
-            {NAVIGATION_ITEMS.map(item => (
+            {NAVIGATION_ITEMS.map((item) => (
               <button
                 key={item.id}
                 onClick={() => {
@@ -259,4 +365,4 @@ export const Sidebar: React.FC<SidebarProps> = ({
       )}
     </div>
   );
-}; 
+};
