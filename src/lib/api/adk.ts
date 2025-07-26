@@ -26,14 +26,14 @@ export class Adk {
      */
     async *sendMessageStream(sessionId: string, message: string): AsyncGenerator<string, void, unknown> {
         const user = await getCurrentUser();
-        const response = await fetch(`${env.NEXT_PUBLIC_API_URL}/adk/send-message?session_id=${sessionId}&message=${message}`, {
+        const response = await fetch(`${env.NEXT_PUBLIC_API_URL}/adk/send-message?session_id=${sessionId}`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${await user?.getIdToken()}`,
                 // Add auth headers here if needed
             },
-
+            body: JSON.stringify({ message })
         });
 
         if (!response.body) throw new Error("No response body");
