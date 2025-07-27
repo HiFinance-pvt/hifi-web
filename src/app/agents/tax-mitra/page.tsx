@@ -1,11 +1,17 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 import Particles from "@/ui/components/Particles";
 import TextType from "@/ui/TextAnimations/TextType/TextType";
 import { useChat } from "@/hooks/useChat";
 import { ALL_SESSIONS } from "@/constants/mockData";
+import { useTaxTraderStore, TaxRegime } from "@/stores/taxTraderStore";
+import { ResidenceStatus } from "@/components/TaxPreferencesModal";
+import TaxPreferencesModal from "@/components/TaxPreferencesModal";
+import { useSessionStore } from "@/stores/sessionStore";
+import { getAgentDefaultPrompt } from "@/constants/agentPrompts";
 import {
   Globe,
   Bell,
@@ -489,9 +495,11 @@ const ChatInput: React.FC<{
 };
 
 export default function TaxMitraPage() {
+  const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
   const [message, setMessage] = useState("");
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [showPreferencesModal, setShowPreferencesModal] = useState(false);
 
   // Add smooth animations CSS
   useEffect(() => {
@@ -565,6 +573,22 @@ export default function TaxMitraPage() {
     toggleSessionStar,
   } = useChat();
 
+  // Tax Trader store
+  const {
+    preferences,
+    hasPreferences,
+    taxData,
+    isLoading: isTaxLoading,
+    error: taxError,
+    setPreferences,
+    analyzeTax,
+    hasCompleteData,
+    clearPreferences,
+  } = useTaxTraderStore();
+
+  // Session store for creating new sessions
+  const { createSession } = useSessionStore();
+
   // Initialize with sample data on first load
   useEffect(() => {
     if (sessions.length === 0) {
@@ -578,10 +602,155 @@ export default function TaxMitraPage() {
     setMessage(suggestion);
   };
 
-  const handleSendMessage = () => {
+    const handleSendMessage = async () => {
     if (message.trim()) {
-      console.log("Sending message:", message);
+      // Check if we have preferences set first
+      if (!hasPreferences) {
+        setShowPreferencesModal(true);
+        return;
+      }
+
+      // Create a new session
+      console.log("🔄 Creating new session for user message...");
+      const newSession = await createSession();
+      
+      if (!newSession) {
+        console.error("❌ Failed to create session");
+        return;
+      }
+
+      console.log("✅ Session created:", newSession.id);
+
+      // Get base agent prompt and combine with user data if available
+      let messageWithContext = message;
+      
+      if (hasPreferences && preferences) {
+        // Get the base tax-mitra agent prompt from agentPrompts.ts
+        const baseAgentPrompt = getAgentDefaultPrompt("tax-mitra");
+        
+        // Create user's tax context
+        const userTaxContext = `
+
+📊 **User's Tax Information:**
+- PAN Number: ${preferences.panNumber || "Not provided"}
+- Annual Salary: ₹${preferences.totalSalary.toLocaleString()}
+- Other Income Sources: ₹${preferences.otherIncomeSources.toLocaleString()}
+- Total Annual Income: ₹${(preferences.totalSalary + preferences.otherIncomeSources).toLocaleString()}
+- Tax Regime: ${preferences.regime === "old" ? "Old Tax Regime" : "New Tax Regime"}
+- Residence Status: ${preferences.residenceStatus === "indian" ? "Indian Resident" : "Foreign Resident"}
+${preferences.employeeTAN ? `- Employee TAN: ${preferences.employeeTAN}` : ""}
+
+🎯 **User Question:**
+${message}
+
+Please provide a detailed response based on the above tax information and current Indian tax laws.`;
+
+        // Combine base agent prompt with user's tax context
+        messageWithContext = baseAgentPrompt + userTaxContext;
+      }
+
+      // Clear the message
       setMessage("");
+
+      // Redirect to the session with the message
+      console.log("➡️ Redirecting to dashboard with session and message...");
+      console.log("📝 User message with context preview:", messageWithContext.substring(0, 200) + "...");
+      
+      const encodedMessage = encodeURIComponent(messageWithContext);
+      router.push(`/dashboard/${newSession.id}?message=${encodedMessage}`);
+    }
+  };
+
+  const handlePreferencesSubmit = async (prefs: {
+    totalSalary: number;
+    otherIncomeSources: number;
+    regime: TaxRegime;
+    employeeTAN?: string;
+    panNumber: string;
+    residenceStatus: ResidenceStatus;
+  }) => {
+    try {
+      // Set preferences with timestamp
+      const preferencesWithTimestamp = {
+        ...prefs,
+        lastUpdated: new Date().toISOString(),
+      };
+
+      setPreferences(preferencesWithTimestamp);
+
+      // Close modal
+      setShowPreferencesModal(false);
+
+      // Start tax analysis
+      await analyzeTax();
+
+      // Create a new session
+      console.log("🔄 Creating new session for tax analysis...");
+      const newSession = await createSession();
+      
+      if (!newSession) {
+        console.error("❌ Failed to create session");
+        return;
+      }
+
+      console.log("✅ Session created:", newSession.id);
+
+      // Get the base tax-mitra agent prompt from agentPrompts.ts
+      const baseAgentPrompt = getAgentDefaultPrompt("tax-mitra");
+
+      // Create user's tax data section
+      const userTaxData = `
+
+📊 **User's Tax Information:**
+- PAN Number: ${prefs.panNumber}
+- Annual Salary: ₹${prefs.totalSalary.toLocaleString()}
+- Other Income Sources: ₹${prefs.otherIncomeSources.toLocaleString()}
+- Total Annual Income: ₹${(prefs.totalSalary + prefs.otherIncomeSources).toLocaleString()}
+- Preferred Tax Regime: ${prefs.regime === "old" ? "Old Tax Regime" : "New Tax Regime"}
+- Residence Status: ${prefs.residenceStatus === "indian" ? "Indian Resident" : "Foreign Resident"}
+${prefs.employeeTAN ? `- Employee TAN: ${prefs.employeeTAN}` : ""}
+
+🎯 **Immediate Analysis Request:**
+Based on the above tax information, please provide:
+
+1. **Tax Liability Comparison:**
+   - Calculate exact tax under Old Regime vs New Regime
+   - Show potential savings between both regimes
+   - Recommend the optimal regime for this income level
+
+2. **Personalized Tax-Saving Strategies:**
+   - Section 80C deductions (up to ₹1.5L limit)
+   - Section 80D health insurance benefits
+   - HRA exemption calculations (if applicable)
+   - Home loan interest deductions
+   - NPS additional deduction under 80CCD(1B)
+
+3. **Deduction Optimization for This Income:**
+   - List all available deductions for this income bracket
+   - Calculate maximum possible tax savings
+   - Suggest tax-efficient investment options
+
+4. **FY 2023-24 Tax Planning:**
+   - Important deadlines and compliance requirements
+   - Advance tax payment calculations based on this income
+   - ITR filing guidance and required documentation
+   - Investment recommendations for remaining financial year
+
+Please provide detailed calculations and actionable recommendations based on current Indian tax laws.`;
+
+      // Combine base agent prompt with user's tax data
+      const combinedPrompt = baseAgentPrompt + userTaxData;
+
+      // Redirect to the session with the message - let the dashboard handle sending
+      console.log("➡️ Redirecting to dashboard with session and message...");
+      console.log("📝 Combined prompt preview:", combinedPrompt.substring(0, 200) + "...");
+      
+      // Encode the message to pass it as a URL parameter
+      const encodedMessage = encodeURIComponent(combinedPrompt);
+      router.push(`/dashboard/${newSession.id}?message=${encodedMessage}`);
+
+    } catch (error) {
+      console.error("❌ Error setting preferences:", error);
     }
   };
 
@@ -724,6 +893,40 @@ export default function TaxMitraPage() {
               />
             </div>
 
+            {/* Debug info */}
+            <div className="mb-4 text-center">
+              <p className="text-gray-400 text-sm mb-2">
+                Debug: hasPreferences = {hasPreferences.toString()}
+                {preferences && (
+                  <span className="ml-2 text-green-400">
+                    | PAN: {preferences.panNumber || "N/A"}
+                    | Income: ₹{(preferences.totalSalary + preferences.otherIncomeSources).toLocaleString()} 
+                    | Regime: {preferences.regime}
+                    | Residence: {preferences.residenceStatus === "indian" ? "Indian" : "Foreign"}
+                  </span>
+                )}
+              </p>
+              <div className="flex justify-center gap-2">
+                <button
+                  onClick={() => setShowPreferencesModal(true)}
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors"
+                >
+                  {hasPreferences ? 'Update' : 'Set'} Tax Preferences
+                </button>
+                {hasPreferences && (
+                  <button
+                    onClick={() => {
+                      clearPreferences();
+                      console.log("🧹 Tax preferences cleared");
+                    }}
+                    className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors"
+                  >
+                    Clear Preferences
+                  </button>
+                )}
+              </div>
+            </div>
+
             {/* Suggestion Buttons */}
             <div
               className="w-full max-w-6xl smooth-entry"
@@ -742,6 +945,14 @@ export default function TaxMitraPage() {
           </div>
         </div>
       </div>
+
+      {/* Tax Preferences Modal */}
+      <TaxPreferencesModal
+        isOpen={showPreferencesModal}
+        onClose={() => setShowPreferencesModal(false)}
+        onSubmit={handlePreferencesSubmit}
+        isLoading={isTaxLoading}
+      />
     </div>
   );
 }
