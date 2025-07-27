@@ -2,11 +2,12 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { subscribeWithSelector } from 'zustand/middleware';
 import api from '@/lib/api';
+import { getCurrentUser } from '@/lib/firebase/firebase';
 
 export interface SessionData {
     id: string;
     appName: string;
-    lastUpdateTime: number;
+    lastUpdateTime: string | number;
     events: any[];
     state: Record<string, any>;
     userId: string;
@@ -19,6 +20,7 @@ export interface SessionStore {
     isLoading: boolean;
     error: string | null;
     lastSyncTime: number | null;
+    currentUserId: string | null;
 
     // Actions
     setSessions: (sessions: SessionData[]) => void;
@@ -28,6 +30,9 @@ export interface SessionStore {
     removeSession: (sessionId: string) => void;
     setLoading: (loading: boolean) => void;
     setError: (error: string | null) => void;
+    setCurrentUserId: (userId: string | null) => void;
+    clearSessions: () => void;
+    checkUserChange: () => void;
 
     // API Actions
     fetchSessions: (showLoading?: boolean, forceRefresh?: boolean) => Promise<void>;
@@ -51,6 +56,7 @@ export const useSessionStore = create<SessionStore>()(
             isLoading: false,
             error: null,
             lastSyncTime: null,
+            currentUserId: null,
 
             // Basic actions
             setSessions: (sessions) => set({ sessions }),
@@ -72,10 +78,49 @@ export const useSessionStore = create<SessionStore>()(
             })),
             setLoading: (loading) => set({ isLoading: loading }),
             setError: (error) => set({ error }),
+            setCurrentUserId: (userId) => set({ currentUserId: userId }),
+            clearSessions: () => set({ sessions: [] }),
+
+            // Check if user has changed and clear sessions if needed
+            checkUserChange: () => {
+                const { currentUserId, clearSessions, setCurrentUserId } = get();
+                const currentUser = getCurrentUser();
+
+                if (currentUser) {
+                    const newUserId = currentUser.uid;
+                    if (currentUserId && currentUserId !== newUserId) {
+                        console.log(`👤 User changed from ${currentUserId} to ${newUserId}, clearing sessions`);
+                        clearSessions();
+                        setCurrentUserId(newUserId);
+                    } else if (!currentUserId) {
+                        setCurrentUserId(newUserId);
+                    }
+                } else {
+                    if (currentUserId) {
+                        console.log('👤 User logged out, clearing sessions');
+                        clearSessions();
+                        setCurrentUserId(null);
+                    }
+                }
+            },
 
             // API Actions
             fetchSessions: async (showLoading = true, forceRefresh = false) => {
-                const { setLoading, setError, setSessions, sessions, lastSyncTime } = get();
+                const { setLoading, setError, setSessions, sessions, lastSyncTime, currentUserId } = get();
+
+                // Get current user ID if not already set
+                let userId = currentUserId;
+                if (!userId) {
+                    const currentUser = getCurrentUser();
+                    if (currentUser) {
+                        userId = currentUser.uid;
+                        set({ currentUserId: userId });
+                    } else {
+                        console.warn('No current user found, cannot fetch sessions');
+                        setError('No authenticated user found');
+                        return;
+                    }
+                }
 
                 // Skip if we have recent data and not forcing refresh
                 const now = Date.now();
@@ -93,8 +138,14 @@ export const useSessionStore = create<SessionStore>()(
 
                 try {
                     const response = await api.adk.listSessions();
-                    const sessions = response.data.sessions || [];
-                    setSessions(sessions);
+                    const allSessions = response.data.sessions || [];
+
+                    // Filter sessions by current user ID
+                    const userSessions = allSessions.filter((session: any) => session.userId === userId);
+
+                    console.log(`🔍 Filtered sessions for user ${userId}: ${userSessions.length}/${allSessions.length} sessions`);
+
+                    setSessions(userSessions);
                     set({ lastSyncTime: Date.now() });
                 } catch (error) {
                     setError(error instanceof Error ? error.message : 'Failed to fetch sessions');
@@ -142,7 +193,22 @@ export const useSessionStore = create<SessionStore>()(
             },
 
             createSession: async () => {
-                const { setLoading, setError, addSession } = get();
+                const { setLoading, setError, addSession, currentUserId } = get();
+
+                // Get current user ID if not already set
+                let userId = currentUserId;
+                if (!userId) {
+                    const currentUser = getCurrentUser();
+                    if (currentUser) {
+                        userId = currentUser.uid;
+                        set({ currentUserId: userId });
+                    } else {
+                        console.warn('No current user found, cannot create session');
+                        setError('No authenticated user found');
+                        return null;
+                    }
+                }
+
                 setLoading(true);
                 setError(null);
 
@@ -153,6 +219,14 @@ export const useSessionStore = create<SessionStore>()(
                         events: response.data.events || [],
                         state: response.data.state || {}
                     };
+
+                    // Verify the session belongs to the current user
+                    if (newSession.userId !== userId) {
+                        console.warn('Created session does not belong to current user');
+                        setError('Session creation failed - user mismatch');
+                        return null;
+                    }
+
                     addSession(newSession);
                     set({ lastSyncTime: Date.now() });
                     return newSession;
@@ -198,6 +272,7 @@ export const useSessionStore = create<SessionStore>()(
                 sessions: state.sessions,
                 currentSession: state.currentSession,
                 lastSyncTime: state.lastSyncTime,
+                currentUserId: state.currentUserId,
             }),
         }
     )

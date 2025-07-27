@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
-import { Sidebar } from "@/components/Sidebar";
+import { useRouter } from "next/navigation";
+
 import Particles from "@/ui/components/Particles";
 import TextType from "@/ui/TextAnimations/TextType/TextType";
 import { useChat } from "@/hooks/useChat";
@@ -449,6 +450,7 @@ const ChatInput: React.FC<{
 };
 
 export default function SebiAgentPage() {
+  const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
   const [message, setMessage] = useState("");
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -551,32 +553,23 @@ export default function SebiAgentPage() {
 
   const handleSendMessage = () => {
     if (message.trim()) {
-      console.log("Sending message:", message);
-      setMessage("");
+      // Redirect to dashboard with agent query parameter only
+      const searchParams = new URLSearchParams({
+        agent: 'sebi'
+      });
+      
+      console.log("Redirecting to dashboard for SEBI analysis");
+      router.push(`/dashboard?${searchParams.toString()}`);
     }
   };
 
   return (
     <div
       ref={containerRef}
-      className="flex flex-col lg:flex-row h-screen w-screen bg-[#111827] overflow-hidden smooth-entry"
+      className="flex flex-col h-full w-full bg-transparent overflow-hidden smooth-entry"
+      style={{ pointerEvents: "auto" }}
     >
-      {/* Header Controls */}
-      <HeaderControls />
 
-      {/* Sidebar */}
-      <div className="relative z-10 w-full lg:w-auto lg:flex-shrink-0">
-        <Sidebar
-          user={user}
-          // starredSessions={sessionsByCategory.starred}
-          // chatSessions={sessionsByCategory.chats}
-          activeSessionId={activeSessionId}
-          onSelectSession={selectSession}
-          onDeleteSession={deleteSession}
-          onNewSession={createNewSession}
-          onToggleStar={toggleSessionStar}
-        />
-      </div>
 
       {/* Particles Background - Full Screen */}
       <div className="fixed inset-0 w-screen h-screen z-0 blur-sm opacity-70">

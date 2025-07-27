@@ -16,13 +16,15 @@ const ContentPartSchema = z.object({
         id: z.string(),
         name: z.string().optional(),
         response: z.object({
-            result: z.object({
+            result: z.union([z.string().optional(), z.object({
                 content: z.array(z.object({
                     text: z.string(),
                     type: z.string(),
                 })).optional(),
-                isError: z.boolean(),
-            }).nullable().optional(),
+                isError: z.boolean().optional(),
+            }).nullable().optional()
+            ]),
+            will_continue: z.string().nullable().optional()
         }).optional(),
     }).nullable().optional(),
     videoMetadata: z.any().nullable().optional(),
@@ -65,10 +67,15 @@ const FunctionResponseResultContentSchema = z.object({
 
 export type FunctionResponseResultContent = z.infer<typeof FunctionResponseResultContentSchema>;
 
-const FunctionResponseResultSchema = z.object({
-    content: z.array(FunctionResponseResultContentSchema).optional(),
-    isError: z.boolean(),
-});
+const FunctionResponseResultSchema = z.union([
+    z.object({
+        content: z.array(FunctionResponseResultContentSchema).optional(),
+        isError: z.boolean(),
+    }),
+    z.string(),
+    z.null(),
+    z.undefined()
+]);
 
 export type FunctionResponseResult = z.infer<typeof FunctionResponseResultSchema>;
 
@@ -123,7 +130,8 @@ export const CreateSessionResponseSchema = z.object({
         state: z.record(z.string(), z.any()).optional().nullable(),
         appName: z.string(),
         id: z.string(),
-        lastUpdateTime: z.number(),
+        session_name: z.string().optional().nullable(),
+        lastUpdateTime: z.union([z.number(), z.string()]),
     }),
 });
 
@@ -171,7 +179,7 @@ export type ProcessedMessage = z.infer<typeof ProcessedMessageSchema>;
 export const GetSessionResponseSchema = z.object({
     message: z.string(),
     data: z.object({
-        lastUpdateTime: z.number(),
+        lastUpdateTime: z.union([z.number(), z.string()]),
         id: z.string(),
         events: z.array(EventSchema),
         state: z.record(z.string(), z.any()),
@@ -229,7 +237,8 @@ const SessionSchema = z.object({
     events: z.array(z.any()), // Assuming events can be an empty array or contain any data, adjust if event structure is known
     id: z.string(),
     userId: z.string(),
-    lastUpdateTime: z.number(), // Unix timestamp, typically a number
+    session_name: z.string().optional().nullable(),
+    lastUpdateTime: z.union([z.number(), z.string()]), // Unix timestamp, typically a number
     appName: z.string(),
 });
 

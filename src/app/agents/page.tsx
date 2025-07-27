@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { v4 as uuidv4 } from "uuid";
 import Link from "next/link";
-import { Sidebar } from "@/components/Sidebar";
+
 import Particles from "@/ui/components/Particles";
 import ChromaGrid from "@/ui/components/ChromaGrid";
 import { useChat } from "@/hooks/useChat";
@@ -30,6 +30,7 @@ import { useRouter } from "next/navigation";
 import { checkMCPSession } from "@/lib/api/mcp";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCheckSession } from "@/hooks/useCheckSession";
+import { useBoolStore } from "@/stores/boolStore";
 
 // Using real chat hook - same as dashboard
 
@@ -386,7 +387,13 @@ const HeaderControls: React.FC = () => {
   const queryClient = useQueryClient();
   // const router = useRouter();
 
-  const { data, error, isPending } = useCheckSession(sessionId);
+  const { data } = useCheckSession(sessionId);
+
+  const { setFiConnection, fiConnection } = useBoolStore();
+
+  useEffect(() => {
+    setFiConnection(data?.valid || false);
+  }, [data?.valid]);
 
   const languages = [
     { code: "EN", name: "English" },
@@ -423,7 +430,7 @@ const HeaderControls: React.FC = () => {
         >
           <button
             className={`relative w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 backdrop-blur-sm transition-all duration-200 flex items-center justify-center ${
-              data?.valid
+              fiConnection
                 ? "bg-emerald-500/20 border-emerald-500/50 hover:bg-emerald-500/30"
                 : "bg-red-500/20 border-red-500/50 hover:bg-red-500/30"
             }`}
@@ -431,7 +438,7 @@ const HeaderControls: React.FC = () => {
             {/* Outer glow ring */}
             <div
               className={`absolute inset-0 rounded-full animate-pulse ${
-                data?.valid ? "bg-emerald-400/20" : "bg-red-400/20"
+                fiConnection ? "bg-emerald-400/20" : "bg-red-400/20"
               }`}
             />
 
@@ -439,11 +446,11 @@ const HeaderControls: React.FC = () => {
             <div className="relative z-10 flex items-center justify-center">
               <img
                 src={
-                  data?.valid
+                  fiConnection
                     ? "https://xqak5dz869.ufs.sh/f/9bPBdXjSiv4IehfPx9KyJ8jNPpV24cHROwYQuxMUoLIv9n6S"
                     : "https://xqak5dz869.ufs.sh/f/9bPBdXjSiv4IVSvVCH71tHP9Q3GfOo7m650V8qacgeNAFTyE"
                 }
-                alt={data?.valid ? "Fi Connected" : "Fi DisconfiConnected"}
+                alt={fiConnection ? "Fi Connected" : "Fi DisconfiConnected"}
                 className="w-3 h-3 sm:w-4 sm:h-4 object-contain relative z-10 drop-shadow-md"
                 style={{
                   filter: "brightness(1.2) contrast(1.1)",
@@ -457,7 +464,7 @@ const HeaderControls: React.FC = () => {
                   const fallback = document.createElement("span");
                   fallback.textContent = "Fi";
                   fallback.className = `text-sm font-bold ${
-                    data?.valid ? "text-emerald-400" : "text-red-400"
+                    fiConnection ? "text-emerald-400" : "text-red-400"
                   }`;
                   target.parentNode?.appendChild(fallback);
                 }}
@@ -467,7 +474,7 @@ const HeaderControls: React.FC = () => {
             {/* Status dot at bottom border */}
             <div
               className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 w-2 h-2 rounded-full border border-gray-900 ${
-                data?.valid ? "bg-emerald-400" : "bg-red-400"
+                fiConnection ? "bg-emerald-400" : "bg-red-400"
               }`}
             />
           </button>
@@ -483,7 +490,7 @@ const HeaderControls: React.FC = () => {
                 <div className="flex items-center space-x-3">
                   <div
                     className={`w-3 h-3 rounded-full ${
-                      data?.valid ? "bg-emerald-400" : "bg-red-400"
+                      fiConnection ? "bg-emerald-400" : "bg-red-400"
                     } animate-pulse shadow-lg`}
                   />
                   <span className="text-sm font-semibold text-white">
@@ -497,17 +504,17 @@ const HeaderControls: React.FC = () => {
                 <div className="mb-4">
                   <div
                     className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                      data?.valid
+                      fiConnection
                         ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
                         : "bg-red-500/20 text-red-400 border border-red-500/30"
                     }`}
                   >
-                    {data?.valid ? "Connected" : "Disconnected"}
+                    {fiConnection ? "Connected" : "Disconnected"}
                   </div>
                 </div>
 
                 <p className="text-xs text-gray-300 leading-relaxed mb-4">
-                  {data?.valid
+                  {fiConnection
                     ? "Your Fi account is connected and syncing financial data securely. All features are available."
                     : "Connect your Fi account to sync financial data and unlock all premium features."}
                 </p>
@@ -515,12 +522,12 @@ const HeaderControls: React.FC = () => {
                 <button
                   onClick={handleFiToggle}
                   className={`w-full px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg border ${
-                    data?.valid
+                    fiConnection
                       ? "bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20 hover:border-red-500/50"
                       : "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-500/50"
                   }`}
                 >
-                  {data?.valid ? "Disconnect Account" : "Connect Account"}
+                  {fiConnection ? "Disconnect Account" : "Connect Account"}
                 </button>
               </div>
             </div>
@@ -537,13 +544,11 @@ const HeaderControls: React.FC = () => {
       </div>
 
       {/* Connection Status Popup */}
-      {typeof showConnectionPopup !== "undefined" && (
-        <ConnectionPopup
-          isVisible={showConnectionPopup}
-          isConnected={!!data?.valid}
-          onClose={() => setShowConnectionPopup(false)}
-        />
-      )}
+      <ConnectionPopup
+        isVisible={showConnectionPopup}
+        isConnected={fiConnection || false}
+        onClose={() => setShowConnectionPopup(false)}
+      />
     </>
   );
 };
@@ -581,30 +586,21 @@ function AgentsPage() {
   return (
     <div
       ref={containerRef}
-      className="flex flex-col lg:flex-row h-screen w-screen bg-[#111827] overflow-hidden agents-page-container"
+      className="flex flex-col h-full w-full bg-transparent overflow-hidden agents-page-container"
+      style={{ pointerEvents: "auto" }}
     >
-      {/* Header Controls */}
-      <HeaderControls />
-
-      {/* Sidebar - Same data as dashboard */}
-      <div className="relative z-10 w-full lg:w-auto lg:flex-shrink-0">
-        <Sidebar
-          user={user}
-          // starredSessions={sessionsByCategory.starred}
-          // chatSessions={sessionsByCategory.chats}
-          activeSessionId={activeSessionId}
-          onSelectSession={selectSession}
-          onDeleteSession={deleteSession}
-          onNewSession={createNewSession}
-          onToggleStar={toggleSessionStar}
-        />
-      </div>
-
-      {/* Main Content Area */}
-      <div
-        className="flex-1 relative overflow-hidden z-10 min-h-0 min-w-0"
-        style={{ pointerEvents: "auto" }}
-      >
+      {/* Content */}
+      <div className="flex-1 relative overflow-hidden z-10 min-h-0 min-w-0">
+        {/* Loading State */}
+        {isLoading && (
+          <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/20 backdrop-blur-sm">
+            <div className="flex flex-col items-center space-y-4">
+              <div className="w-8 h-8 border-2 border-emerald-400/30 border-t-emerald-400 rounded-full animate-spin"></div>
+              <p className="text-sm text-gray-300">Loading agents...</p>
+            </div>
+          </div>
+        )}
+        
         {/* Content */}
         <div className="agents-section relative z-10 h-full overflow-y-auto overflow-x-hidden">
           <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 w-full">

@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { User, ChatSession } from "@/types/chat";
+import React, { useState, useEffect, useMemo } from "react";
+import { ChatSession } from "@/types/chat";
 import { NAVIGATION_ITEMS } from "@/constants/mockData";
 import { useSessionStore } from "@/stores/sessionStore";
 import { useDeleteSessionMutation } from "@/hooks/adk";
@@ -21,9 +21,10 @@ import {
 import { logout } from "@/lib/firebase/firebase";
 import { env } from "@/lib/env";
 import { useRouter } from "next/navigation";
+import { getCurrentUser } from "@/lib/firebase/firebase";
+import Image from "next/image";
 
 interface SidebarProps {
-  user: User | null;
   activeSessionId: string | null;
   onSelectSession: (sessionId: string) => void;
   onDeleteSession: (sessionId: string) => void;
@@ -33,7 +34,6 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
-  user,
   activeSessionId,
   onSelectSession,
   onDeleteSession,
@@ -46,6 +46,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [editingSessionId, setEditingSessionId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState("");
+  const user = getCurrentUser();
 
   // Use sessionStore from main branch for real API calls
   const {
@@ -61,39 +62,71 @@ export const Sidebar: React.FC<SidebarProps> = ({
   // Delete session mutation
   const deleteSessionMutation = useDeleteSessionMutation();
 
-  // Initialize sessions on mount
+  // Initialize sessions on mount with error handling
   useEffect(() => {
     const initializeSessions = async () => {
-      // Fetch sessions if we don't have any
-      if (sessions.length === 0) {
-        await fetchSessions();
+      try {
+        // Fetch sessions if we don't have any valid sessions
+        if (!Array.isArray(sessions) || sessions.length === 0) {
+          console.log("Fetching sessions...");
+          await fetchSessions();
+        }
+      } catch (err) {
+        console.error("Error initializing sessions:", err);
       }
     };
 
     initializeSessions();
-  }, [fetchSessions, sessions.length]);
+  }, [fetchSessions, sessions]);
 
-  // Transform API sessions to ChatSession format
-  const transformedSessions: ChatSession[] = sessions.map((session: any) => ({
-    id: session.id,
-    title: session.appName || `Session ${session.id.slice(0, 8)}`,
-    category: "chats" as const, // Default to chats, you can add starring logic later
-    createdAt: new Date(session.lastUpdateTime),
-    updatedAt: new Date(session.lastUpdateTime),
-    conversations: [], // You can transform events to conversations if needed
-  }));
+  // Transform API sessions to ChatSession format with proper error handling
+  const transformedSessions: ChatSession[] = useMemo(() => {
+    // Ensure sessions is an array and handle various data structures
+    if (!Array.isArray(sessions)) {
+      console.warn("Sessions is not an array:", sessions);
+      return [];
+    }
+
+    return sessions
+      .filter(
+        (session: any) => session && typeof session === "object" && session.id
+      )
+      .map((session: any) => {
+        try {
+          return {
+            id: session.id,
+            title:
+              session.appName ||
+              session.title ||
+              `Session ${session.id.slice(0, 8)}`,
+            category: "chats" as const,
+            createdAt: session.lastUpdateTime
+              ? new Date(session.lastUpdateTime)
+              : session.createdAt
+              ? new Date(session.createdAt)
+              : new Date(),
+            updatedAt: session.lastUpdateTime
+              ? new Date(session.lastUpdateTime)
+              : session.updatedAt
+              ? new Date(session.updatedAt)
+              : new Date(),
+            conversations: [],
+          };
+        } catch (err) {
+          console.warn("Error transforming session:", session, err);
+          return null;
+        }
+      })
+      .filter(Boolean) as ChatSession[];
+  }, [sessions]);
 
   // Filter sessions based on search
   const filteredStarredSessions = transformedSessions.filter(
-    (session) =>
-      session.category === "starred" &&
-      session.title?.toLowerCase().includes(searchQuery.toLowerCase())
+    (session) => session.category === "starred" && session.id
   );
 
   const filteredChatSessions = transformedSessions.filter(
-    (session) =>
-      session.category === "chats" &&
-      session.title?.toLowerCase().includes(searchQuery.toLowerCase())
+    (session) => session.category === "chats" && session.id
   );
 
   const formatDate = (date: Date | number) => {
@@ -251,7 +284,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   : "text-gray-200"
               }`}
             >
-              {session.title}
+              {session.id}
             </p>
           )}
         </div>
@@ -410,15 +443,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
             {/* User Avatar */}
             <div className="flex justify-center mb-3">
               <div className="relative group">
-                <div className="w-8 h-8 bg-gradient-to-br from-teal-400 to-blue-500 rounded-full flex items-center justify-center hover:scale-125 transition-all duration-400 ease-out hover:shadow-lg hover:shadow-teal-500/40">
-                  <span className="text-white font-medium text-xs transition-all duration-300 ease-out">
-                    {user.name
-                      .split(" ")
-                      .map((n) => n[0])
-                      .join("")}
+                <div className="w-8 h-8 rounded-full overflow-hidden bg-gradient-to-br from-teal-400 to-blue-500 flex items-center justify-center hover:scale-125 transition-all duration-400 ease-out hover:shadow-lg hover:shadow-teal-500/40">
+                  <span className="text-white font-medium text-xs transition-all overflow-hidden rounded-full duration-300 ease-out">
+                    <Image
+                      src={user.photoURL || ""}
+                      alt="User Avatar"
+                      width={40}
+                      height={40}
+                      className="rounded-full w-full h-full overflow-hidden object-cover"
+                    />
                   </span>
                 </div>
-                {user.isVerified && (
+                {user.emailVerified && (
                   <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-teal-500 rounded-full flex items-center justify-center transition-all duration-400 ease-out group-hover:scale-150">
                     <svg
                       className="w-2 h-2 text-white"
@@ -525,7 +561,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {error && <ErrorState />}
 
         {/* Loading State */}
-        {isLoading && transformedSessions.length === 0 && <LoadingState />}
+        {(isLoading || !Array.isArray(sessions)) &&
+          transformedSessions.length === 0 && <LoadingState />}
 
         {/* Starred Sessions */}
         {!isLoading && !error && filteredStarredSessions.length > 0 && (
@@ -574,10 +611,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
         )}
 
         {/* Loading State */}
-        {isLoading && (
+        {(isLoading || !Array.isArray(sessions)) && (
           <div className="text-center py-8">
             <Loader2 className="w-6 h-6 text-gray-400 animate-spin mx-auto mb-2" />
             <p className="text-gray-500 text-sm">Loading sessions...</p>
+            {!Array.isArray(sessions) && sessions && (
+              <p className="text-yellow-500 text-xs mt-1">
+                Invalid session data format detected
+              </p>
+            )}
           </div>
         )}
 
@@ -585,12 +627,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {error && (
           <div className="text-center py-8">
             <p className="text-red-500 text-sm">{error}</p>
+            <button
+              onClick={() => fetchSessions()}
+              className="mt-2 text-xs bg-red-500/20 hover:bg-red-500/30 px-2 py-1 rounded transition-colors duration-200"
+            >
+              Retry
+            </button>
           </div>
         )}
 
         {/* No sessions found */}
         {!isLoading &&
           !error &&
+          Array.isArray(sessions) &&
           filteredStarredSessions.length === 0 &&
           filteredChatSessions.length === 0 &&
           transformedSessions.length > 0 && (
@@ -602,27 +651,31 @@ export const Sidebar: React.FC<SidebarProps> = ({
           )}
 
         {/* Empty state */}
-        {!isLoading && !error && transformedSessions.length === 0 && (
-          <div className="text-center py-8 animate-in fade-in duration-600 ease-out">
-            <div className="flex flex-col items-center space-y-3">
-              <MessageSquare className="w-12 h-12 text-gray-600" />
-              <div>
-                <p className="text-gray-400 text-sm font-medium">
-                  No chat sessions yet
-                </p>
-                <p className="text-gray-500 text-xs mt-1">
-                  Start a new conversation to get started
-                </p>
+        {!isLoading &&
+          !error &&
+          Array.isArray(sessions) &&
+          transformedSessions.length === 0 && (
+            <div className="text-center py-8 animate-in fade-in duration-600 ease-out">
+              <div className="flex flex-col items-center space-y-3">
+                <MessageSquare className="w-12 h-12 text-gray-600" />
+                <div>
+                  <p className="text-gray-400 text-sm font-medium">
+                    No chat sessions yet
+                  </p>
+                  <p className="text-gray-500 text-xs mt-1">
+                    Start a new conversation to get started
+                  </p>
+                </div>
+                <button
+                  onClick={handleNewSession}
+                  className="px-4 py-2 bg-teal-600 hover:bg-teal-700 rounded-lg text-white text-sm transition-colors duration-200"
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Creating..." : "Start First Chat"}
+                </button>
               </div>
-              <button
-                onClick={handleNewSession}
-                className="px-4 py-2 bg-teal-600 hover:bg-teal-700 rounded-lg text-white text-sm transition-colors duration-200"
-              >
-                Start First Chat
-              </button>
             </div>
-          </div>
-        )}
+          )}
       </div>
 
       {/* User Profile Section */}
@@ -631,15 +684,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* User Info */}
           <div className="flex items-center space-x-3 mb-4 group">
             <div className="relative">
-              <div className="w-10 h-10 bg-gradient-to-br from-teal-400 to-blue-500 rounded-full flex items-center justify-center hover:scale-125 transition-all duration-400 ease-out hover:shadow-lg hover:shadow-teal-500/40">
+              <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-teal-400 to-blue-500 flex items-center justify-center hover:scale-125 transition-all duration-400 ease-out hover:shadow-lg hover:shadow-teal-500/40">
                 <span className="text-white font-medium text-sm transition-all duration-300 ease-out">
-                  {user.name
-                    .split(" ")
-                    .map((n) => n[0])
-                    .join("")}
+                  <Image
+                    src={user.photoURL || ""}
+                    alt="User Avatar"
+                    width={40}
+                    height={40}
+                    className="rounded-full w-full h-full overflow-hidden object-cover"
+                  />
                 </span>
               </div>
-              {user.isVerified && (
+              {user.emailVerified && (
                 <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-teal-500 rounded-full flex items-center justify-center transition-all duration-400 ease-out group-hover:scale-150">
                   <svg
                     className="w-2.5 h-2.5 text-white"
@@ -657,13 +713,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
             <div className="flex-1">
               <p className="text-white font-medium text-sm transition-colors duration-300 ease-out">
-                {user.name}
+                {user.displayName}
               </p>
-              {user.role && (
+              {/* {user.role && (
                 <p className="text-teal-400 text-xs transition-colors duration-300 ease-out">
                   {user.role}
-                </p>
-              )}
+                </p> */}
             </div>
           </div>
 
