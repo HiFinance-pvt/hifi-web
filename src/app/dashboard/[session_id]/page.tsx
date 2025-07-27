@@ -26,6 +26,8 @@ import { useSessionStore } from "@/stores/sessionStore";
 import { useDebtSquasherStore } from "@/stores/debtSquasherStore";
 import { SessionCreationLoader } from "@/components/ui/CustomLoader";
 import Particles from "@/ui/components/Particles";
+import { AGENTS } from "@/constants/mockData";
+import { getAgentDefaultPrompt } from "@/constants/agentPrompts";
 import {
   MessageRenderer,
   GroupedMessageRenderer,
@@ -44,7 +46,7 @@ export default function HiFiDashboard() {
   );
 
   // Extract query parameters for agent-specific functionality
-  const agent = searchParams.get('agent');
+  const agent = searchParams.get("agent");
 
   const [currentMessage, setCurrentMessage] = useState("");
   const [pendingUserMsg, setPendingUserMsg] = useState<string | null>(null);
@@ -77,20 +79,20 @@ export default function HiFiDashboard() {
     }
   }, []);
 
-    // Session store
-    const {
-        sessions,
-        currentSession,
-        isLoading: sessionsLoading,
-        error: sessionError,
-        fetchSessions,
-        fetchSession,
-        createSession,
-        setCurrentSession,
-        startPeriodicSync,
-        stopPeriodicSync,
-        checkUserChange,
-    } = useSessionStore();
+  // Session store
+  const {
+    sessions,
+    currentSession,
+    isLoading: sessionsLoading,
+    error: sessionError,
+    fetchSessions,
+    fetchSession,
+    createSession,
+    setCurrentSession,
+    startPeriodicSync,
+    stopPeriodicSync,
+    checkUserChange,
+  } = useSessionStore();
 
   // Track initial load state separately
   const [isInitialLoad, setIsInitialLoad] = useState(true);
@@ -167,16 +169,22 @@ export default function HiFiDashboard() {
     [sessions]
   );
 
-    // Initialize session data and start periodic sync
-    useEffect(() => {
-        const initializeSession = async () => {
-            // Check if user has changed and clear sessions if needed
-            checkUserChange();
+  // Initialize session data and start periodic sync
+  useEffect(() => {
+    const initializeSession = async () => {
+      // Check if user has changed and clear sessions if needed
+      checkUserChange();
 
-            // Fetch sessions on mount only if we don't have any
-            if (sessions.length === 0) {
-                await fetchSessions();
-            }
+      // Fetch sessions on mount only if we don't have any
+      if (sessions.length === 0) {
+        await fetchSessions();
+      }
+
+      // Also fetch the current session to ensure we have the latest session name
+      if (sessionId) {
+        console.log(`📝 Fetching session ${sessionId} to update session name`);
+        await fetchSession(sessionId, false); // Don't show loading for this
+      }
 
       // Start periodic sync
       startPeriodicSync();
@@ -187,11 +195,19 @@ export default function HiFiDashboard() {
 
     initializeSession();
 
-        // Cleanup on unmount
-        return () => {
-            stopPeriodicSync();
-        };
-    }, [fetchSessions, startPeriodicSync, stopPeriodicSync, sessions.length, checkUserChange]);
+    // Cleanup on unmount
+    return () => {
+      stopPeriodicSync();
+    };
+  }, [
+    fetchSessions,
+    fetchSession,
+    startPeriodicSync,
+    stopPeriodicSync,
+    sessions.length,
+    sessionId,
+    checkUserChange,
+  ]);
 
   // Check if session exists, if not create a new one
   useEffect(() => {
@@ -227,8 +243,6 @@ export default function HiFiDashboard() {
     setCurrentSession,
     currentSession?.id,
   ]);
-
-
 
   // Clear pending message when new messages arrive
   useEffect(() => {
@@ -417,7 +431,23 @@ export default function HiFiDashboard() {
     [router]
   );
 
+  // Handle agent selection from @ command
+  const handleAgentSelect = useCallback(
+    (selectedAgent: (typeof AGENTS)[0]) => {
+      console.log(`🎯 Agent selected via @ command: ${selectedAgent.name}`);
 
+      // Get the default prompt for the selected agent
+      const defaultPrompt = getAgentDefaultPrompt(selectedAgent.id);
+
+      // Send the default prompt to the agent
+      console.log(
+        `📝 Sending default prompt for ${selectedAgent.name}:`,
+        defaultPrompt
+      );
+      handleSendMessage(defaultPrompt);
+    },
+    [handleSendMessage]
+  );
 
   // Create display messages including pending and streaming
   const displayMessages: ProcessedMessage[] = useMemo(() => {
@@ -467,12 +497,20 @@ export default function HiFiDashboard() {
 
   // Agent-specific auto-prompt logic
   useEffect(() => {
-    if (agent && sessionId && !isInitialLoad && displayMessages.length === 0 && !isAdkPending) {
-      console.log(`🎯 Triggering auto-prompt for agent: ${agent} in session: ${sessionId}`);
-      let defaultPrompt = '';
-      
+    if (
+      agent &&
+      sessionId &&
+      !isInitialLoad &&
+      displayMessages.length === 0 &&
+      !isAdkPending
+    ) {
+      console.log(
+        `🎯 Triggering auto-prompt for agent: ${agent} in session: ${sessionId}`
+      );
+      let defaultPrompt = "";
+
       switch (agent) {
-        case 'sebi':
+        case "sebi":
           defaultPrompt = `You are a SEBI compliance agent specialized in financial analysis and regulatory compliance. 
 
 Welcome! I'm here to assist you with:
@@ -510,17 +548,21 @@ How can I help you today? You can ask me about:
 
 What would you like to know?`;
           break;
-          
-        case 'debt-squasher':
+
+        case "debt-squasher":
           if (debtSquasherStore.hasCompleteData()) {
             defaultPrompt = `You are a debt management specialist focused on helping users eliminate debt efficiently. I have analyzed the user's debt situation and preferences.
 
 ${debtSquasherStore.getDataForPrompt()}
 
 Based on this analysis, please provide:
-1. A detailed debt reduction strategy tailored to their ${debtSquasherStore.preferences?.intensity} approach
+1. A detailed debt reduction strategy tailored to their ${
+              debtSquasherStore.preferences?.intensity
+            } approach
 2. Specific monthly payment recommendations
-3. Tips for staying on track with the ${debtSquasherStore.preferences?.duration_months}-month timeline
+3. Tips for staying on track with the ${
+              debtSquasherStore.preferences?.duration_months
+            }-month timeline
 4. Potential ways to accelerate debt payoff
 5. Strategies to avoid accumulating new debt
 
@@ -544,26 +586,35 @@ To get started with a comprehensive debt analysis, I'll need to understand your:
 Would you like to begin by sharing details about your current debt situation, or do you have specific questions about debt management strategies?`;
           }
           break;
-          
+
         default:
           return; // Don't send any message for unknown agents
       }
-      
+
       if (defaultPrompt) {
         console.log(`🤖 Sending agent-specific welcome message for ${agent}`);
         console.log(`📝 Prompt preview: ${defaultPrompt.substring(0, 100)}...`);
-        
+
         // Small delay to ensure session is fully ready
         setTimeout(() => {
           handleSendMessage(defaultPrompt);
-          
+
           // Clean up URL by removing query parameters after sending the message
           const cleanUrl = `/dashboard/${sessionId}`;
           router.replace(cleanUrl, { scroll: false });
         }, 500);
       }
     }
-  }, [agent, sessionId, isInitialLoad, displayMessages.length, isAdkPending, debtSquasherStore, handleSendMessage, router]);
+  }, [
+    agent,
+    sessionId,
+    isInitialLoad,
+    displayMessages.length,
+    isAdkPending,
+    debtSquasherStore,
+    handleSendMessage,
+    router,
+  ]);
 
   // Create a custom ADK session for the chat interface
   const adkSession = useMemo(
@@ -767,6 +818,7 @@ Would you like to begin by sharing details about your current debt situation, or
                       isInitialLoading ||
                       isRefetchingSession
                     }
+                    onAgentSelect={handleAgentSelect}
                   />
                 </div>
 
