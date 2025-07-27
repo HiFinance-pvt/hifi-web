@@ -1,13 +1,18 @@
 "use client";
 
 import { useKiteRedirect } from "@/hooks/useKite";
-import { useParams, useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 
 export default function KiteRedirect() {
-  const params = useParams<{ request_token: string }>();
+  const params = useSearchParams();
   const router = useRouter();
-  console.log("KiteRedirect params:", params);
-  const { data, isPending } = useKiteRedirect(params.request_token);
+  const requestToken = params.get("request_token");
+  if (!requestToken) {
+    router.push("/dashboard");
+    return null;
+  }
+  console.log("KiteRedirect requestToken", requestToken);
+  const { data, isPending } = useKiteRedirect(requestToken);
 
   if (data) {
     router.push("/dashboard");
