@@ -96,6 +96,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           return {
             id: session.id,
             title:
+              session.session_name ||
               session.appName ||
               session.title ||
               `Session ${session.id.slice(0, 8)}`,
@@ -215,8 +216,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const handleSaveRename = async (sessionId: string) => {
     if (onRenameSession && editingTitle.trim()) {
       try {
-        // Update in API/store - you might need to modify the updateSession to handle appName
-        await updateSession(sessionId, { appName: editingTitle.trim() });
+        // Update in API/store using session_name instead of appName
+        await updateSession(sessionId, { session_name: editingTitle.trim() });
         onRenameSession(sessionId, editingTitle.trim());
       } catch (error) {
         console.error("Failed to rename session:", error);
@@ -284,7 +285,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   : "text-gray-200"
               }`}
             >
-              {session.id}
+              {session.title}
             </p>
           )}
         </div>

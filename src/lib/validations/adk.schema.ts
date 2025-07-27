@@ -185,6 +185,7 @@ export const GetSessionResponseSchema = z.object({
         state: z.record(z.string(), z.any()),
         userId: z.string(),
         appName: z.string(),
+        session_name: z.string().optional().nullable(),
     }),
 });
 
