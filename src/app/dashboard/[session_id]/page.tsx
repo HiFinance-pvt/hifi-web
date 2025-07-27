@@ -112,6 +112,15 @@ export default function HiFiDashboard() {
         }
     }, [sessionId, refetchMessages]);
 
+    // Handle process completion (when function calls and responses are complete)
+    const handleProcessComplete = useCallback(() => {
+        console.log('🔄 Process complete, triggering additional refetch');
+        // Add a small delay to ensure the backend has processed all function responses
+        setTimeout(() => {
+            handleRefetchMessages();
+        }, 500);
+    }, [handleRefetchMessages]);
+
     const {
         selectSession,
         deleteSession,
@@ -474,7 +483,11 @@ export default function HiFiDashboard() {
                     {!isInitialLoading && displayMessages.length > 0 && (
                         <div className="flex-1 overflow-y-auto p-6 pb-32" ref={chatContainerRef} onScroll={handleScroll}>
                             <div className="max-w-4xl mx-auto space-y-4">
-                                <GroupedMessageRenderer messages={displayMessages} />
+                                <GroupedMessageRenderer
+                                    messages={displayMessages}
+                                    onProcessComplete={handleProcessComplete}
+                                    isRefetching={isRefetchingSession}
+                                />
                                 {/* Show refetch indicator */}
                                 {adkMessagesLoading && displayMessages.length > 0 && (
                                     <div className="flex justify-center py-4">

@@ -19,6 +19,7 @@ export interface SessionStore {
     isLoading: boolean;
     error: string | null;
     lastSyncTime: number | null;
+    currentUserId: string | null; // Track current user
 
     // Actions
     setSessions: (sessions: SessionData[]) => void;
@@ -28,6 +29,8 @@ export interface SessionStore {
     removeSession: (sessionId: string) => void;
     setLoading: (loading: boolean) => void;
     setError: (error: string | null) => void;
+    setCurrentUserId: (userId: string | null) => void; // Set current user
+    clearUserSessions: () => void; // Clear sessions for user logout
 
     // API Actions
     fetchSessions: (showLoading?: boolean, forceRefresh?: boolean) => Promise<void>;
@@ -51,6 +54,7 @@ export const useSessionStore = create<SessionStore>()(
             isLoading: false,
             error: null,
             lastSyncTime: null,
+            currentUserId: null,
 
             // Basic actions
             setSessions: (sessions) => set({ sessions }),
@@ -72,10 +76,20 @@ export const useSessionStore = create<SessionStore>()(
             })),
             setLoading: (loading) => set({ isLoading: loading }),
             setError: (error) => set({ error }),
+            setCurrentUserId: (userId) => set({ currentUserId: userId }),
+            clearUserSessions: () => {
+                console.log('🧹 Clearing user sessions');
+                set({
+                    sessions: [],
+                    currentSession: null,
+                    lastSyncTime: null,
+                    error: null
+                });
+            },
 
             // API Actions
             fetchSessions: async (showLoading = true, forceRefresh = false) => {
-                const { setLoading, setError, setSessions, sessions, lastSyncTime } = get();
+                const { setLoading, setError, setSessions, sessions, lastSyncTime, currentUserId } = get();
 
                 // Skip if we have recent data and not forcing refresh
                 const now = Date.now();
@@ -93,8 +107,23 @@ export const useSessionStore = create<SessionStore>()(
 
                 try {
                     const response = await api.adk.listSessions();
-                    const sessions = response.data.sessions || [];
-                    setSessions(sessions);
+                    const allSessions = response.data.sessions || [];
+
+                    // Filter sessions by current user if userId is available
+                    const userSessions = currentUserId
+                        ? allSessions.filter(session => session.userId === currentUserId)
+                        : allSessions;
+
+                    // Convert lastUpdateTime to number if it's a string
+                    const processedSessions = userSessions.map(session => ({
+                        ...session,
+                        lastUpdateTime: typeof session.lastUpdateTime === 'string'
+                            ? parseInt(session.lastUpdateTime, 10)
+                            : session.lastUpdateTime
+                    }));
+
+                    console.log(`📋 Fetched ${processedSessions.length} sessions for user: ${currentUserId || 'unknown'}`);
+                    setSessions(processedSessions);
                     set({ lastSyncTime: Date.now() });
                 } catch (error) {
                     setError(error instanceof Error ? error.message : 'Failed to fetch sessions');
@@ -106,7 +135,7 @@ export const useSessionStore = create<SessionStore>()(
             },
 
             fetchSession: async (sessionId: string, showLoading = true, forceRefresh = false) => {
-                const { setLoading, setError, updateSession, setCurrentSession, currentSession, lastSyncTime } = get();
+                const { setLoading, setError, updateSession, setCurrentSession, currentSession, lastSyncTime, currentUserId } = get();
 
                 // Skip if we have recent data for this session and not forcing refresh
                 const now = Date.now();
@@ -126,11 +155,24 @@ export const useSessionStore = create<SessionStore>()(
                     const response = await api.adk.getSession(sessionId);
                     const sessionData = response.data;
 
+                    // Verify the session belongs to the current user
+                    if (currentUserId && sessionData.userId !== currentUserId) {
+                        throw new Error('Session does not belong to current user');
+                    }
+
+                    // Convert lastUpdateTime to number if it's a string
+                    const processedSessionData = {
+                        ...sessionData,
+                        lastUpdateTime: typeof sessionData.lastUpdateTime === 'string'
+                            ? parseInt(sessionData.lastUpdateTime, 10)
+                            : sessionData.lastUpdateTime
+                    };
+
                     // Update in sessions array
-                    updateSession(sessionId, sessionData);
+                    updateSession(sessionId, processedSessionData);
 
                     // Set as current session
-                    setCurrentSession(sessionData);
+                    setCurrentSession(processedSessionData);
                     set({ lastSyncTime: Date.now() });
                 } catch (error) {
                     setError(error instanceof Error ? error.message : 'Failed to fetch session');
@@ -142,7 +184,7 @@ export const useSessionStore = create<SessionStore>()(
             },
 
             createSession: async () => {
-                const { setLoading, setError, addSession } = get();
+                const { setLoading, setError, addSession, currentUserId } = get();
                 setLoading(true);
                 setError(null);
 
@@ -151,7 +193,11 @@ export const useSessionStore = create<SessionStore>()(
                     const newSession: SessionData = {
                         ...response.data,
                         events: response.data.events || [],
-                        state: response.data.state || {}
+                        state: response.data.state || {},
+                        userId: currentUserId || 'unknown', // Ensure userId is set
+                        lastUpdateTime: typeof response.data.lastUpdateTime === 'string'
+                            ? parseInt(response.data.lastUpdateTime, 10)
+                            : response.data.lastUpdateTime
                     };
                     addSession(newSession);
                     set({ lastSyncTime: Date.now() });
@@ -198,6 +244,7 @@ export const useSessionStore = create<SessionStore>()(
                 sessions: state.sessions,
                 currentSession: state.currentSession,
                 lastSyncTime: state.lastSyncTime,
+                currentUserId: state.currentUserId, // Persist current user ID
             }),
         }
     )

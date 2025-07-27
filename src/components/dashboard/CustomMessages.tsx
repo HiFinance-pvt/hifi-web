@@ -366,18 +366,49 @@ export const StreamingIndicator: React.FC = () => (
     </div>
 );
 
-// Loading indicator for session refetching
+// Session Refetching Indicator
 export const SessionRefetchingIndicator: React.FC = () => (
-    <div className="flex justify-center py-4">
-        <div className="flex items-center space-x-2 text-blue-400">
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-500"></div>
-            <span className="text-sm">Updating conversation...</span>
+    <div className="flex justify-start mb-4">
+        <div className="flex items-start space-x-3 max-w-2xl">
+            <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                    <Bot className="w-4 h-4 text-white" />
+                </div>
+            </div>
+            <div className="bg-gray-700 text-white rounded-2xl px-4 py-3 shadow-lg border border-gray-600">
+                <div className="flex items-center space-x-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400"></div>
+                    <span className="text-sm text-gray-300">Updating conversation...</span>
+                </div>
+            </div>
+        </div>
+    </div>
+);
+
+// Message Skeleton Component
+export const MessageSkeleton: React.FC = () => (
+    <div className="flex justify-start mb-4">
+        <div className="flex items-start space-x-3 max-w-2xl">
+            <div className="flex-shrink-0">
+                <div className="w-8 h-8 bg-gray-600 rounded-full animate-pulse"></div>
+            </div>
+            <div className="bg-gray-700 rounded-2xl px-4 py-3 shadow-lg border border-gray-600 flex-1">
+                <div className="space-y-2">
+                    <div className="h-4 bg-gray-600 rounded animate-pulse w-3/4"></div>
+                    <div className="h-4 bg-gray-600 rounded animate-pulse w-1/2"></div>
+                    <div className="h-4 bg-gray-600 rounded animate-pulse w-5/6"></div>
+                </div>
+            </div>
         </div>
     </div>
 );
 
 // Process Group Component - Groups function calls and responses
-export const ProcessGroup: React.FC<{ messages: ProcessedMessage[] }> = ({ messages }) => {
+export const ProcessGroup: React.FC<{
+    messages: ProcessedMessage[];
+    onProcessComplete?: () => void;
+    isRefetching?: boolean;
+}> = ({ messages, onProcessComplete, isRefetching = false }) => {
     const [isExpanded, setIsExpanded] = useState(false);
 
     // Filter function calls and responses
@@ -391,6 +422,17 @@ export const ProcessGroup: React.FC<{ messages: ProcessedMessage[] }> = ({ messa
     const functionCalls = processMessages.filter(msg => msg.type === 'function_call');
     const functionResponses = processMessages.filter(msg => msg.type === 'function_response');
     const errors = functionResponses.filter(msg => msg.isError);
+
+    // Check if process is complete (has equal number of calls and responses)
+    const isComplete = functionCalls.length > 0 && functionCalls.length === functionResponses.length;
+
+    // Trigger completion callback when process becomes complete
+    React.useEffect(() => {
+        if (isComplete && onProcessComplete) {
+            console.log('🔄 Process group complete, triggering refetch');
+            onProcessComplete();
+        }
+    }, [isComplete, onProcessComplete]);
 
     return (
         <div className="flex justify-start mb-4">
@@ -415,6 +457,12 @@ export const ProcessGroup: React.FC<{ messages: ProcessedMessage[] }> = ({ messa
                                         <span className="text-red-400">{errors.length} errors</span>
                                     </>
                                 )}
+                                {isComplete && (
+                                    <>
+                                        <span>•</span>
+                                        <span className="text-green-400">Complete</span>
+                                    </>
+                                )}
                             </div>
                         </div>
                         <button
@@ -437,6 +485,13 @@ export const ProcessGroup: React.FC<{ messages: ProcessedMessage[] }> = ({ messa
                                     )}
                                 </div>
                             ))}
+                        </div>
+                    )}
+
+                    {/* Show skeleton when refetching */}
+                    {isRefetching && (
+                        <div className="mt-3">
+                            <MessageSkeleton />
                         </div>
                     )}
                 </div>
@@ -473,7 +528,11 @@ export const groupProcessMessages = (messages: ProcessedMessage[]): (ProcessedMe
 };
 
 // Grouped Message Renderer - Handles both individual messages and process groups
-export const GroupedMessageRenderer: React.FC<{ messages: ProcessedMessage[] }> = ({ messages }) => {
+export const GroupedMessageRenderer: React.FC<{
+    messages: ProcessedMessage[];
+    onProcessComplete?: () => void;
+    isRefetching?: boolean;
+}> = ({ messages, onProcessComplete, isRefetching = false }) => {
     const groupedMessages = groupProcessMessages(messages);
 
     return (
@@ -481,10 +540,17 @@ export const GroupedMessageRenderer: React.FC<{ messages: ProcessedMessage[] }> 
             {groupedMessages.map((item, index) => {
                 if (Array.isArray(item)) {
                     // This is a process group
-                    return <ProcessGroup key={`process-group-${index}`} messages={item} />;
+                    return (
+                        <ProcessGroup
+                            key={`process-${index}`}
+                            messages={item}
+                            onProcessComplete={onProcessComplete}
+                            isRefetching={isRefetching}
+                        />
+                    );
                 } else {
                     // This is an individual message
-                    return <MessageRenderer key={item.id} message={item} />;
+                    return <MessageRenderer key={`message-${item.id}-${index}`} message={item} />;
                 }
             })}
         </>

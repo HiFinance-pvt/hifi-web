@@ -98,12 +98,27 @@ export function processContentParts(parts: any[], eventId: string, author: strin
         if (part.functionResponse && typeof part.functionResponse === 'object') {
             const response = part.functionResponse;
             const result = response.response?.result;
-            const resultContent = result?.content;
-            const responseText = resultContent
-                ? resultContent.map((c: any) => c.text).join(' ')
-                : result
-                    ? 'Function executed successfully'
-                    : 'Function response received';
+
+            // Handle different result types
+            let responseText = 'Function response received';
+            let isError = false;
+
+            if (typeof result === 'string') {
+                // Result is a string
+                responseText = result;
+                isError = false;
+            } else if (result && typeof result === 'object') {
+                // Result is an object
+                const resultContent = result.content;
+                responseText = resultContent
+                    ? resultContent.map((c: any) => c.text).join(' ')
+                    : 'Function executed successfully';
+                isError = result.isError || false;
+            } else if (result === null || result === undefined) {
+                // Result is null or undefined
+                responseText = 'Function response received';
+                isError = false;
+            }
 
             messages.push({
                 id: messageId,
@@ -113,7 +128,7 @@ export function processContentParts(parts: any[], eventId: string, author: strin
                 functionName: response.name || 'Unknown Function',
                 functionResponse: result,
                 text: responseText,
-                isError: result?.isError || false,
+                isError: isError,
             });
         }
 

@@ -14,5 +14,7 @@ export {
     CustomMessageSource,
     StreamingIndicator,
     SessionRefetchingIndicator,
-    ProcessGroup
+    MessageSkeleton,
+    ProcessGroup,
+    groupProcessMessages
 } from './CustomMessages'; 

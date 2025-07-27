@@ -28,10 +28,10 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType>({
   currentUser: null,
   loading: true,
-  signInWithGoogle: async () => {},
-  signInWithEmail: async () => {},
-  signUpWithEmail: async () => {},
-  logout: async () => {},
+  signInWithGoogle: async () => { },
+  signInWithEmail: async () => { },
+  signUpWithEmail: async () => { },
+  logout: async () => { },
 });
 
 export const useAuth = () => {
