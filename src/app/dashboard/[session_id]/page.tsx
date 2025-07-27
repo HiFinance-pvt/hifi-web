@@ -77,6 +77,7 @@ export default function HiFiDashboard() {
         setCurrentSession,
         startPeriodicSync,
         stopPeriodicSync,
+        checkUserChange,
     } = useSessionStore();
 
     // Track initial load state separately
@@ -122,6 +123,7 @@ export default function HiFiDashboard() {
     }, [handleRefetchMessages]);
 
     const {
+        user,
         selectSession,
         deleteSession,
         stopMessage,
@@ -139,6 +141,9 @@ export default function HiFiDashboard() {
     // Initialize session data and start periodic sync
     useEffect(() => {
         const initializeSession = async () => {
+            // Check if user has changed and clear sessions if needed
+            checkUserChange();
+
             // Fetch sessions on mount only if we don't have any
             if (sessions.length === 0) {
                 await fetchSessions();
@@ -157,7 +162,7 @@ export default function HiFiDashboard() {
         return () => {
             stopPeriodicSync();
         };
-    }, [fetchSessions, startPeriodicSync, stopPeriodicSync, sessions.length]);
+    }, [fetchSessions, startPeriodicSync, stopPeriodicSync, sessions.length, checkUserChange]);
 
     // Check if session exists, if not create a new one
     useEffect(() => {
@@ -430,8 +435,6 @@ export default function HiFiDashboard() {
             {/* Custom Sidebar */}
             <div className="z-10 bg-none">
                 <Sidebar
-                    // starredSessions={sessionsByCategory.starred}
-                    // chatSessions={sessionsByCategory.chats}
                     activeSessionId={activeSessionId}
                     onSelectSession={handleActiveSession}
                     onDeleteSession={deleteSession}

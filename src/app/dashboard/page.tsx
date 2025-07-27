@@ -7,15 +7,18 @@ import { SessionCreationLoader } from "@/components/ui/CustomLoader";
 
 export default function DashboardRedirect() {
   const router = useRouter();
-  const { sessions, isLoading: sessionsLoading, fetchSessions, createSession } = useSessionStore();
+  const { sessions, isLoading: sessionsLoading, fetchSessions, createSession, checkUserChange } = useSessionStore();
   const [isCreatingSession, setIsCreatingSession] = useState(false);
 
   useEffect(() => {
+    // Check if user has changed and clear sessions if needed
+    checkUserChange();
+
     // Fetch sessions on mount only if we don't have any
     if (sessions.length === 0) {
       fetchSessions();
     }
-  }, [fetchSessions, sessions.length]);
+  }, [fetchSessions, sessions.length, checkUserChange]);
 
   useEffect(() => {
     if (!sessionsLoading) {
