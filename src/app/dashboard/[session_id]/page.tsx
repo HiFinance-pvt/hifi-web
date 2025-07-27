@@ -24,6 +24,7 @@ import {
 } from "@/hooks/adk";
 import { useSessionStore } from "@/stores/sessionStore";
 import { useDebtSquasherStore } from "@/stores/debtSquasherStore";
+import { useTaxTraderStore } from "@/stores/taxTraderStore";
 import { SessionCreationLoader } from "@/components/ui/CustomLoader";
 import Particles from "@/ui/components/Particles";
 import { AGENTS } from "@/constants/mockData";
@@ -47,6 +48,7 @@ export default function HiFiDashboard() {
 
   // Extract query parameters for agent-specific functionality
   const agent = searchParams.get("agent");
+  const messageParam = searchParams.get("message");
 
   const [currentMessage, setCurrentMessage] = useState("");
   const [pendingUserMsg, setPendingUserMsg] = useState<string | null>(null);
@@ -158,6 +160,7 @@ export default function HiFiDashboard() {
 
   // Agent-specific stores
   const debtSquasherStore = useDebtSquasherStore();
+  const taxTraderStore = useTaxTraderStore();
 
   // Use session data from store
   const activeSessionId = sessionId;
@@ -495,10 +498,44 @@ export default function HiFiDashboard() {
     return messages.sort((a, b) => a.timestamp - b.timestamp);
   }, [adkMessages, pendingUserMsg, isStreaming, streamingText]);
 
-  // Agent-specific auto-prompt logic
+  // Message parameter auto-send logic
+  useEffect(() => {
+    if (
+      messageParam &&
+      sessionId &&
+      !isInitialLoad &&
+      displayMessages.length === 0 &&
+      !isAdkPending
+    ) {
+      console.log(`📩 Auto-sending message from URL parameter`);
+
+      // Decode the message from URL parameter
+      const decodedMessage = decodeURIComponent(messageParam);
+
+      // Send the message
+      setTimeout(() => {
+        handleSendMessage(decodedMessage);
+
+        // Clean up URL by removing query parameters after sending the message
+        const cleanUrl = `/dashboard/${sessionId}`;
+        router.replace(cleanUrl, { scroll: false });
+      }, 500);
+    }
+  }, [
+    messageParam,
+    sessionId,
+    isInitialLoad,
+    displayMessages.length,
+    isAdkPending,
+    handleSendMessage,
+    router,
+  ]);
+
+  // Agent-specific auto-prompt logic (only if no message parameter)
   useEffect(() => {
     if (
       agent &&
+      !messageParam &&
       sessionId &&
       !isInitialLoad &&
       displayMessages.length === 0 &&
@@ -587,6 +624,42 @@ Would you like to begin by sharing details about your current debt situation, or
           }
           break;
 
+        case "trader-agent":
+          if (taxTraderStore.hasCompleteData()) {
+            defaultPrompt = `You are a tax planning specialist focused on helping users optimize their tax liability and maximize savings. I have analyzed the user's tax situation and preferences.
+
+${taxTraderStore.getDataForPrompt()}
+
+Based on this analysis, please provide:
+1. A detailed tax optimization strategy for the ${
+              taxTraderStore.preferences?.regime === "old" ? "Old" : "New"
+            } Tax Regime
+2. Specific deduction recommendations and investment suggestions
+3. Tax-saving opportunities and strategies
+4. Comparison between Old and New Tax Regime benefits
+5. Long-term tax planning advice
+
+Let's create an actionable tax optimization plan!`;
+          } else {
+            defaultPrompt = `You are a tax planning specialist dedicated to helping people optimize their tax liability and maximize savings.
+
+I'm here to help you:
+- Analyze your current tax situation
+- Compare Old vs New Tax Regime benefits
+- Recommend optimal tax-saving strategies
+- Provide investment advice for tax efficiency
+- Plan for long-term tax optimization
+
+To get started with a comprehensive tax analysis, I'll need to understand your:
+1. Total annual salary and other income sources
+2. Preferred tax regime (Old or New)
+3. Current investments and deductions
+4. Tax planning goals and timeline
+
+Would you like to begin by sharing details about your income and tax situation, or do you have specific questions about tax optimization strategies?`;
+          }
+          break;
+
         default:
           return; // Don't send any message for unknown agents
       }
@@ -607,11 +680,13 @@ Would you like to begin by sharing details about your current debt situation, or
     }
   }, [
     agent,
+    messageParam,
     sessionId,
     isInitialLoad,
     displayMessages.length,
     isAdkPending,
     debtSquasherStore,
+    taxTraderStore,
     handleSendMessage,
     router,
   ]);

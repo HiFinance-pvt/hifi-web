@@ -1,11 +1,14 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 import Particles from "@/ui/components/Particles";
 import TextType from "@/ui/TextAnimations/TextType/TextType";
 import { useChat } from "@/hooks/useChat";
 import { ALL_SESSIONS } from "@/constants/mockData";
+import { useTaxTraderStore, TaxRegime } from "@/stores/taxTraderStore";
+import TaxPreferencesModal from "@/components/TaxPreferencesModal";
 import {
   Globe,
   Bell,
@@ -282,9 +285,13 @@ const ChatInput: React.FC<{
 };
 
 export default function TraderAgentPage() {
+  const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
   const [message, setMessage] = useState("");
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [showPreferencesModal, setShowPreferencesModal] = useState(false);
+
+
 
   // Add smooth animations CSS
   useEffect(() => {
@@ -358,6 +365,29 @@ export default function TraderAgentPage() {
     toggleSessionStar,
   } = useChat();
 
+  // Tax Trader store
+  const {
+    preferences,
+    hasPreferences,
+    taxData,
+    isLoading: isTaxLoading,
+    error: taxError,
+    setPreferences,
+    analyzeTax,
+    hasCompleteData,
+    clearPreferences,
+  } = useTaxTraderStore();
+
+  // Debug modal state
+  useEffect(() => {
+    console.log("🔄 Modal state changed:", showPreferencesModal);
+  }, [showPreferencesModal]);
+
+  // Debug preferences state
+  useEffect(() => {
+    console.log("🔄 Preferences state:", { hasPreferences, preferences });
+  }, [hasPreferences, preferences]);
+
   // Initialize with sample data on first load
   useEffect(() => {
     if (sessions.length === 0) {
@@ -372,9 +402,71 @@ export default function TraderAgentPage() {
   };
 
   const handleSendMessage = () => {
+    console.log("🚀 handleSendMessage called", {
+      message: message.trim(),
+      hasPreferences,
+      preferences,
+    });
+
     if (message.trim()) {
-      console.log("Sending message:", message);
-      setMessage("");
+      // Check if we have preferences set first
+      if (!hasPreferences) {
+        console.log("🔄 No preferences found, showing modal");
+        setShowPreferencesModal(true);
+        return;
+      }
+
+      // Redirect to dashboard with agent query parameter only
+      const searchParams = new URLSearchParams({
+        agent: "trader-agent",
+      });
+
+      console.log(
+        "➡️ Redirecting to dashboard:",
+        `/dashboard?${searchParams.toString()}`
+      );
+      router.push(`/dashboard?${searchParams.toString()}`);
+    }
+  };
+
+  const handlePreferencesSubmit = async (prefs: {
+    totalSalary: number;
+    otherIncomeSources: number;
+    regime: TaxRegime;
+    employeeTAN?: string;
+  }) => {
+    console.log("💾 handlePreferencesSubmit called", prefs);
+
+    try {
+      // Set preferences with timestamp
+      const preferencesWithTimestamp = {
+        ...prefs,
+        lastUpdated: new Date().toISOString(),
+      };
+
+      console.log("💾 Setting preferences:", preferencesWithTimestamp);
+      setPreferences(preferencesWithTimestamp);
+
+      // Close modal
+      console.log("❌ Closing modal");
+      setShowPreferencesModal(false);
+
+      // Start tax analysis
+      console.log("🔍 Starting tax analysis");
+      await analyzeTax();
+
+      // Redirect to dashboard for tax analysis
+      const searchParams = new URLSearchParams({
+        agent: "trader-agent",
+      });
+
+      console.log(
+        "➡️ Redirecting to dashboard after preferences:",
+        `/dashboard?${searchParams.toString()}`
+      );
+      router.push(`/dashboard?${searchParams.toString()}`);
+    } catch (error) {
+      console.error("❌ Error setting preferences:", error);
     }
   };
 
@@ -516,6 +608,28 @@ export default function TraderAgentPage() {
               />
             </div>
 
+            {/* Debug info */}
+            <div className="mb-4 text-center">
+              <p className="text-gray-400 text-sm mb-2">
+                Debug: hasPreferences = {hasPreferences.toString()}
+              </p>
+              <button
+                onClick={() => setShowPreferencesModal(true)}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg mr-2"
+              >
+                Test Modal
+              </button>
+              <button
+                onClick={() => {
+                  clearPreferences();
+                  console.log("🧹 Preferences cleared");
+                }}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg"
+              >
+                Clear Preferences
+              </button>
+            </div>
+
             {/* Suggestion Buttons */}
             <div
               className="w-full max-w-6xl smooth-entry"
@@ -534,6 +648,14 @@ export default function TraderAgentPage() {
           </div>
         </div>
       </div>
+
+      {/* Tax Preferences Modal */}
+      <TaxPreferencesModal
+        isOpen={showPreferencesModal}
+        onClose={() => setShowPreferencesModal(false)}
+        onSubmit={handlePreferencesSubmit}
+        isLoading={isTaxLoading}
+      />
     </div>
   );
 }
