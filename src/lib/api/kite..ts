@@ -8,6 +8,9 @@ export class Kite {
       params: {
         request_token: request_token
       },
+      headers: {
+        "Authorization": `Bearer ${await getCurrentUser().getIdToken()}`
+            }
     });
     return data
   }
