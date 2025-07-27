@@ -18,7 +18,7 @@ export default function DashboardRedirect() {
   const [isCreatingSession, setIsCreatingSession] = useState(false);
 
   // Extract query parameters
-  const agent = searchParams.get("agent");
+  const agent = searchParams?.get("agent");
 
   useEffect(() => {
     // Check if user has changed and clear sessions if needed
