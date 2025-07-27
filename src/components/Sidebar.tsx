@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { ChatSession } from "@/types/chat";
 import { NAVIGATION_ITEMS } from "@/constants/mockData";
 import { useSessionStore } from "@/stores/sessionStore";
@@ -62,39 +62,71 @@ export const Sidebar: React.FC<SidebarProps> = ({
   // Delete session mutation
   const deleteSessionMutation = useDeleteSessionMutation();
 
-  // Initialize sessions on mount
+  // Initialize sessions on mount with error handling
   useEffect(() => {
     const initializeSessions = async () => {
-      // Fetch sessions if we don't have any
-      if (sessions.length === 0) {
-        await fetchSessions();
+      try {
+        // Fetch sessions if we don't have any valid sessions
+        if (!Array.isArray(sessions) || sessions.length === 0) {
+          console.log("Fetching sessions...");
+          await fetchSessions();
+        }
+      } catch (err) {
+        console.error("Error initializing sessions:", err);
       }
     };
 
     initializeSessions();
-  }, [fetchSessions, sessions.length]);
+  }, [fetchSessions, sessions]);
 
-  // Transform API sessions to ChatSession format
-  const transformedSessions: ChatSession[] = sessions.map((session: any) => ({
-    id: session.id,
-    title: session.appName || `Session ${session.id.slice(0, 8)}`,
-    category: "chats" as const, // Default to chats, you can add starring logic later
-    createdAt: new Date(session.lastUpdateTime),
-    updatedAt: new Date(session.lastUpdateTime),
-    conversations: [], // You can transform events to conversations if needed
-  }));
+  // Transform API sessions to ChatSession format with proper error handling
+  const transformedSessions: ChatSession[] = useMemo(() => {
+    // Ensure sessions is an array and handle various data structures
+    if (!Array.isArray(sessions)) {
+      console.warn("Sessions is not an array:", sessions);
+      return [];
+    }
+
+    return sessions
+      .filter(
+        (session: any) => session && typeof session === "object" && session.id
+      )
+      .map((session: any) => {
+        try {
+          return {
+            id: session.id,
+            title:
+              session.appName ||
+              session.title ||
+              `Session ${session.id.slice(0, 8)}`,
+            category: "chats" as const,
+            createdAt: session.lastUpdateTime
+              ? new Date(session.lastUpdateTime)
+              : session.createdAt
+              ? new Date(session.createdAt)
+              : new Date(),
+            updatedAt: session.lastUpdateTime
+              ? new Date(session.lastUpdateTime)
+              : session.updatedAt
+              ? new Date(session.updatedAt)
+              : new Date(),
+            conversations: [],
+          };
+        } catch (err) {
+          console.warn("Error transforming session:", session, err);
+          return null;
+        }
+      })
+      .filter(Boolean) as ChatSession[];
+  }, [sessions]);
 
   // Filter sessions based on search
   const filteredStarredSessions = transformedSessions.filter(
-    (session) =>
-      session.category === "starred" &&
-      session.id
+    (session) => session.category === "starred" && session.id
   );
 
   const filteredChatSessions = transformedSessions.filter(
-    (session) =>
-      session.category === "chats" &&
-      session.id
+    (session) => session.category === "chats" && session.id
   );
 
   const formatDate = (date: Date | number) => {
@@ -529,7 +561,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {error && <ErrorState />}
 
         {/* Loading State */}
-        {isLoading && transformedSessions.length === 0 && <LoadingState />}
+        {(isLoading || !Array.isArray(sessions)) &&
+          transformedSessions.length === 0 && <LoadingState />}
 
         {/* Starred Sessions */}
         {!isLoading && !error && filteredStarredSessions.length > 0 && (
@@ -578,10 +611,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
         )}
 
         {/* Loading State */}
-        {isLoading && (
+        {(isLoading || !Array.isArray(sessions)) && (
           <div className="text-center py-8">
             <Loader2 className="w-6 h-6 text-gray-400 animate-spin mx-auto mb-2" />
             <p className="text-gray-500 text-sm">Loading sessions...</p>
+            {!Array.isArray(sessions) && sessions && (
+              <p className="text-yellow-500 text-xs mt-1">
+                Invalid session data format detected
+              </p>
+            )}
           </div>
         )}
 
@@ -589,12 +627,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {error && (
           <div className="text-center py-8">
             <p className="text-red-500 text-sm">{error}</p>
+            <button
+              onClick={() => fetchSessions()}
+              className="mt-2 text-xs bg-red-500/20 hover:bg-red-500/30 px-2 py-1 rounded transition-colors duration-200"
+            >
+              Retry
+            </button>
           </div>
         )}
 
         {/* No sessions found */}
         {!isLoading &&
           !error &&
+          Array.isArray(sessions) &&
           filteredStarredSessions.length === 0 &&
           filteredChatSessions.length === 0 &&
           transformedSessions.length > 0 && (
@@ -606,27 +651,31 @@ export const Sidebar: React.FC<SidebarProps> = ({
           )}
 
         {/* Empty state */}
-        {!isLoading && !error && transformedSessions.length === 0 && (
-          <div className="text-center py-8 animate-in fade-in duration-600 ease-out">
-            <div className="flex flex-col items-center space-y-3">
-              <MessageSquare className="w-12 h-12 text-gray-600" />
-              <div>
-                <p className="text-gray-400 text-sm font-medium">
-                  No chat sessions yet
-                </p>
-                <p className="text-gray-500 text-xs mt-1">
-                  Start a new conversation to get started
-                </p>
+        {!isLoading &&
+          !error &&
+          Array.isArray(sessions) &&
+          transformedSessions.length === 0 && (
+            <div className="text-center py-8 animate-in fade-in duration-600 ease-out">
+              <div className="flex flex-col items-center space-y-3">
+                <MessageSquare className="w-12 h-12 text-gray-600" />
+                <div>
+                  <p className="text-gray-400 text-sm font-medium">
+                    No chat sessions yet
+                  </p>
+                  <p className="text-gray-500 text-xs mt-1">
+                    Start a new conversation to get started
+                  </p>
+                </div>
+                <button
+                  onClick={handleNewSession}
+                  className="px-4 py-2 bg-teal-600 hover:bg-teal-700 rounded-lg text-white text-sm transition-colors duration-200"
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Creating..." : "Start First Chat"}
+                </button>
               </div>
-              <button
-                onClick={handleNewSession}
-                className="px-4 py-2 bg-teal-600 hover:bg-teal-700 rounded-lg text-white text-sm transition-colors duration-200"
-              >
-                Start First Chat
-              </button>
             </div>
-          </div>
-        )}
+          )}
       </div>
 
       {/* User Profile Section */}

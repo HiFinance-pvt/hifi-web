@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 import Particles from "@/ui/components/Particles";
 import TextType from "@/ui/TextAnimations/TextType/TextType";
@@ -489,6 +490,7 @@ const ChatInput: React.FC<{
 };
 
 export default function SebiAgentPage() {
+  const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
   const [message, setMessage] = useState("");
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -591,8 +593,13 @@ export default function SebiAgentPage() {
 
   const handleSendMessage = () => {
     if (message.trim()) {
-      console.log("Sending message:", message);
-      setMessage("");
+      // Redirect to dashboard with agent query parameter only
+      const searchParams = new URLSearchParams({
+        agent: 'sebi'
+      });
+      
+      console.log("Redirecting to dashboard for SEBI analysis");
+      router.push(`/dashboard?${searchParams.toString()}`);
     }
   };
 

@@ -1,11 +1,17 @@
 "use client";
 
 import React, { useState, useRef, useEffect } from "react";
+import { useRouter } from "next/navigation";
 
 import Particles from "@/ui/components/Particles";
 import TextType from "@/ui/TextAnimations/TextType/TextType";
 import { useChat } from "@/hooks/useChat";
 import { ALL_SESSIONS } from "@/constants/mockData";
+import {
+  useDebtSquasherStore,
+  DebtIntensity,
+} from "@/stores/debtSquasherStore";
+import DebtPreferencesModal from "@/components/DebtPreferencesModal";
 import {
   Globe,
   Bell,
@@ -492,9 +498,11 @@ const ChatInput: React.FC<{
 };
 
 export default function DebtSquasherPage() {
+  const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
   const [message, setMessage] = useState("");
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
+  const [showPreferencesModal, setShowPreferencesModal] = useState(false);
 
   // Add smooth animations CSS
   useEffect(() => {
@@ -568,6 +576,18 @@ export default function DebtSquasherPage() {
     toggleSessionStar,
   } = useChat();
 
+  // Debt Squasher store
+  const {
+    preferences,
+    hasPreferences,
+    debtData,
+    isLoading: isDebtLoading,
+    error: debtError,
+    setPreferences,
+    analyzeDebt,
+    hasCompleteData,
+  } = useDebtSquasherStore();
+
   // Initialize with sample data on first load
   useEffect(() => {
     if (sessions.length === 0) {
@@ -583,8 +603,50 @@ export default function DebtSquasherPage() {
 
   const handleSendMessage = () => {
     if (message.trim()) {
-      console.log("Sending message:", message);
-      setMessage("");
+      // Check if we have preferences set first
+      if (!hasPreferences) {
+        setShowPreferencesModal(true);
+        return;
+      }
+
+      // Redirect to dashboard with agent query parameter only
+      const searchParams = new URLSearchParams({
+        agent: "debt-squasher",
+      });
+
+      console.log("Redirecting to dashboard for debt analysis");
+      router.push(`/dashboard?${searchParams.toString()}`);
+    }
+  };
+
+  const handlePreferencesSubmit = async (prefs: {
+    duration_months: number;
+    intensity: DebtIntensity;
+  }) => {
+    try {
+      // Set preferences with timestamp
+      const preferencesWithTimestamp = {
+        ...prefs,
+        lastUpdated: new Date().toISOString(),
+      };
+
+      setPreferences(preferencesWithTimestamp);
+
+      // Close modal
+      setShowPreferencesModal(false);
+
+      // Start debt analysis
+      await analyzeDebt();
+
+            // Redirect to dashboard for debt analysis
+      const searchParams = new URLSearchParams({
+        agent: "debt-squasher"
+      });
+      
+      console.log("Redirecting to dashboard after setting preferences");
+      router.push(`/dashboard?${searchParams.toString()}`);
+    } catch (error) {
+      console.error("Error setting preferences:", error);
     }
   };
 
@@ -594,8 +656,6 @@ export default function DebtSquasherPage() {
       className="flex flex-col h-full w-full bg-transparent overflow-hidden smooth-entry"
       style={{ pointerEvents: "auto" }}
     >
-
-
       {/* Particles Background - Full Screen */}
       <div className="fixed inset-0 w-screen h-screen z-0 blur-sm opacity-70">
         <Particles
@@ -748,6 +808,14 @@ export default function DebtSquasherPage() {
           </div>
         </div>
       </div>
+
+      {/* Debt Preferences Modal */}
+      <DebtPreferencesModal
+        isOpen={showPreferencesModal}
+        onClose={() => setShowPreferencesModal(false)}
+        onSubmit={handlePreferencesSubmit}
+        isLoading={isDebtLoading}
+      />
     </div>
   );
 }
