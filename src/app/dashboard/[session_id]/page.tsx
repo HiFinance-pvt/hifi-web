@@ -641,7 +641,8 @@ Would you like to begin by sharing details about your current debt situation, or
     () =>
       sessions.map((session: any) => ({
         id: session.id,
-        title: session.appName || `Session ${session.id}`,
+        title:
+          session.session_name || session.appName || `Session ${session.id}`,
         createdAt: new Date(session.lastUpdateTime),
         updatedAt: new Date(session.lastUpdateTime),
         conversations: [],
