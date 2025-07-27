@@ -8,7 +8,7 @@ import TextType from "@/ui/TextAnimations/TextType/TextType";
 import { useChat } from "@/hooks/useChat";
 import { ALL_SESSIONS } from "@/constants/mockData";
 import { useTaxTraderStore, TaxRegime } from "@/stores/taxTraderStore";
-import TaxPreferencesModal from "@/components/TaxPreferencesModal";
+import TaxPreferencesModal, { ResidenceStatus } from "@/components/TaxPreferencesModal";
 import {
   Globe,
   Bell,
@@ -156,15 +156,14 @@ const ConnectionPopup: React.FC<{
               className={`w-12 h-12 sm:w-16 sm:h-16 mx-auto rounded-full flex items-center justify-center transition-all duration-500 ease-out ${bgColor}`}
             >
               <Wifi
-                className={`w-6 h-6 sm:w-8 sm:h-8 transition-all duration-500 ease-out ${color} ${
-                  glowing ? "drop-shadow-lg filter" : ""
-                }`}
+                className={`w-6 h-6 sm:w-8 sm:h-8 transition-all duration-500 ease-out ${color} ${glowing ? "drop-shadow-lg filter" : ""
+                  }`}
                 style={
                   glowing
                     ? {
-                        filter:
-                          "drop-shadow(0 0 8px rgb(52 211 153 / 0.6)) drop-shadow(0 0 16px rgb(52 211 153 / 0.4))",
-                      }
+                      filter:
+                        "drop-shadow(0 0 8px rgb(52 211 153 / 0.6)) drop-shadow(0 0 16px rgb(52 211 153 / 0.4))",
+                    }
                     : {}
                 }
               />
@@ -434,6 +433,8 @@ export default function TraderAgentPage() {
     otherIncomeSources: number;
     regime: TaxRegime;
     employeeTAN?: string;
+    panNumber: string;
+    residenceStatus: ResidenceStatus;
   }) => {
     console.log("💾 handlePreferencesSubmit called", prefs);
 
