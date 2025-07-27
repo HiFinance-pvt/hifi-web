@@ -576,6 +576,16 @@ export default function AgentsHubPage() {
     >
       {/* Content */}
       <div className="flex-1 relative overflow-hidden z-10 min-h-0 min-w-0">
+        {/* Loading State */}
+        {isLoading && (
+          <div className="absolute inset-0 z-20 flex items-center justify-center bg-black/20 backdrop-blur-sm">
+            <div className="flex flex-col items-center space-y-4">
+              <div className="w-8 h-8 border-2 border-emerald-400/30 border-t-emerald-400 rounded-full animate-spin"></div>
+              <p className="text-sm text-gray-300">Loading agents...</p>
+            </div>
+          </div>
+        )}
+        
         {/* Content */}
         <div className="agents-section relative z-10 h-full overflow-y-auto overflow-x-hidden">
           <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8 w-full">
