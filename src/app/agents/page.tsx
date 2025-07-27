@@ -28,6 +28,7 @@ import { useRouter } from "next/navigation";
 import { checkMCPSession } from "@/lib/api/mcp";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCheckSession } from "@/hooks/useCheckSession";
+import { useBoolStore } from "@/stores/boolStore";
 
 // Using real chat hook - same as dashboard
 
@@ -306,6 +307,210 @@ const ConnectionPopup: React.FC<{
         </div>
       </div>
     </div>
+  );
+};
+
+// Header Controls Component
+const HeaderControls: React.FC = () => {
+  const [language, setLanguage] = useState("EN");
+  const [showFiTooltip, setShowFiTooltip] = useState(false);
+  const [showLangDropdown, setShowLangDropdown] = useState(false);
+  const [showConnectionPopup, setShowConnectionPopup] = useState(false);
+  const [sessionId, setSessionId] = useState<string>("");
+  const queryClient = useQueryClient();
+  // const router = useRouter();
+
+  const { data } = useCheckSession(sessionId);
+
+  const { setFiConnection, fiConnection } = useBoolStore();
+
+  useEffect(() => {
+    setFiConnection(data?.valid || false);
+  }, [data?.valid]);
+
+  const languages = [
+    { code: "EN", name: "English" },
+    { code: "HI", name: "हिंदी" },
+    { code: "GU", name: "ગુજરાતી" },
+    { code: "MR", name: "मराठी" },
+  ];
+
+  const handleFiToggle = () => {
+    const sessionId = `mcp-server-${uuidv4()}`;
+    setSessionId(sessionId);
+    window.open(
+      `${env.NEXT_PUBLIC_FI_MCP_SERVER_URL}/mockWebPage?sessionId=${sessionId}`
+    );
+    queryClient.invalidateQueries({ queryKey: ["check-session", sessionId] });
+  };
+
+  return (
+    <>
+      <div className="fixed top-2 right-2 sm:top-4 sm:right-4 z-50 flex items-center space-x-2 sm:space-x-3">
+        {/* Language Selector */}
+        <div className="relative">
+          <button
+            onClick={() => setShowLangDropdown(!showLangDropdown)}
+            className="flex items-center space-x-1 px-2 py-1.5 sm:px-3 sm:py-2 bg-gray-900/80 border border-gray-700/50 rounded-lg backdrop-blur-sm hover:bg-gray-800/80 transition-all duration-200"
+          >
+            <Globe className="w-3 h-3 sm:w-4 sm:h-4 text-gray-300" />
+            <span className="text-xs sm:text-sm text-gray-300">{language}</span>
+          </button>
+
+          {showLangDropdown && (
+            <div className="absolute top-full mt-2 right-0 w-36 bg-gray-900/95 border border-gray-700/50 rounded-lg backdrop-blur-sm shadow-xl">
+              {languages.map((lang) => (
+                <button
+                  key={lang.code}
+                  onClick={() => {
+                    setLanguage(lang.code);
+                    setShowLangDropdown(false);
+                  }}
+                  className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-800/50 transition-colors ${
+                    language === lang.code
+                      ? "text-emerald-400"
+                      : "text-gray-300"
+                  } ${lang.code === languages[0].code ? "rounded-t-lg" : ""} ${
+                    lang.code === languages[languages.length - 1].code
+                      ? "rounded-b-lg"
+                      : ""
+                  }`}
+                >
+                  {lang.name}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Fi Toggle - Circular Design */}
+        <div
+          className="relative"
+          onMouseEnter={() => setShowFiTooltip(true)}
+          onMouseLeave={() => setShowFiTooltip(false)}
+        >
+          <button
+            className={`relative w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 backdrop-blur-sm transition-all duration-200 flex items-center justify-center ${
+              fiConnection
+                ? "bg-emerald-500/20 border-emerald-500/50 hover:bg-emerald-500/30"
+                : "bg-red-500/20 border-red-500/50 hover:bg-red-500/30"
+            }`}
+          >
+            {/* Outer glow ring */}
+            <div
+              className={`absolute inset-0 rounded-full animate-pulse ${
+                fiConnection ? "bg-emerald-400/20" : "bg-red-400/20"
+              }`}
+            />
+
+            {/* Fi icon in center */}
+            <div className="relative z-10 flex items-center justify-center">
+              <img
+                src={
+                  fiConnection
+                    ? "https://xqak5dz869.ufs.sh/f/9bPBdXjSiv4IehfPx9KyJ8jNPpV24cHROwYQuxMUoLIv9n6S"
+                    : "https://xqak5dz869.ufs.sh/f/9bPBdXjSiv4IVSvVCH71tHP9Q3GfOo7m650V8qacgeNAFTyE"
+                }
+                alt={fiConnection ? "Fi Connected" : "Fi DisconfiConnected"}
+                className="w-3 h-3 sm:w-4 sm:h-4 object-contain relative z-10 drop-shadow-md"
+                style={{
+                  filter: "brightness(1.2) contrast(1.1)",
+                  maxWidth: "16px",
+                  maxHeight: "16px",
+                }}
+                onError={(e) => {
+                  // Fallback to text if image fails to load
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = "none";
+                  const fallback = document.createElement("span");
+                  fallback.textContent = "Fi";
+                  fallback.className = `text-sm font-bold ${
+                    fiConnection ? "text-emerald-400" : "text-red-400"
+                  }`;
+                  target.parentNode?.appendChild(fallback);
+                }}
+              />
+            </div>
+
+            {/* Status dot at bottom border */}
+            <div
+              className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 w-2 h-2 rounded-full border border-gray-900 ${
+                fiConnection ? "bg-emerald-400" : "bg-red-400"
+              }`}
+            />
+          </button>
+
+          {showFiTooltip && (
+            <div
+              className="absolute top-full mt-3 right-0 w-72 bg-gray-900/98 border border-gray-600/50 rounded-xl backdrop-blur-md shadow-2xl z-60 overflow-hidden"
+              onMouseEnter={() => setShowFiTooltip(true)}
+              onMouseLeave={() => setShowFiTooltip(false)}
+            >
+              {/* Header */}
+              <div className="px-4 py-3 bg-gradient-to-r from-gray-800/50 to-gray-700/50 border-b border-gray-600/30">
+                <div className="flex items-center space-x-3">
+                  <div
+                    className={`w-3 h-3 rounded-full ${
+                      fiConnection ? "bg-emerald-400" : "bg-red-400"
+                    } animate-pulse shadow-lg`}
+                  />
+                  <span className="text-sm font-semibold text-white">
+                    Fi Account Status
+                  </span>
+                </div>
+              </div>
+
+              {/* Content */}
+              <div className="p-4">
+                <div className="mb-4">
+                  <div
+                    className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
+                      fiConnection
+                        ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                        : "bg-red-500/20 text-red-400 border border-red-500/30"
+                    }`}
+                  >
+                    {fiConnection ? "Connected" : "Disconnected"}
+                  </div>
+                </div>
+
+                <p className="text-xs text-gray-300 leading-relaxed mb-4">
+                  {fiConnection
+                    ? "Your Fi account is connected and syncing financial data securely. All features are available."
+                    : "Connect your Fi account to sync financial data and unlock all premium features."}
+                </p>
+
+                <button
+                  onClick={handleFiToggle}
+                  className={`w-full px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg border ${
+                    fiConnection
+                      ? "bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20 hover:border-red-500/50"
+                      : "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-500/50"
+                  }`}
+                >
+                  {fiConnection ? "Disconnect Account" : "Connect Account"}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Notifications */}
+        <button className="relative p-1.5 sm:p-2 bg-gray-900/80 border border-gray-700/50 rounded-lg backdrop-blur-sm hover:bg-gray-800/80 transition-all duration-200">
+          <Bell className="w-3 h-3 sm:w-4 sm:h-4 text-gray-300" />
+          <div className="absolute -top-1 -right-1 w-2.5 h-2.5 sm:w-3 sm:h-3 bg-red-500 rounded-full flex items-center justify-center">
+            <span className="text-xs text-white font-medium">3</span>
+          </div>
+        </button>
+      </div>
+
+      {/* Connection Status Popup */}
+      <ConnectionPopup
+        isVisible={showConnectionPopup}
+        isConnected={fiConnection || false}
+        onClose={() => setShowConnectionPopup(false)}
+      />
+    </>
   );
 };
 
