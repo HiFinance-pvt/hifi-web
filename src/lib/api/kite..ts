@@ -1,4 +1,5 @@
 import { Axios } from "axios";
+import { getCurrentUser } from "@/lib/firebase/firebase";
 
 export class Kite {
   constructor(private readonly axios: Axios) {}
@@ -9,7 +10,7 @@ export class Kite {
         request_token: request_token
       },
       headers: {
-        "Authorization": `Bearer ${await getCurrentUser().getIdToken()}`
+        "Authorization": `Bearer ${await getCurrentUser()?.getIdToken()}`
             }
     });
     return data
