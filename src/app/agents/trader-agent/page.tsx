@@ -379,12 +379,10 @@ export default function TraderAgentPage() {
 
   // Debug modal state
   useEffect(() => {
-    console.log("🔄 Modal state changed:", showPreferencesModal);
   }, [showPreferencesModal]);
 
   // Debug preferences state
   useEffect(() => {
-    console.log("🔄 Preferences state:", { hasPreferences, preferences });
   }, [hasPreferences, preferences]);
 
   // Initialize with sample data on first load
@@ -401,16 +399,11 @@ export default function TraderAgentPage() {
   };
 
   const handleSendMessage = () => {
-    console.log("🚀 handleSendMessage called", {
-      message: message.trim(),
-      hasPreferences,
-      preferences,
-    });
+    
 
     if (message.trim()) {
       // Check if we have preferences set first
       if (!hasPreferences) {
-        console.log("🔄 No preferences found, showing modal");
         setShowPreferencesModal(true);
         return;
       }
@@ -419,11 +412,6 @@ export default function TraderAgentPage() {
       const searchParams = new URLSearchParams({
         agent: "trader-agent",
       });
-
-      console.log(
-        "➡️ Redirecting to dashboard:",
-        `/dashboard?${searchParams.toString()}`
-      );
       router.push(`/dashboard?${searchParams.toString()}`);
     }
   };
@@ -436,7 +424,6 @@ export default function TraderAgentPage() {
     panNumber: string;
     residenceStatus: ResidenceStatus;
   }) => {
-    console.log("💾 handlePreferencesSubmit called", prefs);
 
     try {
       // Set preferences with timestamp
@@ -444,16 +431,10 @@ export default function TraderAgentPage() {
         ...prefs,
         lastUpdated: new Date().toISOString(),
       };
-
-      console.log("💾 Setting preferences:", preferencesWithTimestamp);
       setPreferences(preferencesWithTimestamp);
 
-      // Close modal
-      console.log("❌ Closing modal");
       setShowPreferencesModal(false);
 
-      // Start tax analysis
-      console.log("🔍 Starting tax analysis");
       await analyzeTax();
 
       // Redirect to dashboard for tax analysis
@@ -461,10 +442,6 @@ export default function TraderAgentPage() {
         agent: "trader-agent",
       });
 
-      console.log(
-        "➡️ Redirecting to dashboard after preferences:",
-        `/dashboard?${searchParams.toString()}`
-      );
       router.push(`/dashboard?${searchParams.toString()}`);
     } catch (error) {
       console.error("❌ Error setting preferences:", error);
@@ -623,7 +600,6 @@ export default function TraderAgentPage() {
               <button
                 onClick={() => {
                   clearPreferences();
-                  console.log("🧹 Preferences cleared");
                 }}
                 className="px-4 py-2 bg-red-600 text-white rounded-lg"
               >

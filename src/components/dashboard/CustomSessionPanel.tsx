@@ -25,7 +25,6 @@ export const CustomSessionPanel: React.FC<CustomSessionPanelProps> = ({
 
   const handleSendMessage = (message: string) => {
     if (onSendMessage) {
-      console.log("Sending message:", message);
       onSendMessage(message);
     }
   };

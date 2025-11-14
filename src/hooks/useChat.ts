@@ -172,8 +172,6 @@ export const useChat = () => {
 
   // Handle file upload
   const handleFileUpload = useCallback((file: File) => {
-    console.log("File uploaded:", file.name);
-    // TODO: Implement file upload logic
   }, []);
 
   // Update session title

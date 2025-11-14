@@ -54,7 +54,6 @@ export function useSendMessageMutation(sessionId: string | undefined) {
         onSuccess: (data) => {
             if (sessionId) {
                 // After sendMessage completes, fetch the updated session
-                console.log('Send message completed, fetching updated session...');
                 queryClient.invalidateQueries({ queryKey: ['adk', 'session-messages', sessionId] });
             }
         },
@@ -166,8 +165,6 @@ export function useSessionMessagesQuery(sessionId: string | undefined) {
         queryKey: ['adk', 'session-messages', sessionId],
         queryFn: async () => {
             if (!sessionId) throw new Error('No sessionId');
-
-            console.log('🔄 Fetching session messages for:', sessionId);
             const sessionData = await api.adk.getSession(sessionId);
             const events: Event[] = sessionData.data.events || [];
             const allMessages: ProcessedMessage[] = [];
@@ -192,7 +189,6 @@ export function useSessionMessagesQuery(sessionId: string | undefined) {
             // Sort messages by timestamp
             allMessages.sort((a, b) => a.timestamp - b.timestamp);
 
-            console.log('✅ Session messages fetched:', allMessages.length, 'messages');
             return allMessages;
         },
         enabled: !!sessionId,
@@ -207,7 +203,6 @@ export function useSessionMessagesQuery(sessionId: string | undefined) {
     // Manual refetch function
     const refetchMessages = useCallback(() => {
         if (sessionId) {
-            console.log('🔄 Manual refetch triggered for session:', sessionId);
             queryClient.invalidateQueries({ queryKey: ['adk', 'session-messages', sessionId] });
         }
     }, [sessionId, queryClient]);

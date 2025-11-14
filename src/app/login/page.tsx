@@ -46,7 +46,6 @@ export default function LoginPage() {
 
     try {
       await signInWithGoogle();
-      console.log(await getCurrentUser()?.getIdToken());
       const token = await getCurrentUser()?.getIdToken();
 
 
@@ -67,7 +66,6 @@ export default function LoginPage() {
   };
 
   const getErrorMessage = (errorCode: string) => {
-    console.log(errorCode);
     switch (errorCode) {
       case "No account found with this email address":
         return "No account found with this email address";

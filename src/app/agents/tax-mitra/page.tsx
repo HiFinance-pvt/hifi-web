@@ -610,8 +610,6 @@ export default function TaxMitraPage() {
         return;
       }
 
-      // Create a new session
-      console.log("🔄 Creating new session for user message...");
       const newSession = await createSession();
       
       if (!newSession) {
@@ -619,7 +617,6 @@ export default function TaxMitraPage() {
         return;
       }
 
-      console.log("✅ Session created:", newSession.id);
 
       // Get base agent prompt and combine with user data if available
       let messageWithContext = message;
@@ -652,9 +649,6 @@ Please provide a detailed response based on the above tax information and curren
       // Clear the message
       setMessage("");
 
-      // Redirect to the session with the message
-      console.log("➡️ Redirecting to dashboard with session and message...");
-      console.log("📝 User message with context preview:", messageWithContext.substring(0, 200) + "...");
       
       const encodedMessage = encodeURIComponent(messageWithContext);
       router.push(`/dashboard/${newSession.id}?message=${encodedMessage}`);
@@ -684,8 +678,6 @@ Please provide a detailed response based on the above tax information and curren
       // Start tax analysis
       await analyzeTax();
 
-      // Create a new session
-      console.log("🔄 Creating new session for tax analysis...");
       const newSession = await createSession();
       
       if (!newSession) {
@@ -693,7 +685,6 @@ Please provide a detailed response based on the above tax information and curren
         return;
       }
 
-      console.log("✅ Session created:", newSession.id);
 
       // Get the base tax-mitra agent prompt from agentPrompts.ts
       const baseAgentPrompt = getAgentDefaultPrompt("tax-mitra");
@@ -740,10 +731,6 @@ Please provide detailed calculations and actionable recommendations based on cur
 
       // Combine base agent prompt with user's tax data
       const combinedPrompt = baseAgentPrompt + userTaxData;
-
-      // Redirect to the session with the message - let the dashboard handle sending
-      console.log("➡️ Redirecting to dashboard with session and message...");
-      console.log("📝 Combined prompt preview:", combinedPrompt.substring(0, 200) + "...");
       
       // Encode the message to pass it as a URL parameter
       const encodedMessage = encodeURIComponent(combinedPrompt);
@@ -917,7 +904,6 @@ Please provide detailed calculations and actionable recommendations based on cur
                   <button
                     onClick={() => {
                       clearPreferences();
-                      console.log("🧹 Tax preferences cleared");
                     }}
                     className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors"
                   >

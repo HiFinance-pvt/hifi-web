@@ -125,15 +125,12 @@ export default function HiFiDashboard() {
   // Custom refetch function with loading state
   const handleRefetchMessages = useCallback(async () => {
     if (sessionId) {
-      console.log("🔄 Starting session refetch...");
       setIsRefetchingSession(true);
       try {
         await refetchMessages();
-        console.log("✅ Session refetch completed");
       } finally {
         // Add a small delay to show the loading state
         setTimeout(() => {
-          console.log("🏁 Session refetch loading state cleared");
           setIsRefetchingSession(false);
         }, 500);
       }
@@ -141,8 +138,7 @@ export default function HiFiDashboard() {
   }, [sessionId, refetchMessages]);
 
   // Handle process completion (when function calls and responses are complete)
-  const handleProcessComplete = useCallback(() => {
-    console.log("🔄 Process complete, triggering additional refetch");
+  const handleProcessComplete = useCallback(() => {    
     // Add a small delay to ensure the backend has processed all function responses
     setTimeout(() => {
       handleRefetchMessages();
@@ -185,7 +181,6 @@ export default function HiFiDashboard() {
 
       // Also fetch the current session to ensure we have the latest session name
       if (sessionId) {
-        console.log(`📝 Fetching session ${sessionId} to update session name`);
         await fetchSession(sessionId, false); // Don't show loading for this
       }
 
@@ -256,7 +251,6 @@ export default function HiFiDashboard() {
         lastMessage.author === "assistant" &&
         lastMessage.timestamp > Date.now() - 15000
       ) {
-        console.log("🧹 Clearing pending message - assistant responded");
         setPendingUserMsg(null);
         return;
       }
@@ -270,7 +264,6 @@ export default function HiFiDashboard() {
       );
 
       if (hasUserMessageInSession) {
-        console.log("🧹 Clearing pending message - found in session data");
         setPendingUserMsg(null);
         return;
       }
@@ -280,7 +273,6 @@ export default function HiFiDashboard() {
   // Clear pending message when sendMessage completes
   useEffect(() => {
     if (adkResponse && pendingUserMsg) {
-      console.log("🧹 Clearing pending message - sendMessage completed");
       setPendingUserMsg(null);
     }
   }, [adkResponse, pendingUserMsg]);
@@ -288,7 +280,6 @@ export default function HiFiDashboard() {
   // Clear pending message when streaming completes
   useEffect(() => {
     if (!isStreaming && streamingText && pendingUserMsg) {
-      console.log("🧹 Clearing pending message - streaming completed");
       // Add a small delay to ensure the session has been updated
       setTimeout(() => {
         setPendingUserMsg(null);
@@ -309,9 +300,6 @@ export default function HiFiDashboard() {
       );
 
       if (hasRecentUserMessage) {
-        console.log(
-          "🧹 Clearing pending message - session refetched with user message"
-        );
         setPendingUserMsg(null);
       }
     }
@@ -321,7 +309,6 @@ export default function HiFiDashboard() {
   useEffect(() => {
     if (pendingUserMsg) {
       const timeout = setTimeout(() => {
-        console.log("⏰ Auto-clearing pending message after timeout");
         setPendingUserMsg(null);
       }, 10000); // 10 second timeout
 
@@ -377,7 +364,6 @@ export default function HiFiDashboard() {
 
   const handleQuickAction = useCallback(
     (action: QuickAction) => {
-      console.log("📝 Setting pending message from quick action:", action.text);
       setPendingUserMsg(action.text);
       sendAdkMessage(action.text);
     },
@@ -388,7 +374,6 @@ export default function HiFiDashboard() {
     async (message: string) => {
       if (message.trim()) {
         // Optimistically show user message
-        console.log("📝 Setting pending message from send:", message);
         setPendingUserMsg(message);
 
         // Try streaming first, fallback to regular send
@@ -437,16 +422,10 @@ export default function HiFiDashboard() {
   // Handle agent selection from @ command
   const handleAgentSelect = useCallback(
     (selectedAgent: (typeof AGENTS)[0]) => {
-      console.log(`🎯 Agent selected via @ command: ${selectedAgent.name}`);
-
       // Get the default prompt for the selected agent
       const defaultPrompt = getAgentDefaultPrompt(selectedAgent.id);
 
       // Send the default prompt to the agent
-      console.log(
-        `📝 Sending default prompt for ${selectedAgent.name}:`,
-        defaultPrompt
-      );
       handleSendMessage(defaultPrompt);
     },
     [handleSendMessage]
@@ -467,7 +446,6 @@ export default function HiFiDashboard() {
       );
 
       if (!hasUserMessageInSession) {
-        console.log("📝 Adding pending user message to display");
         messages.push({
           id: `pending-user-${Date.now()}`,
           author: "user",
@@ -476,9 +454,6 @@ export default function HiFiDashboard() {
           text: pendingUserMsg,
         });
       } else {
-        console.log(
-          "🚫 Skipping pending user message - already in session data"
-        );
       }
     }
 
@@ -507,7 +482,6 @@ export default function HiFiDashboard() {
       displayMessages.length === 0 &&
       !isAdkPending
     ) {
-      console.log(`📩 Auto-sending message from URL parameter`);
 
       // Decode the message from URL parameter
       const decodedMessage = decodeURIComponent(messageParam);
@@ -541,9 +515,6 @@ export default function HiFiDashboard() {
       displayMessages.length === 0 &&
       !isAdkPending
     ) {
-      console.log(
-        `🎯 Triggering auto-prompt for agent: ${agent} in session: ${sessionId}`
-      );
       let defaultPrompt = "";
 
       switch (agent) {
@@ -665,8 +636,6 @@ Would you like to begin by sharing details about your income and tax situation, 
       }
 
       if (defaultPrompt) {
-        console.log(`🤖 Sending agent-specific welcome message for ${agent}`);
-        console.log(`📝 Prompt preview: ${defaultPrompt.substring(0, 100)}...`);
 
         // Small delay to ensure session is fully ready
         setTimeout(() => {

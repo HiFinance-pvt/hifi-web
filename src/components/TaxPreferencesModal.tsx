@@ -88,12 +88,6 @@ export default function TaxPreferencesModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("📝 Modal form submitted:", {
-      totalSalary,
-      otherIncomeSources,
-      regime,
-      employeeTAN,
-    });
 
     if (totalSalary < 0) {
       alert("Total salary cannot be negative");
@@ -131,11 +125,8 @@ export default function TaxPreferencesModal({
       residenceStatus,
     };
 
-    console.log("📤 Submitting to parent:", submitData);
     onSubmit(submitData);
   };
-
-  console.log("🎯 TaxPreferencesModal render:", { isOpen, isLoading });
 
   if (!isOpen) return null;
 

@@ -429,7 +429,6 @@ export const ProcessGroup: React.FC<{
     // Trigger completion callback when process becomes complete
     React.useEffect(() => {
         if (isComplete && onProcessComplete) {
-            console.log('🔄 Process group complete, triggering refetch');
             onProcessComplete();
         }
     }, [isComplete, onProcessComplete]);

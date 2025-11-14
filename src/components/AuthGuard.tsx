@@ -18,7 +18,7 @@ export const AuthGuard: FC<AuthGuardProps> = ({ children }) => {
     if (!currentUser || !localStorage.getItem(env.NEXT_PUBLIC_SSID) || loading) {
       router.push('/login');
     }
-  }, [router]);
+  }, [currentUser, loading, router]);
 
   // Show loading spinner while checking authentication
   if (!localStorage.getItem(env.NEXT_PUBLIC_SSID) || loading || !currentUser) {

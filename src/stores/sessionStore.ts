@@ -54,6 +54,13 @@ export interface SessionStore {
 }
 
 const SYNC_INTERVAL = 60000; // 1 minute (reduced frequency since we have better caching)
+// createSession stale/dedupe configuration
+const CREATE_SESSION_STALE_MS = 30 * 1000; // 30 seconds
+
+// Closure-scoped dedupe state (not persisted)
+let createSessionPromise: Promise<SessionData | null> | null = null;
+let lastCreateTimestamp: number | null = null;
+let lastCreatedSession: SessionData | null = null;
 
 export const useSessionStore = create<SessionStore>()(
   persist(
@@ -106,9 +113,7 @@ export const useSessionStore = create<SessionStore>()(
         if (currentUser) {
           const newUserId = currentUser.uid;
           if (currentUserId && currentUserId !== newUserId) {
-            console.log(
-              `👤 User changed from ${currentUserId} to ${newUserId}, clearing sessions`
-            );
+
             clearSessions();
             setCurrentUserId(newUserId);
           } else if (!currentUserId) {
@@ -116,7 +121,6 @@ export const useSessionStore = create<SessionStore>()(
           }
         } else {
           if (currentUserId) {
-            console.log("👤 User logged out, clearing sessions");
             clearSessions();
             setCurrentUserId(null);
           }
@@ -171,11 +175,21 @@ export const useSessionStore = create<SessionStore>()(
             (session: any) => session.userId === userId
           );
 
-          console.log(
-            `🔍 Filtered sessions for user ${userId}: ${userSessions.length}/${allSessions.length} sessions`
+          // Normalize session objects to match SessionData shape (ensure lastUpdateTime is defined)
+          const normalizedSessions: SessionData[] = userSessions.map(
+            (s: any) => ({
+              id: s.id,
+              appName: s.appName ?? "",
+              session_name: s.session_name ?? null,
+              lastUpdateTime:
+                s.lastUpdateTime ?? s.updatedAt ?? s.createdAt ?? Date.now(),
+              events: s.events ?? [],
+              state: s.state ?? {},
+              userId: s.userId ?? userId,
+            })
           );
 
-          setSessions(userSessions);
+          setSessions(normalizedSessions);
           set({ lastSyncTime: Date.now() });
         } catch (error) {
           setError(
@@ -219,13 +233,28 @@ export const useSessionStore = create<SessionStore>()(
 
         try {
           const response = await api.adk.getSession(sessionId);
-          const sessionData = response.data;
+          const raw = response.data as any;
+
+          // Normalize into our SessionData shape, ensuring lastUpdateTime is never null
+          const fullSession: SessionData = {
+            id: raw.id ?? sessionId,
+            appName: raw.appName ?? "",
+            session_name: raw.session_name ?? null,
+            lastUpdateTime:
+              raw.lastUpdateTime ??
+              raw.updatedAt ??
+              raw.createdAt ??
+              Date.now(),
+            events: raw.events ?? [],
+            state: raw.state ?? {},
+            userId: raw.userId ?? get().currentUserId ?? "",
+          };
 
           // Update in sessions array
-          updateSession(sessionId, sessionData);
+          updateSession(sessionId, fullSession);
 
           // Set as current session
-          setCurrentSession(sessionData);
+          setCurrentSession(fullSession);
           set({ lastSyncTime: Date.now() });
         } catch (error) {
           setError(
@@ -255,35 +284,97 @@ export const useSessionStore = create<SessionStore>()(
           }
         }
 
-        setLoading(true);
-        setError(null);
-
-        try {
-          const response = await api.adk.createSession();
-          const newSession: SessionData = {
-            ...response.data,
-            events: response.data.events || [],
-            state: response.data.state || {},
-          };
-
-          // Verify the session belongs to the current user
-          if (newSession.userId !== userId) {
-            console.warn("Created session does not belong to current user");
-            setError("Session creation failed - user mismatch");
-            return null;
-          }
-
-          addSession(newSession);
-          set({ lastSyncTime: Date.now() });
-          return newSession;
-        } catch (error) {
-          setError(
-            error instanceof Error ? error.message : "Failed to create session"
-          );
-          return null;
-        } finally {
-          setLoading(false);
+        // If there's an in-flight create, return the same promise
+        if (createSessionPromise) {
+          return createSessionPromise;
         }
+
+        // If we recently created a session and it's still within the stale window, return cached session
+        if (
+          lastCreateTimestamp &&
+          Date.now() - lastCreateTimestamp < CREATE_SESSION_STALE_MS &&
+          lastCreatedSession
+        ) {
+          return Promise.resolve(lastCreatedSession);
+        }
+
+        // Otherwise start a new create request and store the promise for deduping
+        createSessionPromise = (async () => {
+          setLoading(true);
+          setError(null);
+
+          try {
+            const response = await api.adk.createSession();
+
+            // Normalize different response shapes into our SessionData shape
+            const raw = response.data as any;
+            const id =
+              raw.id ?? raw.sessionId ?? (raw.data && raw.data.sessionId) ?? "";
+            const userIdFromResp =
+              raw.userId ?? (raw.data && raw.data.userId) ?? null;
+            const appName = raw.appName ?? (raw.data && raw.data.appName) ?? "";
+            const events = raw.events ?? (raw.data && raw.data.events) ?? [];
+            const state = raw.state ?? (raw.data && raw.data.state) ?? {};
+            const session_name =
+              raw.session_name ?? (raw.data && raw.data.session_name) ?? null;
+            const lastUpdateTime =
+              raw.lastUpdateTime ??
+              raw.updatedAt ??
+              raw.createdAt ??
+              Date.now();
+
+            if (!id) {
+              console.error(
+                "createSession: could not determine session id from response",
+                raw
+              );
+              setError("Session creation failed - invalid response");
+              return null;
+            }
+
+            const newSession: SessionData = {
+              id,
+              appName,
+              session_name,
+              lastUpdateTime,
+              events,
+              state,
+              userId: userIdFromResp ?? userId,
+            };
+
+            // Verify the session belongs to the current user
+            if (newSession.userId !== userId) {
+              console.warn("Created session does not belong to current user", {
+                newSessionUserId: newSession.userId,
+                currentUserId: userId,
+              });
+              setError("Session creation failed - user mismatch");
+              return null;
+            }
+
+            addSession(newSession);
+            set({ lastSyncTime: Date.now() });
+
+            // Cache the successful creation
+            lastCreateTimestamp = Date.now();
+            lastCreatedSession = newSession;
+
+            return newSession;
+          } catch (error) {
+            setError(
+              error instanceof Error
+                ? error.message
+                : "Failed to create session"
+            );
+            return null;
+          } finally {
+            setLoading(false);
+            // clear the in-flight promise so subsequent calls can start a new request after stale window
+            createSessionPromise = null;
+          }
+        })();
+
+        return createSessionPromise;
       },
 
       syncSessions: async () => {
