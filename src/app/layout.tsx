@@ -1,14 +1,7 @@
-"use client";
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { ThemeProvider, theme } from "reablocks";
-import { AuthProvider } from "@/contexts/AuthContext";
-import { Toaster } from "sonner";
 import "./globals.css";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { useState } from "react";
-import { usePathname } from "next/navigation";
-import HeaderControls from "@/components/HeaderControls";
+import ClientLayoutWrapper from "@/components/ClientLayoutWrapper";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -20,24 +13,41 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-// export const metadata: Metadata = {
-//   title: "Hi-Fi Financial Assistant",
-//   description: "Your AI-powered financial assistant",
-// };
+export const metadata: Metadata = {
+  title: "Hi-Fi Financial Assistant",
+  description: "Your AI-powered financial assistant",
+  icons: {
+    icon: "hifi_logo.png"
+  },
+  keywords: ["HiFi", "Financial", "Assistant", "AI", "Portfolio"],
+  openGraph: {
+    title: "Hi-Fi Financial Assistant",
+    description: "Your AI-powered financial assistant",
+    url: "https://web.hifi.click",
+    siteName: "Hi-Fi Financial Assistant",
+    images: [
+      {
+        url: "hifi_logo.png",
+        width: 1200,
+        height: 630,
+        alt: "Hi-Fi Financial Assistant",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Hi-Fi Financial Assistant",
+    description: "Your AI-powered financial assistant",
+    images: ["hifi_logo.png"],
+  },
+  metadataBase: new URL("https://web.hifi.click"),
+};
 
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Ensure a single QueryClient instance per app
-  const [queryClient] = useState(() => new QueryClient());
-  const pathname = usePathname();
-
-  // Routes that should NOT have the header
-  const excludedRoutes = ["/login", "/signup", "/overview"];
-  const shouldShowHeader = !excludedRoutes.includes(pathname);
-
   return (
     <html lang="en">
       <head>
@@ -51,18 +61,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ThemeProvider theme={theme}>
-          <QueryClientProvider client={queryClient}>
-            <AuthProvider>
-              <div className="flex h-screen bg-gray-900">
-                {/* Shared Header Controls - Excluded from login, signup, overview */}
-                {shouldShowHeader && <HeaderControls />}
-                {children}
-              </div>
-              <Toaster />
-            </AuthProvider>
-          </QueryClientProvider>
-        </ThemeProvider>
+        <ClientLayoutWrapper>
+          {children}
+        </ClientLayoutWrapper>
       </body>
     </html>
   );
