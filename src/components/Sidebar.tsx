@@ -68,7 +68,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
       try {
         // Fetch sessions if we don't have any valid sessions
         if (!Array.isArray(sessions) || sessions.length === 0) {
-          console.log("Fetching sessions...");
           await fetchSessions();
         }
       } catch (err) {
@@ -190,7 +189,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
       // Call parent handler to update UI state
       onDeleteSession(sessionId);
 
-      console.log(`Session ${sessionId} deleted successfully`);
     } catch (error) {
       console.error("Failed to delete session:", error);
       // You might want to show a toast notification or error message here

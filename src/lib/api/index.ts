@@ -95,7 +95,6 @@ class ApiSdk {
 
   private handleResponse(response: any): void {
     // Handle successful responses
-    console.log("API Response:", response.status, response.config.url);
   }
 
   private handleError(error: any): void {

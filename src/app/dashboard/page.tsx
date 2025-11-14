@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSessionStore } from "@/stores/sessionStore";
 import { SessionCreationLoader } from "@/components/ui/CustomLoader";
@@ -8,69 +8,65 @@ import { SessionCreationLoader } from "@/components/ui/CustomLoader";
 export default function DashboardRedirect() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const {
-    sessions,
-    isLoading: sessionsLoading,
-    fetchSessions,
-    createSession,
-    checkUserChange
-  } = useSessionStore();
+  const { createSession, checkUserChange } = useSessionStore();
   const [isCreatingSession, setIsCreatingSession] = useState(false);
+
+  // Refs to dedupe in-flight requests and avoid setting state after unmount
+  const createSessionPromiseRef = useRef<Promise<any> | null>(null);
+  const unmountedRef = useRef(false);
 
   // Extract query parameters
   const agent = searchParams.get("agent");
 
-  useEffect(() => {
-    // Check if user has changed and clear sessions if needed
-    checkUserChange();
+  // Create a session exactly once (deduped) and return the promise
+  const createNewSession = async () => {
+    if (createSessionPromiseRef.current) return createSessionPromiseRef.current;
 
-    // Fetch sessions on mount only if we don't have any
-    if (sessions.length === 0) {
-      fetchSessions();
-    }
-  }, [fetchSessions, sessions.length, checkUserChange]);
+    setIsCreatingSession(true);
 
-  useEffect(() => {
-    if (!sessionsLoading) {
-      if (agent) {
-        // Always create a new session when coming from an agent page
-        console.log(`🤖 Creating new session for agent: ${agent}`);
-        setIsCreatingSession(true);
-        createSession()
-          .then((newSession) => {
-            if (newSession) {
-              const queryString = `?agent=${encodeURIComponent(agent)}`;
-              console.log(
-                `✅ New session created for ${agent}, redirecting to: /dashboard/${newSession.id}${queryString}`
-              );
-              router.replace(`/dashboard/${newSession.id}${queryString}`);
-            }
-            setIsCreatingSession(false);
-          })
-          .catch(() => {
-            console.error(`❌ Failed to create session for agent: ${agent}`);
-            setIsCreatingSession(false);
-          });
-      } else if (sessions && sessions.length > 0) {
-        // Redirect to the first available session when no agent specified
-        const firstSession = sessions[0];
-        router.replace(`/dashboard/${firstSession.id}`);
-      } else {
-        // Create a new session if none exist and no agent specified
-        setIsCreatingSession(true);
-        createSession()
-          .then((newSession) => {
-            if (newSession) {
-              router.replace(`/dashboard/${newSession.id}`);
-            }
-            setIsCreatingSession(false);
-          })
-          .catch(() => {
-            setIsCreatingSession(false);
-          });
+    const p = (async () => {
+      try {
+        const newSession = await createSession();
+        return newSession;
+      } catch (err) {
+        throw err;
+      } finally {
+        createSessionPromiseRef.current = null;
+        if (!unmountedRef.current) setIsCreatingSession(false);
       }
-    }
-  }, [sessions, sessionsLoading, createSession, router, agent]);
+    })();
+
+    createSessionPromiseRef.current = p;
+    return p;
+  };
+
+  useEffect(() => {
+    unmountedRef.current = false;
+
+    // Ensure session store state is reset/validated for the current user
+    // checkUserChange();
+
+    // Immediately create a session when landing on /dashboard
+    // We intentionally don't fetch existing sessions here — the UX required
+    // is to always create a fresh session and redirect to it.
+    createNewSession()
+      .then((newSession) => {
+        if (newSession && newSession.id) {
+          const queryString = agent ? `?agent=${encodeURIComponent(agent)}` : "";
+          router.replace(`/dashboard/${newSession.id}${queryString}`);
+        } else {
+          console.error("❌ createSession returned no session or missing id");
+        }
+      })
+      .catch((err) => {
+        console.error("❌ Failed to create session on dashboard arrival:", err);
+      });
+
+    return () => {
+      unmountedRef.current = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <div className="flex items-center justify-center h-screen bg-gray-900">
@@ -79,11 +75,7 @@ export default function DashboardRedirect() {
       ) : (
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mx-auto mb-4"></div>
-          <p className="text-gray-400">
-            {sessionsLoading
-              ? "Loading dashboard..."
-              : "Creating new session..."}
-          </p>
+          <p className="text-gray-400">Creating new session...</p>
         </div>
       )}
     </div>

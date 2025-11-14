@@ -75,7 +75,6 @@ export default function SignupPage() {
   };
 
   const getErrorMessage = (errorCode: string) => {
-    console.log(errorCode);
     switch (errorCode) {
       case "Email is already registered":
         toast.error("An account with this email already exists");

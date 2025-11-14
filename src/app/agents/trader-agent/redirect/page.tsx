@@ -11,7 +11,6 @@ export default function KiteRedirect() {
     router.push("/dashboard");
     return null;
   }
-  console.log("KiteRedirect requestToken", requestToken);
   const { data, isPending } = useKiteRedirect(requestToken);
 
   if (data) {

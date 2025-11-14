@@ -614,7 +614,6 @@ export default function DebtSquasherPage() {
         agent: "debt-squasher",
       });
 
-      console.log("Redirecting to dashboard for debt analysis");
       router.push(`/dashboard?${searchParams.toString()}`);
     }
   };
@@ -643,7 +642,6 @@ export default function DebtSquasherPage() {
         agent: "debt-squasher"
       });
       
-      console.log("Redirecting to dashboard after setting preferences");
       router.push(`/dashboard?${searchParams.toString()}`);
     } catch (error) {
       console.error("Error setting preferences:", error);

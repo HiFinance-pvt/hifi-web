@@ -597,8 +597,6 @@ export default function SebiAgentPage() {
       const searchParams = new URLSearchParams({
         agent: 'sebi'
       });
-      
-      console.log("Redirecting to dashboard for SEBI analysis");
       router.push(`/dashboard?${searchParams.toString()}`);
     }
   };
