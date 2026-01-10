@@ -1,15 +1,9 @@
 import React, { useState } from 'react';
-import { Bot, User, Code, CheckCircle, AlertCircle, Brain, FileText, ExternalLink, ChevronDown, ChevronRight, Clock } from 'lucide-react';
+import { Bot, User, Code, CheckCircle, AlertCircle, Brain, ChevronDown, ChevronRight, Clock } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { ProcessedMessage } from '@/lib/validations/adk.schema';
-import {
-    MessageQuestion,
-    MessageResponse,
-    MessageSources,
-    MessageActions,
-    MessageFiles
-} from 'reachat';
+import { MessageFiles } from 'reachat';
 
 // Custom User Message Component
 export const CustomMessageQuestion: React.FC<{ question: string; files?: any[] }> = ({ question, files }) => (
@@ -406,9 +400,7 @@ export const MessageSkeleton: React.FC = () => (
 // Process Group Component - Groups function calls and responses
 export const ProcessGroup: React.FC<{
     messages: ProcessedMessage[];
-    onProcessComplete?: () => void;
-    isRefetching?: boolean;
-}> = ({ messages, onProcessComplete, isRefetching = false }) => {
+}> = ({ messages }) => {
     const [isExpanded, setIsExpanded] = useState(false);
 
     // Filter function calls and responses
@@ -425,13 +417,6 @@ export const ProcessGroup: React.FC<{
 
     // Check if process is complete (has equal number of calls and responses)
     const isComplete = functionCalls.length > 0 && functionCalls.length === functionResponses.length;
-
-    // Trigger completion callback when process becomes complete
-    React.useEffect(() => {
-        if (isComplete && onProcessComplete) {
-            onProcessComplete();
-        }
-    }, [isComplete, onProcessComplete]);
 
     return (
         <div className="flex justify-start mb-4">
@@ -486,13 +471,6 @@ export const ProcessGroup: React.FC<{
                             ))}
                         </div>
                     )}
-
-                    {/* Show skeleton when refetching */}
-                    {isRefetching && (
-                        <div className="mt-3">
-                            <MessageSkeleton />
-                        </div>
-                    )}
                 </div>
             </div>
         </div>
@@ -529,9 +507,7 @@ export const groupProcessMessages = (messages: ProcessedMessage[]): (ProcessedMe
 // Grouped Message Renderer - Handles both individual messages and process groups
 export const GroupedMessageRenderer: React.FC<{
     messages: ProcessedMessage[];
-    onProcessComplete?: () => void;
-    isRefetching?: boolean;
-}> = ({ messages, onProcessComplete, isRefetching = false }) => {
+}> = ({ messages }) => {
     const groupedMessages = groupProcessMessages(messages);
 
     return (
@@ -543,8 +519,6 @@ export const GroupedMessageRenderer: React.FC<{
                         <ProcessGroup
                             key={`process-${index}`}
                             messages={item}
-                            onProcessComplete={onProcessComplete}
-                            isRefetching={isRefetching}
                         />
                     );
                 } else {
