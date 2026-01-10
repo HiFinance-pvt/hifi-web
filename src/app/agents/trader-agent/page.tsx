@@ -2,8 +2,6 @@
 
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
-
-import Particles from "@/ui/components/Particles";
 import TextType from "@/ui/TextAnimations/TextType/TextType";
 import { useChat } from "@/hooks/useChat";
 import { ALL_SESSIONS } from "@/constants/mockData";
@@ -95,26 +93,26 @@ const ConnectionPopup: React.FC<{
       switch (animationStage) {
         case "initial":
           return {
-            color: "text-gray-400",
-            bgColor: "bg-gray-500/20",
+            color: "text-[var(--foreground-muted)]",
+            bgColor: "bg-[var(--foreground-muted)]/20",
             glowing: false,
           };
         case "transition":
           return {
-            color: "text-emerald-400",
-            bgColor: "bg-emerald-500/20",
+            color: "text-[var(--brand-primary)]",
+            bgColor: "bg-[var(--brand-primary)]/20",
             glowing: false,
           };
         case "final":
           return {
-            color: "text-emerald-400",
-            bgColor: "bg-emerald-500/20",
+            color: "text-[var(--brand-primary)]",
+            bgColor: "bg-[var(--brand-primary)]/20",
             glowing: true,
           };
         default:
           return {
-            color: "text-gray-400",
-            bgColor: "bg-gray-500/20",
+            color: "text-[var(--foreground-muted)]",
+            bgColor: "bg-[var(--foreground-muted)]/20",
             glowing: false,
           };
       }
@@ -123,21 +121,21 @@ const ConnectionPopup: React.FC<{
       switch (animationStage) {
         case "initial":
           return {
-            color: "text-emerald-400",
-            bgColor: "bg-emerald-500/20",
+            color: "text-[var(--brand-primary)]",
+            bgColor: "bg-[var(--brand-primary)]/20",
             glowing: false,
           };
         case "transition":
         case "final":
           return {
-            color: "text-gray-400",
-            bgColor: "bg-gray-500/20",
+            color: "text-[var(--foreground-muted)]",
+            bgColor: "bg-[var(--foreground-muted)]/20",
             glowing: false,
           };
         default:
           return {
-            color: "text-gray-400",
-            bgColor: "bg-gray-500/20",
+            color: "text-[var(--foreground-muted)]",
+            bgColor: "bg-[var(--foreground-muted)]/20",
             glowing: false,
           };
       }
@@ -148,7 +146,7 @@ const ConnectionPopup: React.FC<{
 
   return (
     <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-      <div className="bg-gray-900/95 border border-gray-700/50 rounded-xl sm:rounded-2xl p-6 sm:p-8 max-w-sm w-full backdrop-blur-md shadow-2xl transform transition-all duration-500 ease-out scale-100">
+      <div className="bg-[var(--surface)]/95 border border-[var(--surface-border)] rounded-xl sm:rounded-2xl p-6 sm:p-8 max-w-sm w-full backdrop-blur-md shadow-2xl transform transition-all duration-500 ease-out scale-100">
         <div className="text-center">
           {/* Enhanced Animation Icon */}
           <div className="mb-4 sm:mb-6 relative">
@@ -171,8 +169,8 @@ const ConnectionPopup: React.FC<{
               {/* Dynamic glow effects */}
               {glowing && (
                 <>
-                  <div className="absolute inset-0 bg-emerald-400/30 rounded-full animate-ping" />
-                  <div className="absolute inset-0 bg-emerald-400/20 rounded-full animate-pulse" />
+                  <div className="absolute inset-0 bg-[var(--brand-primary)]/30 rounded-full animate-ping" />
+                  <div className="absolute inset-0 bg-[var(--brand-primary)]/20 rounded-full animate-pulse" />
                 </>
               )}
             </div>
@@ -180,10 +178,10 @@ const ConnectionPopup: React.FC<{
 
           {/* Enhanced Status Text with smooth transitions */}
           <div className="transition-all duration-300 ease-out">
-            <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 transition-all duration-300">
+            <h3 className="text-lg sm:text-xl font-semibold text-[var(--foreground)] mb-2 transition-all duration-300">
               Fi-Account {isConnected ? "Connected" : "Disconnected"}
             </h3>
-            <p className="text-xs sm:text-sm text-gray-400 mb-4 sm:mb-6 transition-all duration-300">
+            <p className="text-xs sm:text-sm text-[var(--foreground-muted)] mb-4 sm:mb-6 transition-all duration-300">
               {isConnected
                 ? "Your financial data is now syncing securely."
                 : "Your Fi account has been safely disconnected."}
@@ -193,7 +191,7 @@ const ConnectionPopup: React.FC<{
           {/* Enhanced Close Button */}
           <button
             onClick={onClose}
-            className="px-4 py-1.5 sm:px-6 sm:py-2 bg-gray-800/50 hover:bg-gray-700/50 border border-gray-600/50 rounded-lg text-gray-300 text-xs sm:text-sm transition-all duration-300 hover:scale-105 transform"
+            className="px-4 py-1.5 sm:px-6 sm:py-2 bg-[var(--surface-hover)] hover:bg-[var(--surface-hover)] border border-[var(--surface-border)] rounded-lg text-[var(--foreground-secondary)] text-xs sm:text-sm transition-all duration-300 hover:scale-105 transform"
           >
             Close
           </button>
@@ -211,7 +209,7 @@ const SuggestionButton: React.FC<{
   return (
     <button
       onClick={onClick}
-      className="px-6 py-3 bg-[rgba(30,31,34,0.6)] hover:bg-[rgba(30,31,34,0.8)] text-white text-sm rounded-lg border border-gray-600/30 hover:border-[#C54F51]/50 backdrop-blur-sm transition-all duration-300 ease-out transform hover:scale-105 shadow-lg hover:shadow-xl hover:shadow-[#C54F51]/20"
+      className="px-6 py-3 bg-[var(--surface)]/60 hover:bg-[var(--surface)]/80 text-[var(--foreground)] text-sm rounded-lg border border-[var(--surface-border)] hover:border-[#C54F51]/50 backdrop-blur-sm transition-all duration-300 ease-out transform hover:scale-105 shadow-lg hover:shadow-xl hover:shadow-[#C54F51]/20"
     >
       {suggestion}
     </button>
@@ -233,12 +231,12 @@ const ChatInput: React.FC<{
 
   return (
     <div className="relative w-full">
-      <div className="flex items-center bg-gray-800/60 rounded-xl border border-gray-600/50 focus-within:border-[#C54F51]/60 focus-within:shadow-lg focus-within:shadow-[#C54F51]/20 transition-all duration-500 ease-out backdrop-blur-sm shadow-lg hover:shadow-xl transform hover:scale-[1.01]">
+      <div className="flex items-center bg-[var(--surface)]/60 rounded-xl border border-[var(--surface-border)] focus-within:border-[#C54F51]/60 focus-within:shadow-lg focus-within:shadow-[#C54F51]/20 transition-all duration-500 ease-out backdrop-blur-sm shadow-lg hover:shadow-xl transform hover:scale-[1.01]">
         {/* Filter/Agent Button */}
         <div className="p-3">
-          <div className="w-8 h-8 bg-gray-700/50 rounded-lg flex items-center justify-center hover:bg-gray-600/60 transition-all duration-300 ease-out transform hover:scale-105">
+          <div className="w-8 h-8 bg-[var(--surface-hover)] rounded-lg flex items-center justify-center hover:bg-[var(--surface-active)] transition-all duration-300 ease-out transform hover:scale-105">
             <svg
-              className="w-4 h-4 text-gray-400 hover:text-gray-300 transition-colors duration-300 ease-out"
+              className="w-4 h-4 text-[var(--foreground-muted)] hover:text-[var(--foreground-secondary)] transition-colors duration-300 ease-out"
               fill="currentColor"
               viewBox="0 0 24 24"
             >
@@ -255,13 +253,13 @@ const ChatInput: React.FC<{
             onChange={(e) => setMessage(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Ask questions, or type '@' to call Agent."
-            className="w-full bg-transparent text-gray-300 placeholder-gray-500 focus:outline-none text-sm focus:placeholder-gray-400 transition-all duration-300 ease-out"
+            className="w-full bg-transparent text-[var(--foreground-secondary)] placeholder-[var(--foreground-subtle)] focus:outline-none text-sm focus:placeholder-[var(--foreground-muted)] transition-all duration-300 ease-out"
           />
         </div>
 
         {/* Action Buttons */}
         <div className="flex items-center space-x-1 px-3">
-          <button className="p-2 text-gray-400 hover:text-gray-200 transition-all duration-300 ease-out transform hover:scale-110 active:scale-95 rounded-lg hover:bg-gray-700/30">
+          <button className="p-2 text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-all duration-300 ease-out transform hover:scale-110 active:scale-95 rounded-lg hover:bg-[var(--surface-hover)]">
             <Paperclip className="w-4 h-4" />
           </button>
 
@@ -273,7 +271,7 @@ const ChatInput: React.FC<{
           {/* Send Button - Prominent */}
           <button
             onClick={onSend}
-            className="ml-2 p-2.5 bg-[#C54F51] hover:bg-[#C54F51]/90 text-white rounded-lg transition-all duration-300 ease-out transform hover:scale-105 active:scale-95 shadow-md hover:shadow-lg hover:shadow-[#C54F51]/30"
+            className="ml-2 p-2.5 bg-[#C54F51] hover:bg-[#C54F51]/90 text-[var(--foreground)] rounded-lg transition-all duration-300 ease-out transform hover:scale-105 active:scale-95 shadow-md hover:shadow-lg hover:shadow-[#C54F51]/30"
           >
             <Send className="w-4 h-4" />
           </button>
@@ -399,7 +397,7 @@ export default function TraderAgentPage() {
   };
 
   const handleSendMessage = () => {
-    
+
 
     if (message.trim()) {
       // Check if we have preferences set first
@@ -454,19 +452,7 @@ export default function TraderAgentPage() {
       className="flex flex-col h-full w-full bg-transparent overflow-hidden smooth-entry"
       style={{ pointerEvents: "auto" }}
     >
-      {/* Particles Background - Full Screen */}
-      <div className="fixed inset-0 w-screen h-screen z-0 blur-sm opacity-70">
-        <Particles
-          particleColors={["#ffffff", "#ffffff"]}
-          particleCount={200}
-          particleSpread={10}
-          speed={0.1}
-          particleBaseSize={100}
-          moveParticlesOnHover={false}
-          alphaParticles={false}
-          disableRotation={false}
-        />
-      </div>
+
 
       {/* Main Content Area */}
       <div className="flex-1 relative overflow-hidden z-10 min-h-0 min-w-0">
@@ -480,7 +466,7 @@ export default function TraderAgentPage() {
             <div className="max-w-6xl mx-auto">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 <div
-                  className="space-y-2 bg-gray-800/30 backdrop-blur-sm rounded-xl p-4 border border-gray-700/50 hover:border-[#FF6B00]/50 transition-all duration-500 ease-out transform hover:scale-105 hover:-translate-y-1 shadow-lg hover:shadow-xl hover:shadow-[#FF6B00]/20 popup-animation"
+                  className="space-y-2 bg-[var(--surface)]/30 backdrop-blur-sm rounded-xl p-4 border border-[var(--surface-border)] hover:border-[#FF6B00]/50 transition-all duration-500 ease-out transform hover:scale-105 hover:-translate-y-1 shadow-lg hover:shadow-xl hover:shadow-[#FF6B00]/20 popup-animation"
                   style={{ animationDelay: "0.2s" }}
                 >
                   <div className="flex items-center space-x-2 mb-2">
@@ -491,14 +477,14 @@ export default function TraderAgentPage() {
                       Market Analysis
                     </h3>
                   </div>
-                  <p className="text-gray-300 text-xs sm:text-sm">
+                  <p className="text-[var(--foreground-secondary)] text-xs sm:text-sm">
                     Real-time market analysis with technical indicators and
                     trend predictions.
                   </p>
                 </div>
 
                 <div
-                  className="space-y-2 bg-gray-800/30 backdrop-blur-sm rounded-xl p-4 border border-gray-700/50 hover:border-green-400/50 transition-all duration-500 ease-out transform hover:scale-105 hover:-translate-y-1 shadow-lg hover:shadow-xl hover:shadow-green-400/20 popup-animation"
+                  className="space-y-2 bg-[var(--surface)]/30 backdrop-blur-sm rounded-xl p-4 border border-[var(--surface-border)] hover:border-green-400/50 transition-all duration-500 ease-out transform hover:scale-105 hover:-translate-y-1 shadow-lg hover:shadow-xl hover:shadow-green-400/20 popup-animation"
                   style={{ animationDelay: "0.3s" }}
                 >
                   <div className="flex items-center space-x-2 mb-2">
@@ -509,13 +495,13 @@ export default function TraderAgentPage() {
                       Portfolio Insights
                     </h3>
                   </div>
-                  <p className="text-gray-300 text-xs sm:text-sm">
+                  <p className="text-[var(--foreground-secondary)] text-xs sm:text-sm">
                     Advanced portfolio analytics and risk management strategies.
                   </p>
                 </div>
 
                 <div
-                  className="space-y-2 bg-gray-800/30 backdrop-blur-sm rounded-xl p-4 border border-gray-700/50 hover:border-orange-400/50 transition-all duration-500 ease-out transform hover:scale-105 hover:-translate-y-1 shadow-lg hover:shadow-xl hover:shadow-orange-400/20 popup-animation sm:col-span-2 lg:col-span-1"
+                  className="space-y-2 bg-[var(--surface)]/30 backdrop-blur-sm rounded-xl p-4 border border-[var(--surface-border)] hover:border-orange-400/50 transition-all duration-500 ease-out transform hover:scale-105 hover:-translate-y-1 shadow-lg hover:shadow-xl hover:shadow-orange-400/20 popup-animation sm:col-span-2 lg:col-span-1"
                   style={{ animationDelay: "0.4s" }}
                 >
                   <div className="flex items-center space-x-2 mb-2">
@@ -526,7 +512,7 @@ export default function TraderAgentPage() {
                       Risk Alerts
                     </h3>
                   </div>
-                  <p className="text-gray-300 text-xs sm:text-sm">
+                  <p className="text-[var(--foreground-secondary)] text-xs sm:text-sm">
                     Smart alerts for market volatility and trading
                     opportunities.
                   </p>
@@ -553,7 +539,7 @@ export default function TraderAgentPage() {
 
             {/* Welcome Title */}
             <div className="text-center mb-8">
-              <h1 className="text-5xl md:text-6xl font-bold text-white mb-6 transition-all duration-1000 ease-out transform hover:scale-105">
+              <h1 className="text-5xl md:text-6xl font-bold text-[var(--foreground)] mb-6 transition-all duration-1000 ease-out transform hover:scale-105">
                 Welcome to <span className="text-[#C54F51]">Trader Agent</span>!
               </h1>
 
@@ -562,7 +548,7 @@ export default function TraderAgentPage() {
                 <TextType
                   key={currentQuestionIndex}
                   text={TRADER_QUESTIONS[currentQuestionIndex]}
-                  className="text-gray-400 transition-colors duration-1000 ease-out"
+                  className="text-[var(--foreground-muted)] transition-colors duration-1000 ease-out"
                   typingSpeed={50}
                   showCursor={true}
                   cursorCharacter="|"
@@ -588,12 +574,12 @@ export default function TraderAgentPage() {
 
             {/* Debug info */}
             <div className="mb-4 text-center">
-              <p className="text-gray-400 text-sm mb-2">
+              <p className="text-[var(--foreground-muted)] text-sm mb-2">
                 Debug: hasPreferences = {hasPreferences.toString()}
               </p>
               <button
                 onClick={() => setShowPreferencesModal(true)}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg mr-2"
+                className="px-4 py-2 bg-blue-600 text-[var(--foreground)] rounded-lg mr-2"
               >
                 Test Modal
               </button>
@@ -601,7 +587,7 @@ export default function TraderAgentPage() {
                 onClick={() => {
                   clearPreferences();
                 }}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg"
+                className="px-4 py-2 bg-red-600 text-[var(--foreground)] rounded-lg"
               >
                 Clear Preferences
               </button>

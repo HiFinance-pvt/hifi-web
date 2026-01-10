@@ -3,7 +3,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-import Particles from "@/ui/components/Particles";
 import TextType from "@/ui/TextAnimations/TextType/TextType";
 import { useChat } from "@/hooks/useChat";
 import { ALL_SESSIONS } from "@/constants/mockData";
@@ -95,25 +94,25 @@ const ConnectionPopup: React.FC<{
       switch (animationStage) {
         case "initial":
           return {
-            color: "text-gray-400",
+            color: "text-[var(--foreground-muted)]",
             bgColor: "bg-gray-500/20",
             glowing: false,
           };
         case "transition":
           return {
-            color: "text-emerald-400",
-            bgColor: "bg-emerald-500/20",
+            color: "text-[var(--brand-primary)]",
+            bgColor: "bg-[var(--brand-primary)]/20",
             glowing: false,
           };
         case "final":
           return {
-            color: "text-emerald-400",
-            bgColor: "bg-emerald-500/20",
+            color: "text-[var(--brand-primary)]",
+            bgColor: "bg-[var(--brand-primary)]/20",
             glowing: true,
           };
         default:
           return {
-            color: "text-gray-400",
+            color: "text-[var(--foreground-muted)]",
             bgColor: "bg-gray-500/20",
             glowing: false,
           };
@@ -123,20 +122,20 @@ const ConnectionPopup: React.FC<{
       switch (animationStage) {
         case "initial":
           return {
-            color: "text-emerald-400",
-            bgColor: "bg-emerald-500/20",
+            color: "text-[var(--brand-primary)]",
+            bgColor: "bg-[var(--brand-primary)]/20",
             glowing: false,
           };
         case "transition":
         case "final":
           return {
-            color: "text-gray-400",
+            color: "text-[var(--foreground-muted)]",
             bgColor: "bg-gray-500/20",
             glowing: false,
           };
         default:
           return {
-            color: "text-gray-400",
+            color: "text-[var(--foreground-muted)]",
             bgColor: "bg-gray-500/20",
             glowing: false,
           };
@@ -148,7 +147,7 @@ const ConnectionPopup: React.FC<{
 
   return (
     <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-      <div className="bg-gray-900/95 border border-gray-700/50 rounded-xl sm:rounded-2xl p-6 sm:p-8 max-w-sm w-full backdrop-blur-md shadow-2xl transform transition-all duration-500 ease-out scale-100">
+      <div className="bg-[var(--surface)]/95 border border-[var(--surface-border)] rounded-xl sm:rounded-2xl p-6 sm:p-8 max-w-sm w-full backdrop-blur-md shadow-2xl transform transition-all duration-500 ease-out scale-100">
         <div className="text-center">
           {/* Enhanced Animation Icon */}
           <div className="mb-4 sm:mb-6 relative">
@@ -156,15 +155,14 @@ const ConnectionPopup: React.FC<{
               className={`w-12 h-12 sm:w-16 sm:h-16 mx-auto rounded-full flex items-center justify-center transition-all duration-500 ease-out ${bgColor}`}
             >
               <Wifi
-                className={`w-6 h-6 sm:w-8 sm:h-8 transition-all duration-500 ease-out ${color} ${
-                  glowing ? "drop-shadow-lg filter" : ""
-                }`}
+                className={`w-6 h-6 sm:w-8 sm:h-8 transition-all duration-500 ease-out ${color} ${glowing ? "drop-shadow-lg filter" : ""
+                  }`}
                 style={
                   glowing
                     ? {
-                        filter:
-                          "drop-shadow(0 0 8px rgb(52 211 153 / 0.6)) drop-shadow(0 0 16px rgb(52 211 153 / 0.4))",
-                      }
+                      filter:
+                        "drop-shadow(0 0 8px rgb(52 211 153 / 0.6)) drop-shadow(0 0 16px rgb(52 211 153 / 0.4))",
+                    }
                     : {}
                 }
               />
@@ -172,8 +170,8 @@ const ConnectionPopup: React.FC<{
               {/* Dynamic glow effects */}
               {glowing && (
                 <>
-                  <div className="absolute inset-0 bg-emerald-400/30 rounded-full animate-ping" />
-                  <div className="absolute inset-0 bg-emerald-400/20 rounded-full animate-pulse" />
+                  <div className="absolute inset-0 bg-[var(--brand-primary)]/30 rounded-full animate-ping" />
+                  <div className="absolute inset-0 bg-[var(--brand-primary)]/20 rounded-full animate-pulse" />
                 </>
               )}
             </div>
@@ -181,10 +179,10 @@ const ConnectionPopup: React.FC<{
 
           {/* Enhanced Status Text with smooth transitions */}
           <div className="transition-all duration-300 ease-out">
-            <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 transition-all duration-300">
+            <h3 className="text-lg sm:text-xl font-semibold text-[var(--foreground)] mb-2 transition-all duration-300">
               Fi-Account {isConnected ? "Connected" : "Disconnected"}
             </h3>
-            <p className="text-xs sm:text-sm text-gray-400 mb-4 sm:mb-6 transition-all duration-300">
+            <p className="text-xs sm:text-sm text-[var(--foreground-muted)] mb-4 sm:mb-6 transition-all duration-300">
               {isConnected
                 ? "Your financial data is now syncing securely."
                 : "Your Fi account has been safely disconnected."}
@@ -194,7 +192,7 @@ const ConnectionPopup: React.FC<{
           {/* Enhanced Close Button */}
           <button
             onClick={onClose}
-            className="px-4 py-1.5 sm:px-6 sm:py-2 bg-gray-800/50 hover:bg-gray-700/50 border border-gray-600/50 rounded-lg text-gray-300 text-xs sm:text-sm transition-all duration-300 hover:scale-105 transform"
+            className="px-4 py-1.5 sm:px-6 sm:py-2 bg-gray-800/50 hover:bg-[var(--surface-hover)] border border-[var(--surface-border)] rounded-lg text-[var(--foreground-secondary)] text-xs sm:text-sm transition-all duration-300 hover:scale-105 transform"
           >
             Close
           </button>
@@ -233,13 +231,13 @@ const HeaderControls: React.FC = () => {
         <div className="relative">
           <button
             onClick={() => setShowLangDropdown(!showLangDropdown)}
-            className="flex items-center space-x-1 px-2 py-1.5 sm:px-3 sm:py-2 bg-gray-900/80 border border-gray-700/50 rounded-full backdrop-blur-sm hover:bg-gray-800/90 transition-all duration-300 ease-out w-12 h-12 justify-center transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl"
+            className="flex items-center space-x-1 px-2 py-1.5 sm:px-3 sm:py-2 bg-[var(--surface)]/80 border border-[var(--surface-border)] rounded-full backdrop-blur-sm hover:bg-[var(--surface-hover)] transition-all duration-300 ease-out w-12 h-12 justify-center transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl"
           >
-            <Globe className="w-4 h-4 text-gray-300 hover:text-white transition-colors duration-300 ease-out" />
+            <Globe className="w-4 h-4 text-[var(--foreground-secondary)] hover:text-[var(--foreground)] transition-colors duration-300 ease-out" />
           </button>
 
           {showLangDropdown && (
-            <div className="absolute top-full mt-2 right-0 w-36 bg-gray-900/95 border border-gray-700/50 rounded-lg backdrop-blur-sm shadow-xl popup-animation">
+            <div className="absolute top-full mt-2 right-0 w-36 bg-[var(--surface)]/95 border border-[var(--surface-border)] rounded-lg backdrop-blur-sm shadow-xl popup-animation">
               {languages.map((lang) => (
                 <button
                   key={lang.code}
@@ -247,15 +245,13 @@ const HeaderControls: React.FC = () => {
                     setLanguage(lang.code);
                     setShowLangDropdown(false);
                   }}
-                  className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-800/70 transition-all duration-200 ease-out transform hover:scale-105 hover:translate-x-1 ${
-                    language === lang.code
-                      ? "text-emerald-400 bg-emerald-500/10"
-                      : "text-gray-300"
-                  } ${lang.code === languages[0].code ? "rounded-t-lg" : ""} ${
-                    lang.code === languages[languages.length - 1].code
+                  className={`w-full px-3 py-2 text-left text-sm hover:bg-gray-800/70 transition-all duration-200 ease-out transform hover:scale-105 hover:translate-x-1 ${language === lang.code
+                    ? "text-[var(--brand-primary)] bg-emerald-500/10"
+                    : "text-[var(--foreground-secondary)]"
+                    } ${lang.code === languages[0].code ? "rounded-t-lg" : ""} ${lang.code === languages[languages.length - 1].code
                       ? "rounded-b-lg"
                       : ""
-                  }`}
+                    }`}
                 >
                   {lang.name}
                 </button>
@@ -274,17 +270,15 @@ const HeaderControls: React.FC = () => {
           }}
         >
           <button
-            className={`relative w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 backdrop-blur-sm transition-all duration-200 flex items-center justify-center ${
-              fiConnected
-                ? "bg-emerald-500/20 border-emerald-500/50 hover:bg-emerald-500/30"
-                : "bg-red-500/20 border-red-500/50 hover:bg-red-500/30"
-            }`}
+            className={`relative w-10 h-10 sm:w-12 sm:h-12 rounded-full border-2 backdrop-blur-sm transition-all duration-200 flex items-center justify-center ${fiConnected
+              ? "bg-[var(--brand-primary)]/20 border-emerald-500/50 hover:bg-emerald-500/30"
+              : "bg-red-500/20 border-red-500/50 hover:bg-red-500/30"
+              }`}
           >
             {/* Outer glow ring */}
             <div
-              className={`absolute inset-0 rounded-full animate-pulse ${
-                fiConnected ? "bg-emerald-400/20" : "bg-red-400/20"
-              }`}
+              className={`absolute inset-0 rounded-full animate-pulse ${fiConnected ? "bg-[var(--brand-primary)]/20" : "bg-red-400/20"
+                }`}
             />
 
             {/* Fi icon in center */}
@@ -308,9 +302,8 @@ const HeaderControls: React.FC = () => {
                   target.style.display = "none";
                   const fallback = document.createElement("span");
                   fallback.textContent = "Fi";
-                  fallback.className = `text-sm font-bold ${
-                    fiConnected ? "text-emerald-400" : "text-red-400"
-                  }`;
+                  fallback.className = `text-sm font-bold ${fiConnected ? "text-[var(--brand-primary)]" : "text-[var(--error)]"
+                    }`;
                   target.parentNode?.appendChild(fallback);
                 }}
               />
@@ -318,32 +311,30 @@ const HeaderControls: React.FC = () => {
 
             {/* Status dot at bottom border */}
             <div
-              className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 w-2 h-2 rounded-full border border-gray-900 ${
-                fiConnected ? "bg-emerald-400" : "bg-red-400"
-              }`}
+              className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 translate-y-1/2 w-2 h-2 rounded-full border border-gray-900 ${fiConnected ? "bg-emerald-400" : "bg-red-400"
+                }`}
             />
           </button>
 
           {showFiTooltip && (
             <div
-              className="absolute top-full mt-3 right-0 w-72 bg-gray-900/98 border border-gray-600/50 rounded-xl backdrop-blur-md shadow-2xl z-60 overflow-hidden popup-animation"
+              className="absolute top-full mt-3 right-0 w-72 bg-[var(--surface)]/98 border border-[var(--surface-border)] rounded-xl backdrop-blur-md shadow-2xl z-60 overflow-hidden popup-animation"
               onMouseEnter={() => setShowFiTooltip(true)}
               onMouseLeave={() => setShowFiTooltip(false)}
             >
               <div className="px-4 py-3 bg-gradient-to-r from-gray-800/50 to-gray-700/50 border-b border-gray-600/30 relative">
                 <div className="flex items-center space-x-3">
                   <div
-                    className={`w-3 h-3 rounded-full ${
-                      fiConnected ? "bg-emerald-400" : "bg-red-400"
-                    } animate-pulse shadow-lg`}
+                    className={`w-3 h-3 rounded-full ${fiConnected ? "bg-emerald-400" : "bg-red-400"
+                      } animate-pulse shadow-lg`}
                   />
-                  <span className="text-sm font-semibold text-white">
+                  <span className="text-sm font-semibold text-[var(--foreground)]">
                     Fi Account Status
                   </span>
                 </div>
                 <button
                   onClick={() => setShowFiTooltip(false)}
-                  className="absolute top-2 right-2 p-1 text-gray-400 hover:text-white transition-colors rounded"
+                  className="absolute top-2 right-2 p-1 text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors rounded"
                 >
                   <svg
                     className="w-4 h-4"
@@ -364,17 +355,16 @@ const HeaderControls: React.FC = () => {
               <div className="p-4">
                 <div className="mb-4">
                   <div
-                    className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                      fiConnected
-                        ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-                        : "bg-red-500/20 text-red-400 border border-red-500/30"
-                    }`}
+                    className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${fiConnected
+                      ? "bg-[var(--brand-primary)]/20 text-[var(--brand-primary)] border border-[var(--brand-primary)]/30"
+                      : "bg-red-500/20 text-[var(--error)] border border-red-500/30"
+                      }`}
                   >
                     {fiConnected ? "Connected" : "Disconnected"}
                   </div>
                 </div>
 
-                <p className="text-xs text-gray-300 leading-relaxed mb-4">
+                <p className="text-xs text-[var(--foreground-secondary)] leading-relaxed mb-4">
                   {fiConnected
                     ? "Your Fi account is connected and syncing financial data securely. All features are available."
                     : "Connect your Fi account to sync financial data and unlock all premium features."}
@@ -382,11 +372,10 @@ const HeaderControls: React.FC = () => {
 
                 <button
                   onClick={handleFiToggle}
-                  className={`w-full px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg border ${
-                    fiConnected
-                      ? "bg-red-500/10 border-red-500/30 text-red-400 hover:bg-red-500/20 hover:border-red-500/50"
-                      : "bg-emerald-500/10 border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 hover:border-emerald-500/50"
-                  }`}
+                  className={`w-full px-4 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg border ${fiConnected
+                    ? "bg-red-500/10 border-red-500/30 text-[var(--error)] hover:bg-red-500/20 hover:border-red-500/50"
+                    : "bg-emerald-500/10 border-[var(--brand-primary)]/30 text-[var(--brand-primary)] hover:bg-[var(--brand-primary)]/20 hover:border-emerald-500/50"
+                    }`}
                 >
                   {fiConnected ? "Disconnect Account" : "Connect Account"}
                 </button>
@@ -396,10 +385,10 @@ const HeaderControls: React.FC = () => {
         </div>
 
         {/* Notifications */}
-        <button className="relative w-12 h-12 bg-gray-900/80 border border-gray-700/50 rounded-full backdrop-blur-sm hover:bg-gray-800/90 transition-all duration-300 ease-out flex items-center justify-center transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl">
-          <Bell className="w-4 h-4 text-gray-300 hover:text-white transition-colors duration-300 ease-out" />
+        <button className="relative w-12 h-12 bg-[var(--surface)]/80 border border-[var(--surface-border)] rounded-full backdrop-blur-sm hover:bg-[var(--surface-hover)] transition-all duration-300 ease-out flex items-center justify-center transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl">
+          <Bell className="w-4 h-4 text-[var(--foreground-secondary)] hover:text-[var(--foreground)] transition-colors duration-300 ease-out" />
           <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full flex items-center justify-center animate-pulse shadow-lg">
-            <span className="text-xs text-white font-medium">3</span>
+            <span className="text-xs text-[var(--foreground)] font-medium">3</span>
           </div>
         </button>
       </div>
@@ -422,7 +411,7 @@ const SuggestionButton: React.FC<{
   return (
     <button
       onClick={onClick}
-      className="px-6 py-3 bg-[rgba(30,31,34,0.6)] hover:bg-[rgba(30,31,34,0.8)] text-white text-sm rounded-lg border border-gray-600/30 hover:border-[#99B720]/50 backdrop-blur-sm transition-all duration-300 ease-out transform hover:scale-105 shadow-lg hover:shadow-xl hover:shadow-[#99B720]/20"
+      className="px-6 py-3 bg-[var(--surface)]/60 hover:bg-[rgba(30,31,34,0.8)] text-[var(--foreground)] text-sm rounded-lg border border-gray-600/30 hover:border-[#99B720]/50 backdrop-blur-sm transition-all duration-300 ease-out transform hover:scale-105 shadow-lg hover:shadow-xl hover:shadow-[#99B720]/20"
     >
       {suggestion}
     </button>
@@ -444,12 +433,12 @@ const ChatInput: React.FC<{
 
   return (
     <div className="relative w-full">
-      <div className="flex items-center bg-gray-800/60 rounded-xl border border-gray-600/50 focus-within:border-[#99B720]/60 focus-within:shadow-lg focus-within:shadow-[#99B720]/20 transition-all duration-500 ease-out backdrop-blur-sm shadow-lg hover:shadow-xl transform hover:scale-[1.01]">
+      <div className="flex items-center bg-[var(--surface)]/60 rounded-xl border border-[var(--surface-border)] focus-within:border-[#99B720]/60 focus-within:shadow-lg focus-within:shadow-[#99B720]/20 transition-all duration-500 ease-out backdrop-blur-sm shadow-lg hover:shadow-xl transform hover:scale-[1.01]">
         {/* Filter/Agent Button */}
         <div className="p-3">
-          <div className="w-8 h-8 bg-gray-700/50 rounded-lg flex items-center justify-center hover:bg-gray-600/60 transition-all duration-300 ease-out transform hover:scale-105">
+          <div className="w-8 h-8 bg-[var(--surface-hover)] rounded-lg flex items-center justify-center hover:bg-gray-600/60 transition-all duration-300 ease-out transform hover:scale-105">
             <svg
-              className="w-4 h-4 text-gray-400 hover:text-gray-300 transition-colors duration-300 ease-out"
+              className="w-4 h-4 text-[var(--foreground-muted)] hover:text-[var(--foreground-secondary)] transition-colors duration-300 ease-out"
               fill="currentColor"
               viewBox="0 0 24 24"
             >
@@ -466,13 +455,13 @@ const ChatInput: React.FC<{
             onChange={(e) => setMessage(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Ask questions, or type '@' to call Agent."
-            className="w-full bg-transparent text-gray-300 placeholder-gray-500 focus:outline-none text-sm focus:placeholder-gray-400 transition-all duration-300 ease-out"
+            className="w-full bg-transparent text-[var(--foreground-secondary)] placeholder-[var(--foreground-subtle)] focus:outline-none text-sm focus:placeholder-gray-400 transition-all duration-300 ease-out"
           />
         </div>
 
         {/* Action Buttons */}
         <div className="flex items-center space-x-1 px-3">
-          <button className="p-2 text-gray-400 hover:text-gray-200 transition-all duration-300 ease-out transform hover:scale-110 active:scale-95 rounded-lg hover:bg-gray-700/30">
+          <button className="p-2 text-[var(--foreground-muted)] hover:text-gray-200 transition-all duration-300 ease-out transform hover:scale-110 active:scale-95 rounded-lg hover:bg-gray-700/30">
             <Paperclip className="w-4 h-4" />
           </button>
 
@@ -484,7 +473,7 @@ const ChatInput: React.FC<{
           {/* Send Button - Prominent */}
           <button
             onClick={onSend}
-            className="ml-2 p-2.5 bg-[#99B720] hover:bg-[#99B720]/90 text-white rounded-lg transition-all duration-300 ease-out transform hover:scale-105 active:scale-95 shadow-md hover:shadow-lg hover:shadow-[#99B720]/30"
+            className="ml-2 p-2.5 bg-[#99B720] hover:bg-[#99B720]/90 text-[var(--foreground)] rounded-lg transition-all duration-300 ease-out transform hover:scale-105 active:scale-95 shadow-md hover:shadow-lg hover:shadow-[#99B720]/30"
           >
             <Send className="w-4 h-4" />
           </button>
@@ -602,7 +591,7 @@ export default function TaxMitraPage() {
     setMessage(suggestion);
   };
 
-    const handleSendMessage = async () => {
+  const handleSendMessage = async () => {
     if (message.trim()) {
       // Check if we have preferences set first
       if (!hasPreferences) {
@@ -611,7 +600,7 @@ export default function TaxMitraPage() {
       }
 
       const newSession = await createSession();
-      
+
       if (!newSession) {
         console.error("❌ Failed to create session");
         return;
@@ -620,11 +609,11 @@ export default function TaxMitraPage() {
 
       // Get base agent prompt and combine with user data if available
       let messageWithContext = message;
-      
+
       if (hasPreferences && preferences) {
         // Get the base tax-mitra agent prompt from agentPrompts.ts
         const baseAgentPrompt = getAgentDefaultPrompt("tax-mitra");
-        
+
         // Create user's tax context
         const userTaxContext = `
 
@@ -649,7 +638,7 @@ Please provide a detailed response based on the above tax information and curren
       // Clear the message
       setMessage("");
 
-      
+
       const encodedMessage = encodeURIComponent(messageWithContext);
       router.push(`/dashboard/${newSession.id}?message=${encodedMessage}`);
     }
@@ -679,7 +668,7 @@ Please provide a detailed response based on the above tax information and curren
       await analyzeTax();
 
       const newSession = await createSession();
-      
+
       if (!newSession) {
         console.error("❌ Failed to create session");
         return;
@@ -731,7 +720,7 @@ Please provide detailed calculations and actionable recommendations based on cur
 
       // Combine base agent prompt with user's tax data
       const combinedPrompt = baseAgentPrompt + userTaxData;
-      
+
       // Encode the message to pass it as a URL parameter
       const encodedMessage = encodeURIComponent(combinedPrompt);
       router.push(`/dashboard/${newSession.id}?message=${encodedMessage}`);
@@ -747,20 +736,6 @@ Please provide detailed calculations and actionable recommendations based on cur
       className="flex flex-col h-full w-full bg-transparent overflow-hidden smooth-entry"
       style={{ pointerEvents: "auto" }}
     >
-      {/* Particles Background - Full Screen */}
-      <div className="fixed inset-0 w-screen h-screen z-0 blur-sm opacity-70">
-        <Particles
-          particleColors={["#ffffff", "#ffffff"]}
-          particleCount={200}
-          particleSpread={10}
-          speed={0.1}
-          particleBaseSize={100}
-          moveParticlesOnHover={false}
-          alphaParticles={false}
-          disableRotation={false}
-        />
-      </div>
-
       {/* Main Content Area */}
       <div className="flex-1 relative overflow-hidden z-10 min-h-0 min-w-0">
         {/* Content */}
@@ -773,7 +748,7 @@ Please provide detailed calculations and actionable recommendations based on cur
             <div className="max-w-6xl mx-auto">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                 <div
-                  className="space-y-2 bg-gray-800/30 backdrop-blur-sm rounded-xl p-4 border border-gray-700/50 hover:border-[#00A6C0]/50 transition-all duration-500 ease-out transform hover:scale-105 hover:-translate-y-1 shadow-lg hover:shadow-xl hover:shadow-[#00A6C0]/20 popup-animation"
+                  className="space-y-2 bg-[var(--surface)]/30 backdrop-blur-sm rounded-xl p-4 border border-[var(--surface-border)] hover:border-[#00A6C0]/50 transition-all duration-500 ease-out transform hover:scale-105 hover:-translate-y-1 shadow-lg hover:shadow-xl hover:shadow-[#00A6C0]/20 popup-animation"
                   style={{ animationDelay: "0.2s" }}
                 >
                   <div className="flex items-center space-x-2 mb-2">
@@ -784,14 +759,14 @@ Please provide detailed calculations and actionable recommendations based on cur
                       Tax Calculations
                     </h3>
                   </div>
-                  <p className="text-gray-300 text-xs sm:text-sm">
+                  <p className="text-[var(--foreground-secondary)] text-xs sm:text-sm">
                     Calculate your taxes accurately with advance tax, TDS and
                     deduction computations.
                   </p>
                 </div>
 
                 <div
-                  className="space-y-2 bg-gray-800/30 backdrop-blur-sm rounded-xl p-4 border border-gray-700/50 hover:border-green-400/50 transition-all duration-500 ease-out transform hover:scale-105 hover:-translate-y-1 shadow-lg hover:shadow-xl hover:shadow-green-400/20 popup-animation"
+                  className="space-y-2 bg-[var(--surface)]/30 backdrop-blur-sm rounded-xl p-4 border border-[var(--surface-border)] hover:border-green-400/50 transition-all duration-500 ease-out transform hover:scale-105 hover:-translate-y-1 shadow-lg hover:shadow-xl hover:shadow-green-400/20 popup-animation"
                   style={{ animationDelay: "0.3s" }}
                 >
                   <div className="flex items-center space-x-2 mb-2">
@@ -802,14 +777,14 @@ Please provide detailed calculations and actionable recommendations based on cur
                       E-Filing Support
                     </h3>
                   </div>
-                  <p className="text-gray-300 text-xs sm:text-sm">
+                  <p className="text-[var(--foreground-secondary)] text-xs sm:text-sm">
                     Complete guidance for ITR filing, GST returns and other tax
                     documentation online.
                   </p>
                 </div>
 
                 <div
-                  className="space-y-2 bg-gray-800/30 backdrop-blur-sm rounded-xl p-4 border border-gray-700/50 hover:border-orange-400/50 transition-all duration-500 ease-out transform hover:scale-105 hover:-translate-y-1 shadow-lg hover:shadow-xl hover:shadow-orange-400/20 popup-animation sm:col-span-2 lg:col-span-1"
+                  className="space-y-2 bg-[var(--surface)]/30 backdrop-blur-sm rounded-xl p-4 border border-[var(--surface-border)] hover:border-orange-400/50 transition-all duration-500 ease-out transform hover:scale-105 hover:-translate-y-1 shadow-lg hover:shadow-xl hover:shadow-orange-400/20 popup-animation sm:col-span-2 lg:col-span-1"
                   style={{ animationDelay: "0.4s" }}
                 >
                   <div className="flex items-center space-x-2 mb-2">
@@ -820,7 +795,7 @@ Please provide detailed calculations and actionable recommendations based on cur
                       Compliance Alerts
                     </h3>
                   </div>
-                  <p className="text-gray-300 text-xs sm:text-sm">
+                  <p className="text-[var(--foreground-secondary)] text-xs sm:text-sm">
                     Stay updated with tax deadlines, penalty avoidance and
                     compliance requirements.
                   </p>
@@ -847,7 +822,7 @@ Please provide detailed calculations and actionable recommendations based on cur
 
             {/* Welcome Title */}
             <div className="text-center mb-8">
-              <h1 className="text-5xl md:text-6xl font-bold text-white mb-6 transition-all duration-1000 ease-out transform hover:scale-105">
+              <h1 className="text-5xl md:text-6xl font-bold text-[var(--foreground)] mb-6 transition-all duration-1000 ease-out transform hover:scale-105">
                 Welcome to <span className="text-[#99B720]">Tax Mitra</span>!
               </h1>
 
@@ -856,7 +831,7 @@ Please provide detailed calculations and actionable recommendations based on cur
                 <TextType
                   key={currentQuestionIndex}
                   text={TAX_QUESTIONS[currentQuestionIndex]}
-                  className="text-gray-400 transition-colors duration-1000 ease-out"
+                  className="text-[var(--foreground-muted)] transition-colors duration-1000 ease-out"
                   typingSpeed={50}
                   showCursor={true}
                   cursorCharacter="|"
@@ -882,12 +857,12 @@ Please provide detailed calculations and actionable recommendations based on cur
 
             {/* Debug info */}
             <div className="mb-4 text-center">
-              <p className="text-gray-400 text-sm mb-2">
+              <p className="text-[var(--foreground-muted)] text-sm mb-2">
                 Debug: hasPreferences = {hasPreferences.toString()}
                 {preferences && (
                   <span className="ml-2 text-green-400">
                     | PAN: {preferences.panNumber || "N/A"}
-                    | Income: ₹{(preferences.totalSalary + preferences.otherIncomeSources).toLocaleString()} 
+                    | Income: ₹{(preferences.totalSalary + preferences.otherIncomeSources).toLocaleString()}
                     | Regime: {preferences.regime}
                     | Residence: {preferences.residenceStatus === "indian" ? "Indian" : "Foreign"}
                   </span>
@@ -896,7 +871,7 @@ Please provide detailed calculations and actionable recommendations based on cur
               <div className="flex justify-center gap-2">
                 <button
                   onClick={() => setShowPreferencesModal(true)}
-                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors"
+                  className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-[var(--foreground)] text-sm rounded-lg transition-colors"
                 >
                   {hasPreferences ? 'Update' : 'Set'} Tax Preferences
                 </button>
@@ -905,7 +880,7 @@ Please provide detailed calculations and actionable recommendations based on cur
                     onClick={() => {
                       clearPreferences();
                     }}
-                    className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg transition-colors"
+                    className="px-4 py-2 bg-red-600 hover:bg-red-700 text-[var(--foreground)] text-sm rounded-lg transition-colors"
                   >
                     Clear Preferences
                   </button>

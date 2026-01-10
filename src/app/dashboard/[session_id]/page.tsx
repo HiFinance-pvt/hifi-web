@@ -376,11 +376,11 @@ export default function HiFiDashboard() {
   // ============================================================================
 
   return (
-    <div className="flex h-screen bg-gray-900">
+    <div className="flex h-screen bg-[var(--background)] transition-colors duration-300">
       {isCreatingSession && <SessionCreationLoader />}
 
       {/* Sidebar */}
-      <div className="z-10 bg-none">
+      <div className="z-10">
         <Sidebar
           activeSessionId={sessionId}
           onSelectSession={handleActiveSession}
@@ -415,8 +415,9 @@ export default function HiFiDashboard() {
           {isInitialLoading && (
             <div className="flex items-center justify-center h-full">
               <div className="text-center">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500 mx-auto mb-4" />
-                <p className="text-gray-400">Loading session...</p>
+                <div className="animate-spin rounded-full h-10 w-10 border-2 border-[var(--surface-border)] 
+                                border-t-[var(--brand-primary)] mx-auto mb-4" />
+                <p className="text-sm text-[var(--foreground-muted)]">Loading session...</p>
               </div>
             </div>
           )}
@@ -438,11 +439,13 @@ export default function HiFiDashboard() {
           {showScrollToBottom && (
             <button
               onClick={() => scrollToBottom()}
-              className="absolute bottom-20 right-6 bg-blue-600 hover:bg-blue-700 text-white rounded-full p-3 shadow-lg transition-all duration-200 z-10"
+              className="absolute bottom-24 right-6 bg-[var(--surface)] border border-[var(--surface-border)]
+                        text-[var(--foreground)] rounded-xl p-2.5 shadow-md
+                        hover:border-[var(--brand-primary)]/40 transition-all duration-200 z-10"
               title="Scroll to bottom"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                <path d="M19 14l-7 7m0 0l-7-7m7 7V3" />
               </svg>
             </button>
           )}
@@ -466,35 +469,31 @@ export default function HiFiDashboard() {
           {/* Error Display */}
           {(adkError || adkMessagesError || streamingError) && (
             <div className="absolute top-20 left-0 right-0 p-6 max-w-4xl mx-auto">
-              <div className="bg-red-900/20 border border-red-500/50 rounded-xl p-4">
-                <p className="text-red-400">
-                  Error: {adkError?.message || adkMessagesError?.message || streamingError?.message}
+              <div className="bg-[var(--error-bg)] border border-[var(--error)]/30 rounded-xl p-4">
+                <p className="text-[var(--error)] text-sm">
+                  {adkError?.message || adkMessagesError?.message || streamingError?.message}
                 </p>
               </div>
             </div>
           )}
 
           {/* Chat Input */}
-          <div className="absolute bottom-0 left-0 right-0 p-6">
+          <div className="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[var(--background)] via-[var(--background)]/90 to-transparent">
             <div className="max-w-4xl mx-auto">
-              <div className="relative group">
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-teal-500/30 to-blue-500/30 rounded-2xl blur opacity-0 group-hover:opacity-100 transition duration-500" />
-                <div className="relative z-10 bg-gray-800/95 backdrop-blur-md border border-gray-600 rounded-2xl shadow-2xl hover:border-teal-400/60 hover:shadow-teal-500/10 transition-all duration-300">
-                  <ChatInput
-                    message={currentMessage}
-                    setMessage={setCurrentMessage}
-                    onSend={() => handleSendMessage(currentMessage)}
-                    disabled={isAdkPending || isStreaming || isInitialLoading}
-                    onAgentSelect={handleAgentSelect}
-                  />
-                </div>
-                <div className="absolute -bottom-2 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-transparent via-teal-500/20 to-transparent rounded-full opacity-60" />
+              <div className="bg-[var(--surface)] border border-[var(--surface-border)] rounded-2xl
+                            focus-within:border-[var(--brand-primary)]/40 transition-colors duration-200">
+                <ChatInput
+                  message={currentMessage}
+                  setMessage={setCurrentMessage}
+                  onSend={() => handleSendMessage(currentMessage)}
+                  disabled={isAdkPending || isStreaming || isInitialLoading}
+                  onAgentSelect={handleAgentSelect}
+                />
               </div>
             </div>
           </div>
         </div>
       </Chat>
-
     </div>
   );
 }

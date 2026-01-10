@@ -1,5 +1,25 @@
 import React, { useState } from "react";
-import { X, Target, TrendingUp } from "lucide-react";
+
+// Minimal SVG Icons
+const CloseIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <path d="M18 6L6 18M6 6l12 12" />
+  </svg>
+);
+
+const TargetIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <circle cx="12" cy="12" r="10" />
+    <circle cx="12" cy="12" r="6" />
+    <circle cx="12" cy="12" r="2" />
+  </svg>
+);
+
+const TrendingUpIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <path d="M22 7l-8.5 8.5-5-5L2 17M22 7h-6m6 0v6" />
+  </svg>
+);
 import { DebtIntensity } from "@/stores/debtSquasherStore";
 
 interface DebtPreferencesModalProps {
@@ -77,7 +97,7 @@ export default function DebtPreferencesModal({
         <div className="flex items-center justify-between p-6 border-b border-gray-700">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-[#109CA3]/20 rounded-full flex items-center justify-center">
-              <Target className="w-5 h-5 text-[#109CA3]" />
+              <TargetIcon className="w-5 h-5 text-[var(--brand-primary)]" />
             </div>
             <div>
               <h2 className="text-xl font-semibold text-white">
@@ -93,7 +113,7 @@ export default function DebtPreferencesModal({
             className="w-8 h-8 rounded-full bg-gray-800 hover:bg-gray-700 flex items-center justify-center transition-colors"
             disabled={isLoading}
           >
-            <X className="w-4 h-4 text-gray-400" />
+            <CloseIcon className="w-4 h-4 text-[var(--foreground-muted)]" />
           </button>
         </div>
 
@@ -158,9 +178,9 @@ export default function DebtPreferencesModal({
                           : "border-gray-600"
                       }`}
                     >
-                      <TrendingUp
+                      <TrendingUpIcon
                         className={`w-4 h-4 ${
-                          intensity === option.value ? "" : "text-gray-600"
+                          intensity === option.value ? "" : "text-[var(--foreground-subtle)]"
                         }`}
                       />
                     </div>

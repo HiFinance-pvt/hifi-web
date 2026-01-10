@@ -14,74 +14,40 @@ export const CustomLoader: React.FC<CustomLoaderProps> = ({
     const sizeClasses = {
         sm: "w-6 h-6",
         md: "w-8 h-8",
-        lg: "w-12 h-12"
+        lg: "w-10 h-10"
     };
-
-    const getVariantStyles = () => {
-        switch (variant) {
-            case "session":
-                return {
-                    container: "flex flex-col items-center justify-center p-8 bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-700/50",
-                    spinner: "text-teal-400",
-                    message: "text-gray-300 text-sm font-medium"
-                };
-            case "message":
-                return {
-                    container: "flex items-center space-x-3 p-4 bg-gray-700/80 rounded-lg",
-                    spinner: "text-emerald-400",
-                    message: "text-gray-200 text-sm"
-                };
-            default:
-                return {
-                    container: "flex flex-col items-center justify-center",
-                    spinner: "text-blue-400",
-                    message: "text-gray-400 text-sm"
-                };
-        }
-    };
-
-    const styles = getVariantStyles();
 
     return (
-        <div className={styles.container}>
+        <div className={`flex flex-col items-center justify-center ${variant === "session" ? "p-6" : ""}`}>
             <div className="relative">
                 {/* Main spinner */}
-                <div className={`${sizeClasses[size]} border-2 border-gray-600 rounded-full animate-spin`}>
-                    <div className={`absolute inset-0 border-2 border-transparent border-t-current rounded-full ${styles.spinner}`}></div>
-                </div>
-
-                {/* Inner pulse effect for session variant */}
-                {variant === "session" && (
-                    <div className="absolute inset-0 animate-ping">
-                        <div className={`${sizeClasses[size]} border-2 border-teal-400/30 rounded-full`}></div>
-                    </div>
-                )}
+                <div className={`${sizeClasses[size]} border-2 border-[var(--surface-border)] border-t-[var(--brand-primary)] rounded-full animate-spin`} />
             </div>
 
             {message && (
-                <p className={`mt-3 ${styles.message}`}>
+                <p className="mt-3 text-sm text-[var(--foreground-muted)] font-medium">
                     {message}
                 </p>
             )}
 
-            {/* Additional visual elements for session variant */}
+            {/* Dots for session variant */}
             {variant === "session" && (
-                <div className="mt-4 flex space-x-1">
-                    <div className="w-2 h-2 bg-teal-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                    <div className="w-2 h-2 bg-teal-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                    <div className="w-2 h-2 bg-teal-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                <div className="mt-4 flex gap-1">
+                    <div className="w-1.5 h-1.5 bg-[var(--brand-primary)] rounded-full animate-pulse" style={{ animationDelay: '0ms' }} />
+                    <div className="w-1.5 h-1.5 bg-[var(--brand-primary)] rounded-full animate-pulse" style={{ animationDelay: '150ms' }} />
+                    <div className="w-1.5 h-1.5 bg-[var(--brand-primary)] rounded-full animate-pulse" style={{ animationDelay: '300ms' }} />
                 </div>
             )}
         </div>
     );
 };
 
-// Specialized session creation loader
+// Session creation loader
 export const SessionCreationLoader: React.FC = () => (
-    <div className="fixed inset-0 bg-gray-900/80 backdrop-blur-sm flex items-center justify-center z-50">
-        <div className="bg-gray-800/95 border border-gray-700 rounded-2xl p-8 shadow-2xl">
+    <div className="fixed inset-0 bg-[var(--background)]/90 backdrop-blur-sm flex items-center justify-center z-50">
+        <div className="bg-[var(--surface)] border border-[var(--surface-border)] rounded-2xl p-8">
             <CustomLoader
-                message="Creating new chat session..."
+                message="Creating new session..."
                 size="lg"
                 variant="session"
             />
@@ -92,8 +58,8 @@ export const SessionCreationLoader: React.FC = () => (
 // Inline message loader
 export const MessageLoader: React.FC = () => (
     <CustomLoader
-        message="Sending message..."
+        message="Sending..."
         size="sm"
         variant="message"
     />
-); 
+);

@@ -1,28 +1,32 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import ClientLayoutWrapper from "@/components/ClientLayoutWrapper";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const plusJakarta = Plus_Jakarta_Sans({
+  variable: "--font-plus-jakarta",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
+  display: "swap",
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const jetbrainsMono = JetBrains_Mono({
+  variable: "--font-jetbrains-mono",
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
   title: "Hi-Fi Financial Assistant",
-  description: "Your AI-powered financial assistant",
+  description: "Your AI-powered financial assistant for personal finance management",
   icons: {
     icon: "hifi_logo.png"
   },
-  keywords: ["HiFi", "Financial", "Assistant", "AI", "Portfolio"],
+  keywords: ["HiFi", "Financial", "Assistant", "AI", "Portfolio", "Personal Finance", "Multi-Agent"],
   openGraph: {
     title: "Hi-Fi Financial Assistant",
-    description: "Your AI-powered financial assistant",
+    description: "Your AI-powered financial assistant for personal finance management",
     url: "https://web.hifi.click",
     siteName: "Hi-Fi Financial Assistant",
     images: [
@@ -37,7 +41,7 @@ export const metadata: Metadata = {
   twitter: {
     card: "summary_large_image",
     title: "Hi-Fi Financial Assistant",
-    description: "Your AI-powered financial assistant",
+    description: "Your AI-powered financial assistant for personal finance management",
     images: ["hifi_logo.png"],
   },
   metadataBase: new URL("https://web.hifi.click"),
@@ -49,17 +53,31 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" className="theme-dark" data-theme="dark" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,300..900;1,300..900&display=swap"
-          rel="stylesheet"
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        {/* Prevent flash of wrong theme */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  var theme = localStorage.getItem('hifi-theme');
+                  if (!theme) {
+                    theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+                  }
+                  document.documentElement.classList.remove('theme-dark', 'theme-light');
+                  document.documentElement.classList.add('theme-' + theme);
+                  document.documentElement.setAttribute('data-theme', theme);
+                } catch (e) {}
+              })();
+            `,
+          }}
         />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${plusJakarta.variable} ${jetbrainsMono.variable} font-sans antialiased`}
       >
         <ClientLayoutWrapper>
           {children}

@@ -1,20 +1,104 @@
-import React, { useState } from 'react';
-import { Bot, User, Code, CheckCircle, AlertCircle, Brain, ChevronDown, ChevronRight, Clock } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { ProcessedMessage } from '@/lib/validations/adk.schema';
 import { MessageFiles } from 'reachat';
+import { DebtStrategyDisplay, DebtStrategyData } from './DebtStrategyDisplay';
+
+// Minimal SVG Icons
+const UserIcon = () => (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <circle cx="12" cy="8" r="4" />
+        <path d="M4 20c0-4 4-6 8-6s8 2 8 6" />
+    </svg>
+);
+
+const BotIcon = () => (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <rect x="4" y="4" width="16" height="16" rx="4" />
+        <circle cx="9" cy="11" r="1.5" />
+        <circle cx="15" cy="11" r="1.5" />
+        <path d="M9 15h6" />
+    </svg>
+);
+
+const CodeIcon = () => (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path d="M8 6l-4 6 4 6M16 6l4 6-4 6" />
+    </svg>
+);
+
+const CheckIcon = () => (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path d="M5 13l4 4L19 7" />
+    </svg>
+);
+
+const AlertIcon = () => (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path d="M12 9v4m0 4h.01M12 3l9 16H3L12 3z" />
+    </svg>
+);
+
+const ChevronIcon = ({ isOpen }: { isOpen: boolean }) => (
+    <svg className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path d="M19 9l-7 7-7-7" />
+    </svg>
+);
+
+const ThinkingIcon = () => (
+    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path d="M12 3c-4.4 0-8 3.6-8 8 0 2.8 1.5 5.3 3.8 6.7V19c0 1.1.9 2 2 2h4.4c1.1 0 2-.9 2-2v-1.3c2.3-1.4 3.8-3.9 3.8-6.7 0-4.4-3.6-8-8-8z" />
+        <path d="M12 7v2m0 4h.01" />
+    </svg>
+);
+
+// Helper function to detect and parse debt strategy JSON from response
+const parseDebtStrategyData = (text: string): DebtStrategyData | null => {
+    if (!text) return null;
+
+    // Try to find JSON in the response (it might be wrapped in markdown code blocks)
+    let jsonStr = text.trim();
+
+    // Check if it's wrapped in code blocks
+    const codeBlockMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (codeBlockMatch) {
+        jsonStr = codeBlockMatch[1].trim();
+    }
+
+    try {
+        const parsed = JSON.parse(jsonStr);
+
+        // Validate that it has the debt strategy structure
+        if (
+            parsed.total_debt &&
+            parsed.target_duration_months &&
+            parsed.intensity &&
+            parsed.monthly_payment_goal &&
+            parsed.strategy_summary &&
+            Array.isArray(parsed.recommended_actions) &&
+            parsed.estimated_interest_saved &&
+            parsed.debt_free_by
+        ) {
+            return parsed as DebtStrategyData;
+        }
+    } catch {
+        // Not valid JSON, return null
+    }
+
+    return null;
+};
 
 // Custom User Message Component
 export const CustomMessageQuestion: React.FC<{ question: string; files?: any[] }> = ({ question, files }) => (
     <div className="flex justify-end mb-4">
-        <div className="flex items-start space-x-3 max-w-2xl">
-            <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-emerald-600 rounded-full flex items-center justify-center">
-                    <User className="w-4 h-4 text-white" />
+        <div className="flex items-start gap-3 max-w-2xl">
+            <div className="flex-shrink-0 order-2">
+                <div className="w-8 h-8 bg-[var(--brand-primary)] rounded-xl flex items-center justify-center text-white">
+                    <UserIcon />
                 </div>
             </div>
-            <div className="bg-emerald-600 text-white rounded-2xl px-4 py-3 shadow-lg">
+            <div className="bg-[var(--brand-primary)] text-white rounded-2xl rounded-tr-md px-4 py-3 order-1">
                 <p className="text-sm leading-relaxed">{question}</p>
                 {files && files.length > 0 && (
                     <MessageFiles files={files}>
@@ -27,116 +111,134 @@ export const CustomMessageQuestion: React.FC<{ question: string; files?: any[] }
 );
 
 // Custom Assistant Message Component
-export const CustomMessageResponse: React.FC<{ response: string }> = ({ response }) => (
-    <div className="flex justify-start mb-4">
-        <div className="flex items-start space-x-3 max-w-2xl">
-            <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                    <Bot className="w-4 h-4 text-white" />
+export const CustomMessageResponse: React.FC<{ response: string }> = ({ response }) => {
+    // Check if the response contains debt strategy JSON data
+    const debtStrategyData = useMemo(() => parseDebtStrategyData(response), [response]);
+
+    // If it's a debt strategy response, render the special component
+    if (debtStrategyData) {
+        return (
+            <div className="flex justify-start mb-4">
+                <div className="flex items-start gap-3 w-full">
+                    <div className="flex-shrink-0">
+                        <div className="w-8 h-8 bg-[var(--surface-hover)] rounded-xl flex items-center justify-center text-[var(--brand-primary)]">
+                            <BotIcon />
+                        </div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <DebtStrategyDisplay data={debtStrategyData} />
+                    </div>
                 </div>
             </div>
-            <div className="bg-gray-700 text-white rounded-2xl px-4 py-3 shadow-lg border border-gray-600">
-                <div className="prose prose-invert prose-sm max-w-none">
-                    <ReactMarkdown
-                        remarkPlugins={[remarkGfm]}
-                        components={{
-                            // Custom styling for markdown elements
-                            h1: ({ children }) => <h1 className="text-xl font-bold mb-2 text-white">{children}</h1>,
-                            h2: ({ children }) => <h2 className="text-lg font-bold mb-2 text-white">{children}</h2>,
-                            h3: ({ children }) => <h3 className="text-base font-bold mb-2 text-white">{children}</h3>,
-                            p: ({ children }) => <p className="mb-2 text-gray-200">{children}</p>,
-                            ul: ({ children }) => <ul className="list-disc list-inside mb-2 text-gray-200">{children}</ul>,
-                            ol: ({ children }) => <ol className="list-decimal list-inside mb-2 text-gray-200">{children}</ol>,
-                            li: ({ children }) => <li className="mb-1">{children}</li>,
-                            code: ({ children, className }) => {
-                                const isInline = !className;
-                                if (isInline) {
-                                    return <code className="bg-gray-800 px-1 py-0.5 rounded text-sm text-green-300">{children}</code>;
-                                }
-                                return (
-                                    <pre className="bg-gray-800 p-3 rounded-lg overflow-x-auto mb-2">
-                                        <code className="text-sm text-green-300">{children}</code>
-                                    </pre>
-                                );
-                            },
-                            pre: ({ children }) => <div className="mb-2">{children}</div>,
-                            blockquote: ({ children }) => (
-                                <blockquote className="border-l-4 border-blue-500 pl-4 italic text-gray-300 mb-2">
-                                    {children}
-                                </blockquote>
-                            ),
-                            a: ({ children, href }) => (
-                                <a href={href} className="text-blue-400 hover:text-blue-300 underline" target="_blank" rel="noopener noreferrer">
-                                    {children}
-                                </a>
-                            ),
-                            strong: ({ children }) => <strong className="font-bold text-white">{children}</strong>,
-                            em: ({ children }) => <em className="italic text-gray-300">{children}</em>,
-                            table: ({ children }) => (
-                                <div className="overflow-x-auto mb-2">
-                                    <table className="min-w-full border border-gray-600">{children}</table>
-                                </div>
-                            ),
-                            th: ({ children }) => (
-                                <th className="border border-gray-600 px-3 py-2 bg-gray-800 text-white font-bold">
-                                    {children}
-                                </th>
-                            ),
-                            td: ({ children }) => (
-                                <td className="border border-gray-600 px-3 py-2 text-gray-200">
-                                    {children}
-                                </td>
-                            ),
-                        }}
-                    >
-                        {response}
-                    </ReactMarkdown>
+        );
+    }
+
+    // Default markdown rendering
+    return (
+        <div className="flex justify-start mb-4">
+            <div className="flex items-start gap-3 max-w-2xl">
+                <div className="flex-shrink-0">
+                    <div className="w-8 h-8 bg-[var(--surface-hover)] rounded-xl flex items-center justify-center text-[var(--brand-primary)]">
+                        <BotIcon />
+                    </div>
+                </div>
+                <div className="bg-[var(--surface)] text-[var(--foreground)] rounded-2xl rounded-tl-md px-4 py-3 border border-[var(--surface-border)]">
+                    <div className="prose prose-sm max-w-none">
+                        <ReactMarkdown
+                            remarkPlugins={[remarkGfm]}
+                            components={{
+                                h1: ({ children }) => <h1 className="text-lg font-semibold mb-2 text-[var(--foreground)]">{children}</h1>,
+                                h2: ({ children }) => <h2 className="text-base font-semibold mb-2 text-[var(--foreground)]">{children}</h2>,
+                                h3: ({ children }) => <h3 className="text-sm font-semibold mb-2 text-[var(--foreground)]">{children}</h3>,
+                                p: ({ children }) => <p className="mb-2 text-[var(--foreground-secondary)] leading-relaxed">{children}</p>,
+                                ul: ({ children }) => <ul className="list-disc list-inside mb-2 text-[var(--foreground-secondary)]">{children}</ul>,
+                                ol: ({ children }) => <ol className="list-decimal list-inside mb-2 text-[var(--foreground-secondary)]">{children}</ol>,
+                                li: ({ children }) => <li className="mb-1">{children}</li>,
+                                code: ({ children, className }) => {
+                                    const isInline = !className;
+                                    if (isInline) {
+                                        return <code className="bg-[var(--brand-primary-muted)] px-1.5 py-0.5 rounded text-sm text-[var(--brand-primary)] font-mono">{children}</code>;
+                                    }
+                                    return (
+                                        <pre className="bg-[var(--background)] p-3 rounded-xl overflow-x-auto mb-2 border border-[var(--surface-border)]">
+                                            <code className="text-sm text-[var(--brand-primary)] font-mono">{children}</code>
+                                        </pre>
+                                    );
+                                },
+                                pre: ({ children }) => <div className="mb-2">{children}</div>,
+                                blockquote: ({ children }) => (
+                                    <blockquote className="border-l-2 border-[var(--brand-primary)] pl-4 text-[var(--foreground-muted)] mb-2">
+                                        {children}
+                                    </blockquote>
+                                ),
+                                a: ({ children, href }) => (
+                                    <a href={href} className="text-[var(--brand-primary)] hover:underline" target="_blank" rel="noopener noreferrer">
+                                        {children}
+                                    </a>
+                                ),
+                                strong: ({ children }) => <strong className="font-semibold text-[var(--foreground)]">{children}</strong>,
+                                em: ({ children }) => <em className="italic text-[var(--foreground-muted)]">{children}</em>,
+                                table: ({ children }) => (
+                                    <div className="overflow-x-auto mb-2">
+                                        <table className="min-w-full border border-[var(--surface-border)] rounded-lg">{children}</table>
+                                    </div>
+                                ),
+                                th: ({ children }) => (
+                                    <th className="border border-[var(--surface-border)] px-3 py-2 bg-[var(--surface-hover)] text-[var(--foreground)] font-medium text-left">
+                                        {children}
+                                    </th>
+                                ),
+                                td: ({ children }) => (
+                                    <td className="border border-[var(--surface-border)] px-3 py-2 text-[var(--foreground-secondary)]">
+                                        {children}
+                                    </td>
+                                ),
+                            }}
+                        >
+                            {response}
+                        </ReactMarkdown>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-);
+    );
+};
 
 // Custom Function Call Component
 export const CustomFunctionCall: React.FC<{ message: ProcessedMessage }> = ({ message }) => {
     const [isExpanded, setIsExpanded] = useState(false);
 
     return (
-        <div className="flex justify-start mb-4">
-            <div className="flex items-start space-x-3 max-w-2xl">
+        <div className="flex justify-start mb-3">
+            <div className="flex items-start gap-3 max-w-2xl">
                 <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
-                        <Code className="w-4 h-4 text-white" />
+                    <div className="w-8 h-8 bg-[var(--info-bg)] rounded-xl flex items-center justify-center text-[var(--info)]">
+                        <CodeIcon />
                     </div>
                 </div>
-                <div className="bg-purple-900/20 text-white rounded-2xl px-4 py-3 shadow-lg border border-purple-600/30 flex-1">
+                <div className="bg-[var(--info-bg)] text-[var(--foreground)] rounded-2xl rounded-tl-md px-4 py-3 border border-[var(--info)]/20 flex-1">
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                            <Code className="w-4 h-4 text-purple-400" />
-                            <span className="font-medium text-purple-300">Function Call</span>
+                        <div className="flex items-center gap-2">
+                            <span className="text-sm font-medium text-[var(--info)]">
+                                {message.functionName || 'Function Call'}
+                            </span>
                         </div>
                         <button
                             onClick={() => setIsExpanded(!isExpanded)}
-                            className="text-purple-400 hover:text-purple-300 transition-colors"
+                            className="text-[var(--info)] hover:opacity-80 transition-opacity"
                         >
-                            {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                            <ChevronIcon isOpen={isExpanded} />
                         </button>
                     </div>
 
-                    <div className="mt-2">
-                        <div className="text-sm font-medium text-purple-200">
-                            {message.functionName || 'Unknown Function'}
+                    {isExpanded && message.functionArgs && Object.keys(message.functionArgs).length > 0 && (
+                        <div className="mt-3 p-3 bg-[var(--background)] rounded-xl border border-[var(--surface-border)]">
+                            <div className="text-xs text-[var(--foreground-subtle)] mb-2">Arguments:</div>
+                            <pre className="text-xs text-[var(--foreground-secondary)] whitespace-pre-wrap break-words font-mono">
+                                {JSON.stringify(message.functionArgs, null, 2)}
+                            </pre>
                         </div>
-
-                        {isExpanded && message.functionArgs && Object.keys(message.functionArgs).length > 0 && (
-                            <div className="mt-2 p-3 bg-purple-900/30 rounded-lg border border-purple-600/20">
-                                <div className="text-xs text-purple-400 mb-1">Arguments:</div>
-                                <pre className="text-xs text-purple-200 whitespace-pre-wrap break-words">
-                                    {JSON.stringify(message.functionArgs, null, 2)}
-                                </pre>
-                            </div>
-                        )}
-                    </div>
+                    )}
                 </div>
             </div>
         </div>
@@ -149,75 +251,36 @@ export const CustomFunctionResponse: React.FC<{ message: ProcessedMessage }> = (
     const isError = message.isError || false;
 
     return (
-        <div className="flex justify-start mb-4">
-            <div className="flex items-start space-x-3 max-w-2xl">
+        <div className="flex justify-start mb-3">
+            <div className="flex items-start gap-3 max-w-2xl">
                 <div className="flex-shrink-0">
-                    <div className={`w-8 h-8 ${isError ? 'bg-red-600' : 'bg-green-600'} rounded-full flex items-center justify-center`}>
-                        {isError ? (
-                            <AlertCircle className="w-4 h-4 text-white" />
-                        ) : (
-                            <CheckCircle className="w-4 h-4 text-white" />
-                        )}
+                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${isError ? 'bg-[var(--error-bg)] text-[var(--error)]' : 'bg-[var(--success-bg)] text-[var(--success)]'}`}>
+                        {isError ? <AlertIcon /> : <CheckIcon />}
                     </div>
                 </div>
-                <div className={`${isError ? 'bg-red-900/20 border-red-600/30' : 'bg-green-900/20 border-green-600/30'} text-white rounded-2xl px-4 py-3 shadow-lg border flex-1`}>
+                <div className={`rounded-2xl rounded-tl-md px-4 py-3 border flex-1 ${isError ? 'bg-[var(--error-bg)] border-[var(--error)]/20' : 'bg-[var(--success-bg)] border-[var(--success)]/20'}`}>
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                            {isError ? (
-                                <AlertCircle className="w-4 h-4 text-red-400" />
-                            ) : (
-                                <CheckCircle className="w-4 h-4 text-green-400" />
-                            )}
-                            <span className={`font-medium ${isError ? 'text-red-300' : 'text-green-300'}`}>
-                                Function Response
+                        <div className="flex items-center gap-2">
+                            <span className={`text-sm font-medium ${isError ? 'text-[var(--error)]' : 'text-[var(--success)]'}`}>
+                                {message.functionName || 'Response'}
                             </span>
                         </div>
                         <button
                             onClick={() => setIsExpanded(!isExpanded)}
-                            className={`${isError ? 'text-red-400 hover:text-red-300' : 'text-green-400 hover:text-green-300'} transition-colors`}
+                            className={`${isError ? 'text-[var(--error)]' : 'text-[var(--success)]'} hover:opacity-80 transition-opacity`}
                         >
-                            {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                            <ChevronIcon isOpen={isExpanded} />
                         </button>
                     </div>
 
-                    <div className="mt-2">
-                        <div className={`text-sm font-medium ${isError ? 'text-red-200' : 'text-green-200'}`}>
-                            {message.functionName || 'Unknown Function'}
+                    {isExpanded && message.functionResponse && (
+                        <div className="mt-3 p-3 bg-[var(--background)] rounded-xl border border-[var(--surface-border)]">
+                            <div className="text-xs text-[var(--foreground-subtle)] mb-2">Response:</div>
+                            <pre className="text-xs text-[var(--foreground-secondary)] whitespace-pre-wrap break-words font-mono">
+                                {JSON.stringify(message.functionResponse, null, 2)}
+                            </pre>
                         </div>
-
-                        {isError && (
-                            <div className={`text-sm ${isError ? 'text-red-300' : 'text-green-300'}`}>
-                                Error occurred during execution
-                            </div>
-                        )}
-
-                        {isExpanded && message.functionResponse && (
-                            <div className={`mt-2 p-3 ${isError ? 'bg-red-900/30 border-red-600/20' : 'bg-green-900/30 border-green-600/20'} rounded-lg border`}>
-                                <div className={`text-xs ${isError ? 'text-red-400' : 'text-green-400'} mb-1`}>Response:</div>
-                                <pre className={`text-xs ${isError ? 'text-red-200' : 'text-green-200'} whitespace-pre-wrap break-words`}>
-                                    {JSON.stringify(message.functionResponse, null, 2)}
-                                </pre>
-                                {message.text && (
-                                    <div className={`mt-2 pt-2 border-t ${isError ? 'border-red-600/20' : 'border-green-600/20'}`}>
-                                        <div className={`text-xs ${isError ? 'text-red-400' : 'text-green-400'} mb-1`}>Content:</div>
-                                        <div className={`text-xs ${isError ? 'text-red-200' : 'text-green-200'}`}>
-                                            <ReactMarkdown
-                                                remarkPlugins={[remarkGfm]}
-                                                components={{
-                                                    p: ({ children }) => <p className="mb-1">{children}</p>,
-                                                    code: ({ children }) => <code className={`${isError ? 'bg-red-900/50' : 'bg-green-900/50'} px-1 py-0.5 rounded`}>{children}</code>,
-                                                    strong: ({ children }) => <strong className="font-bold">{children}</strong>,
-                                                    em: ({ children }) => <em className="italic">{children}</em>,
-                                                }}
-                                            >
-                                                {message.text}
-                                            </ReactMarkdown>
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        )}
-                    </div>
+                    )}
                 </div>
             </div>
         </div>
@@ -229,40 +292,28 @@ export const CustomThoughtProcess: React.FC<{ message: ProcessedMessage }> = ({ 
     const [isExpanded, setIsExpanded] = useState(false);
 
     return (
-        <div className="flex justify-start mb-4">
-            <div className="flex items-start space-x-3 max-w-2xl">
+        <div className="flex justify-start mb-3">
+            <div className="flex items-start gap-3 max-w-2xl">
                 <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-yellow-600 rounded-full flex items-center justify-center">
-                        <Brain className="w-4 h-4 text-white" />
+                    <div className="w-8 h-8 bg-[var(--warning-bg)] rounded-xl flex items-center justify-center text-[var(--warning)]">
+                        <ThinkingIcon />
                     </div>
                 </div>
-                <div className="bg-yellow-900/20 text-white rounded-2xl px-4 py-3 shadow-lg border border-yellow-600/30 flex-1">
+                <div className="bg-[var(--warning-bg)] rounded-2xl rounded-tl-md px-4 py-3 border border-[var(--warning)]/20 flex-1">
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                            <Brain className="w-4 h-4 text-yellow-400" />
-                            <span className="font-medium text-yellow-300">AI Thinking</span>
-                        </div>
+                        <span className="text-sm font-medium text-[var(--warning)]">Thinking</span>
                         <button
                             onClick={() => setIsExpanded(!isExpanded)}
-                            className="text-yellow-400 hover:text-yellow-300 transition-colors"
+                            className="text-[var(--warning)] hover:opacity-80 transition-opacity"
                         >
-                            {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                            <ChevronIcon isOpen={isExpanded} />
                         </button>
                     </div>
 
                     {isExpanded && message.text && (
-                        <div className="mt-2 p-3 bg-yellow-900/30 rounded-lg border border-yellow-600/20">
-                            <div className="text-xs text-yellow-400 mb-1">Thought Process:</div>
-                            <div className="text-sm text-yellow-200">
-                                <ReactMarkdown
-                                    remarkPlugins={[remarkGfm]}
-                                    components={{
-                                        p: ({ children }) => <p className="mb-1">{children}</p>,
-                                        code: ({ children }) => <code className="bg-yellow-900/50 px-1 py-0.5 rounded text-xs">{children}</code>,
-                                        strong: ({ children }) => <strong className="font-bold">{children}</strong>,
-                                        em: ({ children }) => <em className="italic">{children}</em>,
-                                    }}
-                                >
+                        <div className="mt-3 p-3 bg-[var(--background)] rounded-xl border border-[var(--surface-border)]">
+                            <div className="text-sm text-[var(--foreground-secondary)]">
+                                <ReactMarkdown remarkPlugins={[remarkGfm]}>
                                     {message.text}
                                 </ReactMarkdown>
                             </div>
@@ -276,42 +327,26 @@ export const CustomThoughtProcess: React.FC<{ message: ProcessedMessage }> = ({ 
 
 // Custom File Component
 export const CustomMessageFile: React.FC<{ name?: string; type?: string }> = ({ name, type }) => (
-    <div className="inline-flex items-center px-2 py-1 bg-gray-700 rounded-lg text-xs text-gray-300 border border-gray-600">
-        <span className="mr-1">📎</span>
+    <div className="inline-flex items-center px-2.5 py-1.5 bg-[var(--surface)] rounded-lg text-xs text-[var(--foreground-muted)] border border-[var(--surface-border)] mt-2">
+        <svg className="w-3.5 h-3.5 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.586-6.586a4 4 0 00-5.656-5.656L5.757 10.758a6 6 0 108.486 8.486L20.5 13" />
+        </svg>
         {name || type || 'File'}
     </div>
 );
 
 // Custom Source Component
-export const CustomMessageSource: React.FC<{ title?: string; url?: string; image?: string }> = ({
-    title,
-    url,
-    image
-}) => {
-    const handleClick = () => {
-        if (url) {
-            window.open(url, '_blank');
-        }
-    };
+export const CustomMessageSource: React.FC<{ title?: string; url?: string; image?: string }> = ({ title, url, image }) => (
+    <div
+        className="inline-flex items-center px-3 py-2 bg-[var(--info-bg)] rounded-xl text-xs text-[var(--info)] border border-[var(--info)]/20 cursor-pointer hover:opacity-80 transition-opacity"
+        onClick={() => url && window.open(url, '_blank')}
+    >
+        {image && <img src={image} alt={title || 'Source'} className="w-4 h-4 rounded mr-2" />}
+        <span>{title || url || 'Source'}</span>
+    </div>
+);
 
-    return (
-        <div
-            className="inline-flex items-center px-3 py-2 bg-blue-900/30 rounded-lg text-xs text-blue-300 border border-blue-500/50 cursor-pointer hover:bg-blue-900/50 transition-colors"
-            onClick={handleClick}
-        >
-            {image && (
-                <img
-                    src={image}
-                    alt={title || 'Source'}
-                    className="w-4 h-4 rounded mr-2"
-                />
-            )}
-            <span>{title || url || 'Source'}</span>
-        </div>
-    );
-};
-
-// Main Message Renderer Component
+// Main Message Renderer
 export const MessageRenderer: React.FC<{ message: ProcessedMessage }> = ({ message }) => {
     switch (message.type) {
         case 'user':
@@ -319,41 +354,33 @@ export const MessageRenderer: React.FC<{ message: ProcessedMessage }> = ({ messa
         case 'assistant':
             return <CustomMessageResponse response={message.text || ''} />;
         case 'function_call':
-            return (
-                <CustomFunctionCall
-                    message={message}
-                />
-            );
+            return <CustomFunctionCall message={message} />;
         case 'function_response':
-            return (
-                <CustomFunctionResponse
-                    message={message}
-                />
-            );
+            return <CustomFunctionResponse message={message} />;
         case 'thought':
-            return (
-                <CustomThoughtProcess
-                    message={message}
-                />
-            );
+            return <CustomThoughtProcess message={message} />;
         default:
             return <CustomMessageResponse response={message.text || ''} />;
     }
 };
 
-// Loading indicator for streaming
+// Streaming Indicator
 export const StreamingIndicator: React.FC = () => (
     <div className="flex justify-start mb-4">
-        <div className="flex items-start space-x-3 max-w-2xl">
+        <div className="flex items-start gap-3 max-w-2xl">
             <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                    <Bot className="w-4 h-4 text-white" />
+                <div className="w-8 h-8 bg-[var(--surface-hover)] rounded-xl flex items-center justify-center text-[var(--brand-primary)]">
+                    <BotIcon />
                 </div>
             </div>
-            <div className="bg-gray-700 text-white rounded-2xl px-4 py-3 shadow-lg border border-gray-600">
-                <div className="flex items-center space-x-2">
-                    <Clock className="w-4 h-4 text-blue-400 animate-spin" />
-                    <span className="text-sm text-gray-300">AI is thinking...</span>
+            <div className="bg-[var(--surface)] rounded-2xl rounded-tl-md px-4 py-3 border border-[var(--surface-border)]">
+                <div className="flex items-center gap-2">
+                    <div className="flex gap-1">
+                        <div className="w-2 h-2 bg-[var(--brand-primary)] rounded-full animate-pulse" style={{ animationDelay: '0ms' }} />
+                        <div className="w-2 h-2 bg-[var(--brand-primary)] rounded-full animate-pulse" style={{ animationDelay: '150ms' }} />
+                        <div className="w-2 h-2 bg-[var(--brand-primary)] rounded-full animate-pulse" style={{ animationDelay: '300ms' }} />
+                    </div>
+                    <span className="text-sm text-[var(--foreground-muted)]">Thinking...</span>
                 </div>
             </div>
         </div>
@@ -363,110 +390,91 @@ export const StreamingIndicator: React.FC = () => (
 // Session Refetching Indicator
 export const SessionRefetchingIndicator: React.FC = () => (
     <div className="flex justify-start mb-4">
-        <div className="flex items-start space-x-3 max-w-2xl">
+        <div className="flex items-start gap-3 max-w-2xl">
             <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                    <Bot className="w-4 h-4 text-white" />
+                <div className="w-8 h-8 bg-[var(--surface-hover)] rounded-xl flex items-center justify-center text-[var(--brand-primary)]">
+                    <BotIcon />
                 </div>
             </div>
-            <div className="bg-gray-700 text-white rounded-2xl px-4 py-3 shadow-lg border border-gray-600">
-                <div className="flex items-center space-x-2">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-400"></div>
-                    <span className="text-sm text-gray-300">Updating conversation...</span>
+            <div className="bg-[var(--surface)] rounded-2xl rounded-tl-md px-4 py-3 border border-[var(--surface-border)]">
+                <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-[var(--surface-border)] border-t-[var(--brand-primary)] rounded-full animate-spin" />
+                    <span className="text-sm text-[var(--foreground-muted)]">Updating...</span>
                 </div>
             </div>
         </div>
     </div>
 );
 
-// Message Skeleton Component
+// Message Skeleton
 export const MessageSkeleton: React.FC = () => (
     <div className="flex justify-start mb-4">
-        <div className="flex items-start space-x-3 max-w-2xl">
+        <div className="flex items-start gap-3 max-w-2xl">
             <div className="flex-shrink-0">
-                <div className="w-8 h-8 bg-gray-600 rounded-full animate-pulse"></div>
+                <div className="w-8 h-8 bg-[var(--surface)] rounded-xl animate-pulse" />
             </div>
-            <div className="bg-gray-700 rounded-2xl px-4 py-3 shadow-lg border border-gray-600 flex-1">
+            <div className="bg-[var(--surface)] rounded-2xl rounded-tl-md px-4 py-3 border border-[var(--surface-border)] flex-1">
                 <div className="space-y-2">
-                    <div className="h-4 bg-gray-600 rounded animate-pulse w-3/4"></div>
-                    <div className="h-4 bg-gray-600 rounded animate-pulse w-1/2"></div>
-                    <div className="h-4 bg-gray-600 rounded animate-pulse w-5/6"></div>
+                    <div className="h-4 bg-[var(--surface-hover)] rounded animate-pulse w-3/4" />
+                    <div className="h-4 bg-[var(--surface-hover)] rounded animate-pulse w-1/2" />
                 </div>
             </div>
         </div>
     </div>
 );
 
-// Process Group Component - Groups function calls and responses
-export const ProcessGroup: React.FC<{
-    messages: ProcessedMessage[];
-}> = ({ messages }) => {
+// Process Group Component
+export const ProcessGroup: React.FC<{ messages: ProcessedMessage[] }> = ({ messages }) => {
     const [isExpanded, setIsExpanded] = useState(false);
 
-    // Filter function calls and responses
     const processMessages = messages.filter(msg =>
         msg.type === 'function_call' || msg.type === 'function_response'
     );
 
     if (processMessages.length === 0) return null;
 
-    // Count different types
     const functionCalls = processMessages.filter(msg => msg.type === 'function_call');
     const functionResponses = processMessages.filter(msg => msg.type === 'function_response');
-    const errors = functionResponses.filter(msg => msg.isError);
-
-    // Check if process is complete (has equal number of calls and responses)
     const isComplete = functionCalls.length > 0 && functionCalls.length === functionResponses.length;
 
     return (
         <div className="flex justify-start mb-4">
-            <div className="flex items-start space-x-3 max-w-2xl">
+            <div className="flex items-start gap-3 max-w-2xl">
                 <div className="flex-shrink-0">
-                    <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center">
-                        <Code className="w-4 h-4 text-white" />
+                    <div className="w-8 h-8 bg-[var(--info-bg)] rounded-xl flex items-center justify-center text-[var(--info)]">
+                        <CodeIcon />
                     </div>
                 </div>
-                <div className="bg-indigo-900/20 text-white rounded-2xl px-4 py-3 shadow-lg border border-indigo-600/30 flex-1">
+                <div className="bg-[var(--surface)] rounded-2xl rounded-tl-md px-4 py-3 border border-[var(--surface-border)] flex-1">
                     <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-2">
-                            <Code className="w-4 h-4 text-indigo-400" />
-                            <span className="font-medium text-indigo-300">Process</span>
-                            <div className="flex items-center space-x-2 text-xs text-indigo-400">
+                        <div className="flex items-center gap-3">
+                            <span className="text-sm font-medium text-[var(--foreground)]">Process</span>
+                            <div className="flex items-center gap-2 text-xs text-[var(--foreground-muted)]">
                                 <span>{functionCalls.length} calls</span>
-                                <span>•</span>
+                                <span>·</span>
                                 <span>{functionResponses.length} responses</span>
-                                {errors.length > 0 && (
-                                    <>
-                                        <span>•</span>
-                                        <span className="text-red-400">{errors.length} errors</span>
-                                    </>
-                                )}
                                 {isComplete && (
                                     <>
-                                        <span>•</span>
-                                        <span className="text-green-400">Complete</span>
+                                        <span>·</span>
+                                        <span className="text-[var(--success)]">Done</span>
                                     </>
                                 )}
                             </div>
                         </div>
                         <button
                             onClick={() => setIsExpanded(!isExpanded)}
-                            className="text-indigo-400 hover:text-indigo-300 transition-colors"
+                            className="text-[var(--foreground-muted)] hover:text-[var(--foreground)] transition-colors"
                         >
-                            {isExpanded ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                            <ChevronIcon isOpen={isExpanded} />
                         </button>
                     </div>
 
                     {isExpanded && (
-                        <div className="mt-3 space-y-3">
+                        <div className="mt-3 space-y-2 pl-3 border-l-2 border-[var(--surface-border)]">
                             {processMessages.map((msg, index) => (
-                                <div key={`${msg.id}-${index}`} className="border-l-2 border-indigo-600/30 pl-3">
-                                    {msg.type === 'function_call' && (
-                                        <CustomFunctionCall message={msg} />
-                                    )}
-                                    {msg.type === 'function_response' && (
-                                        <CustomFunctionResponse message={msg} />
-                                    )}
+                                <div key={`${msg.id}-${index}`}>
+                                    {msg.type === 'function_call' && <CustomFunctionCall message={msg} />}
+                                    {msg.type === 'function_response' && <CustomFunctionResponse message={msg} />}
                                 </div>
                             ))}
                         </div>
@@ -477,7 +485,7 @@ export const ProcessGroup: React.FC<{
     );
 };
 
-// Function to group consecutive function calls and responses
+// Group consecutive function calls and responses
 export const groupProcessMessages = (messages: ProcessedMessage[]): (ProcessedMessage | ProcessedMessage[])[] => {
     const result: (ProcessedMessage | ProcessedMessage[])[] = [];
     let currentGroup: ProcessedMessage[] = [];
@@ -486,17 +494,14 @@ export const groupProcessMessages = (messages: ProcessedMessage[]): (ProcessedMe
         if (message.type === 'function_call' || message.type === 'function_response') {
             currentGroup.push(message);
         } else {
-            // If we have a group, add it to result
             if (currentGroup.length > 0) {
                 result.push(currentGroup);
                 currentGroup = [];
             }
-            // Add the non-process message
             result.push(message);
         }
     }
 
-    // Don't forget the last group
     if (currentGroup.length > 0) {
         result.push(currentGroup);
     }
@@ -504,28 +509,18 @@ export const groupProcessMessages = (messages: ProcessedMessage[]): (ProcessedMe
     return result;
 };
 
-// Grouped Message Renderer - Handles both individual messages and process groups
-export const GroupedMessageRenderer: React.FC<{
-    messages: ProcessedMessage[];
-}> = ({ messages }) => {
+// Grouped Message Renderer
+export const GroupedMessageRenderer: React.FC<{ messages: ProcessedMessage[] }> = ({ messages }) => {
     const groupedMessages = groupProcessMessages(messages);
 
     return (
         <>
             {groupedMessages.map((item, index) => {
                 if (Array.isArray(item)) {
-                    // This is a process group
-                    return (
-                        <ProcessGroup
-                            key={`process-${index}`}
-                            messages={item}
-                        />
-                    );
-                } else {
-                    // This is an individual message
-                    return <MessageRenderer key={`message-${item.id}-${index}`} message={item} />;
+                    return <ProcessGroup key={`process-${index}`} messages={item} />;
                 }
+                return <MessageRenderer key={`message-${item.id}-${index}`} message={item} />;
             })}
         </>
     );
-}; 
+};

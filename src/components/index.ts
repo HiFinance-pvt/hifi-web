@@ -3,6 +3,9 @@ export { WelcomeScreen } from "./WelcomeScreen";
 export { Sidebar } from "./Sidebar";
 export { AuthGuard } from "./AuthGuard";
 
+// UI Components
+export { ThemeToggle } from "./ui/ThemeToggle";
+
 // Re-export commonly used types
 export type {
   User,
@@ -13,6 +16,9 @@ export type {
 
 // Re-export hooks
 export { useChat } from "@/hooks/useChat";
+
+// Re-export contexts
+export { useTheme, ThemeProvider } from "@/contexts/ThemeContext";
 
 // Re-export theme and constants
 export { hiFiTheme } from "@/theme/hifi-theme";

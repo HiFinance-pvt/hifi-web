@@ -268,20 +268,30 @@ export const useSessionStore = create<SessionStore>()(
       },
 
       createSession: async () => {
-        const { setLoading, setError, addSession, currentUserId } = get();
+        const { setLoading, setError, addSession, currentUserId, clearSessions } = get();
 
-        // Get current user ID if not already set
-        let userId = currentUserId;
-        if (!userId) {
-          const currentUser = getCurrentUser();
-          if (currentUser) {
-            userId = currentUser.uid;
-            set({ currentUserId: userId });
-          } else {
-            console.warn("No current user found, cannot create session");
-            setError("No authenticated user found");
-            return null;
-          }
+        // ALWAYS get the current user from Firebase to ensure we have the correct user
+        const currentUser = getCurrentUser();
+        if (!currentUser) {
+          console.warn("No current user found, cannot create session");
+          setError("No authenticated user found");
+          return null;
+        }
+
+        const userId = currentUser.uid;
+        
+        // Check if user has changed and clear stale data
+        if (currentUserId && currentUserId !== userId) {
+          console.log("User changed, clearing stale session data");
+          clearSessions();
+          // Also clear the closure-scoped cache
+          lastCreateTimestamp = null;
+          lastCreatedSession = null;
+        }
+        
+        // Update currentUserId in store
+        if (currentUserId !== userId) {
+          set({ currentUserId: userId });
         }
 
         // If there's an in-flight create, return the same promise
@@ -290,10 +300,12 @@ export const useSessionStore = create<SessionStore>()(
         }
 
         // If we recently created a session and it's still within the stale window, return cached session
+        // But only if the cached session belongs to the current user
         if (
           lastCreateTimestamp &&
           Date.now() - lastCreateTimestamp < CREATE_SESSION_STALE_MS &&
-          lastCreatedSession
+          lastCreatedSession &&
+          lastCreatedSession.userId === userId
         ) {
           return Promise.resolve(lastCreatedSession);
         }

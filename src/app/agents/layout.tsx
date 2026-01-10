@@ -26,7 +26,7 @@ export default function AgentsLayout({ children }: Props) {
   }
 
   return (
-    <div className="flex flex-col lg:flex-row h-screen w-screen bg-[#111827] overflow-hidden">
+    <div className="flex flex-col lg:flex-row h-screen w-screen bg-[var(--background)] overflow-hidden">
       {/* Sidebar - Shared across all agent pages */}
       <div className="relative z-10 w-full lg:w-auto lg:flex-shrink-0">
         <Sidebar

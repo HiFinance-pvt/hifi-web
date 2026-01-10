@@ -1,5 +1,45 @@
 import React, { useState } from "react";
-import { X, Calculator, TrendingUp, Building2, CreditCard, Globe } from "lucide-react";
+
+// Minimal SVG Icons
+const CloseIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <path d="M18 6L6 18M6 6l12 12" />
+  </svg>
+);
+
+const CalculatorIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <rect x="4" y="2" width="16" height="20" rx="2" />
+    <path d="M8 6h8M8 10h2m4 0h2M8 14h2m4 0h2M8 18h2m4 0h2" />
+  </svg>
+);
+
+const TrendingUpIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <path d="M22 7l-8.5 8.5-5-5L2 17M22 7h-6m6 0v6" />
+  </svg>
+);
+
+const BuildingIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16M3 21h18M9 7h1m4 0h1M9 11h1m4 0h1M9 15h1m4 0h1" />
+  </svg>
+);
+
+const CreditCardIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <rect x="2" y="5" width="20" height="14" rx="2" />
+    <path d="M2 10h20M6 15h4" />
+  </svg>
+);
+
+const GlobeIcon = ({ className = "w-5 h-5" }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <circle cx="12" cy="12" r="10" />
+    <ellipse cx="12" cy="12" rx="4" ry="10" />
+    <path d="M2 12h20" />
+  </svg>
+);
 import { TaxRegime } from "@/stores/taxTraderStore";
 
 export type ResidenceStatus = "indian" | "foreign";
@@ -144,7 +184,7 @@ export default function TaxPreferencesModal({
         <div className="flex items-center justify-between p-6 border-b border-gray-700">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-[#C54F51]/20 rounded-full flex items-center justify-center">
-              <Calculator className="w-5 h-5 text-[#C54F51]" />
+              <CalculatorIcon className="w-5 h-5 text-[var(--brand-primary)]" />
             </div>
             <div>
               <h2 className="text-xl font-semibold text-white">
@@ -160,7 +200,7 @@ export default function TaxPreferencesModal({
             className="w-8 h-8 rounded-full bg-gray-800 hover:bg-gray-700 flex items-center justify-center transition-colors"
             disabled={isLoading}
           >
-            <X className="w-4 h-4 text-gray-400" />
+            <CloseIcon className="w-4 h-4 text-[var(--foreground-muted)]" />
           </button>
         </div>
 
@@ -241,7 +281,7 @@ export default function TaxPreferencesModal({
                   required
                 />
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                  <CreditCard className="w-4 h-4 text-gray-400" />
+                  <CreditCardIcon className="w-4 h-4 text-[var(--foreground-muted)]" />
                 </div>
               </div>
               <p className="text-xs text-gray-500">
@@ -283,9 +323,9 @@ export default function TaxPreferencesModal({
                             : "border-gray-600"
                         }`}
                       >
-                        <Globe
+                        <GlobeIcon
                           className={`w-3 h-3 ${
-                            residenceStatus === option.value ? "" : "text-gray-600"
+                            residenceStatus === option.value ? "" : "text-[var(--foreground-subtle)]"
                           }`}
                         />
                       </div>
@@ -395,7 +435,7 @@ export default function TaxPreferencesModal({
                 maxLength={10}
               />
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                <Building2 className="w-4 h-4 text-gray-400" />
+                <BuildingIcon className="w-4 h-4 text-[var(--foreground-muted)]" />
               </div>
             </div>
             <p className="text-xs text-gray-500">

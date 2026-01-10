@@ -5,19 +5,79 @@ import { ChatSession } from "@/types/chat";
 import { NAVIGATION_ITEMS } from "@/constants/mockData";
 import { useSessionStore } from "@/stores/sessionStore";
 import { useDeleteSessionMutation } from "@/hooks/adk";
-import {
-  Plus,
-  Search,
-  Bot,
-  Settings,
-  LogOut,
-  Star,
-  PanelLeftOpen,
-  PanelLeftClose,
-  MessageSquare,
-  Edit2,
-  Loader2,
-} from "lucide-react";
+// Minimal SVG Icons
+const PlusIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <path d="M12 5v14m-7-7h14" />
+  </svg>
+);
+
+const SearchIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <circle cx="11" cy="11" r="7" />
+    <path d="M21 21l-4.35-4.35" />
+  </svg>
+);
+
+const ChatIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+  </svg>
+);
+
+const SettingsIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <circle cx="12" cy="12" r="3" />
+    <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" />
+  </svg>
+);
+
+const LogOutIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" />
+  </svg>
+);
+
+const StarIcon = ({ className = "w-4 h-4", filled = false }: { className?: string; filled?: boolean }) => (
+  <svg className={className} fill={filled ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+  </svg>
+);
+
+const PanelLeftIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <rect x="3" y="3" width="18" height="18" rx="2" />
+    <path d="M9 3v18" />
+  </svg>
+);
+
+const EditIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
+  </svg>
+);
+
+const TrashIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z" />
+  </svg>
+);
+
+const LoaderIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={`${className} animate-spin`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <circle cx="12" cy="12" r="10" strokeOpacity={0.25} />
+    <path d="M12 2a10 10 0 019.5 7" strokeOpacity={1} />
+  </svg>
+);
+
+const BotIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
+  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <rect x="4" y="4" width="16" height="16" rx="4" />
+    <circle cx="9" cy="11" r="1.5" />
+    <circle cx="15" cy="11" r="1.5" />
+    <path d="M9 15h6" />
+  </svg>
+);
 import { logout } from "@/lib/firebase/firebase";
 import { env } from "@/lib/env";
 import { useRouter } from "next/navigation";
@@ -103,13 +163,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
             createdAt: session.lastUpdateTime
               ? new Date(session.lastUpdateTime)
               : session.createdAt
-              ? new Date(session.createdAt)
-              : new Date(),
+                ? new Date(session.createdAt)
+                : new Date(),
             updatedAt: session.lastUpdateTime
               ? new Date(session.lastUpdateTime)
               : session.updatedAt
-              ? new Date(session.updatedAt)
-              : new Date(),
+                ? new Date(session.updatedAt)
+                : new Date(),
             conversations: [],
           };
         } catch (err) {
@@ -154,11 +214,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
       );
     }
 
-    // Fallback to lucide-react icons
-    const iconMap: { [key: string]: React.ComponentType<any> } = {
-      Bot: Bot,
-      Settings: Settings,
-      LogOut: LogOut,
+    // Use custom minimal icons
+    const iconMap: { [key: string]: React.ComponentType<{ className?: string }> } = {
+      Bot: BotIcon,
+      Settings: SettingsIcon,
+      LogOut: LogOutIcon,
     };
 
     const IconComponent = iconMap[iconValue];
@@ -255,11 +315,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
     return (
       <div
         onClick={() => !isEditing && handleSessionClick(session.id)}
-        className={`group flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all duration-400 ease-out transform hover:scale-[1.02] ${
-          activeSessionId === session.id
-            ? "bg-teal-500/20 border border-teal-500/50 shadow-lg shadow-teal-500/10"
-            : "hover:bg-gray-700/30 border border-transparent hover:border-gray-600/30"
-        } ${isDeleting ? "opacity-50 pointer-events-none" : ""}`}
+        className={`group flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all duration-400 ease-out transform hover:scale-[1.02] ${activeSessionId === session.id
+          ? "bg-teal-500/20 border border-[var(--brand-primary)]/50 shadow-lg shadow-teal-500/10"
+          : "hover:bg-[var(--surface-hover)] border border-transparent hover:border-[var(--surface-border)]"
+          } ${isDeleting ? "opacity-50 pointer-events-none" : ""}`}
       >
         <div className="flex-1 min-w-0">
           {isEditing ? (
@@ -272,16 +331,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 if (e.key === "Enter") handleSaveRename(session.id);
                 if (e.key === "Escape") handleCancelRename();
               }}
-              className="w-full bg-gray-800 border border-teal-500 rounded px-2 py-1 text-sm text-white focus:outline-none focus:ring-2 focus:ring-teal-500/50 transition-all duration-300 ease-out"
+              className="w-full bg-[var(--surface)] border border-[var(--brand-primary)] rounded px-2 py-1 text-sm text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-[var(--brand-primary-muted)] transition-all duration-300 ease-out"
               autoFocus
             />
           ) : (
             <p
-              className={`text-sm truncate transition-colors duration-300 ease-out ${
-                activeSessionId === session.id
-                  ? "text-teal-300"
-                  : "text-gray-200"
-              }`}
+              className={`text-sm truncate transition-colors duration-300 ease-out ${activeSessionId === session.id
+                ? "text-teal-300"
+                : "text-[var(--foreground)]"
+                }`}
             >
               {session.title}
             </p>
@@ -289,7 +347,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
         <div className="flex items-center ml-2 relative">
           {/* Time - visible by default, hidden on hover */}
-          <span className="text-xs text-gray-500 group-hover:opacity-0 transition-opacity duration-400 ease-out">
+          <span className="text-xs text-[var(--foreground-subtle)] group-hover:opacity-0 transition-opacity duration-400 ease-out">
             {formatDate(session.updatedAt)}
           </span>
 
@@ -301,21 +359,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
               title={isStarred ? "Unstar chat" : "Star chat"}
               disabled={isDeleting}
             >
-              <Star
-                className={`w-3 h-3 transition-all duration-300 ease-out ${
-                  isStarred
-                    ? "text-yellow-400 fill-yellow-400 scale-110"
-                    : "text-gray-400 hover:text-yellow-400 hover:scale-110"
-                }`}
+              <StarIcon
+                className={`w-3 h-3 transition-all duration-300 ease-out ${isStarred
+                  ? "text-[var(--accent-gold)] fill-yellow-400 scale-110"
+                  : "text-[var(--foreground-muted)] hover:text-[var(--accent-gold)] hover:scale-110"
+                  }`}
               />
             </button>
             <button
               onClick={(e) => handleStartRename(session.id, session.title, e)}
-              className="p-1 rounded hover:bg-blue-500/20 transition-all duration-300 ease-out transform hover:scale-110"
+              className="p-1 rounded hover:bg-[var(--info-bg)] transition-all duration-300 ease-out transform hover:scale-110"
               title="Rename chat"
               disabled={isDeleting}
             >
-              <Edit2 className="w-3 h-3 text-gray-400 hover:text-blue-400 transition-all duration-300 ease-out" />
+              <EditIcon className="w-3 h-3 text-[var(--foreground-muted)] hover:text-[var(--info)] transition-all duration-300 ease-out" />
             </button>
             <button
               onClick={(e) => handleDeleteSession(session.id, e)}
@@ -324,10 +381,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
               disabled={isDeleting}
             >
               {isDeleting ? (
-                <Loader2 className="w-3 h-3 text-gray-400 animate-spin" />
+                <LoaderIcon className="w-3 h-3 text-[var(--foreground-muted)]" />
               ) : (
                 <svg
-                  className="w-3 h-3 text-gray-400 hover:text-red-400 transition-all duration-300 ease-out"
+                  className="w-3 h-3 text-[var(--foreground-muted)] hover:text-[var(--error)] transition-all duration-300 ease-out"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -349,8 +406,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   const LoadingState = () => (
     <div className="flex items-center justify-center py-8">
-      <div className="flex items-center space-x-2 text-gray-400">
-        <Loader2 className="w-4 h-4 animate-spin" />
+      <div className="flex items-center space-x-2 text-[var(--foreground-muted)]">
+        <LoaderIcon className="w-4 h-4" />
         <span className="text-sm">Loading sessions...</span>
       </div>
     </div>
@@ -388,16 +445,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   if (isCollapsed) {
     return (
-      <div className="flex flex-col h-full border-r border-gray-700/15 bg-gray-900/20 backdrop-blur-sm transition-all duration-500 ease-in-out w-16">
+      <div className="flex flex-col h-full border-r border-[var(--surface-border)] bg-[var(--background)] backdrop-blur-sm transition-all duration-500 ease-in-out w-16">
         {/* Collapsed Header with Toggle */}
-        <div className="p-3 border-b border-gray-700/20 flex items-center justify-center">
+        <div className="p-3 border-b border-[var(--surface-border)] flex items-center justify-center">
           <button
             onClick={() => setIsCollapsed(false)}
             className="p-2 rounded-lg transition-all duration-400 ease-out transform hover:scale-125 hover:rotate-12 active:scale-95"
             style={{ backgroundColor: "#00C2AB" }}
             title="Expand sidebar"
           >
-            <PanelLeftOpen className="w-4 h-4 text-white transition-transform duration-300 ease-out" />
+            <PanelLeftIcon className="w-4 h-4 text-[var(--foreground)] transition-transform duration-300 ease-out" />
           </button>
         </div>
 
@@ -406,44 +463,44 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* Search Button */}
           <button
             onClick={() => setIsCollapsed(false)}
-            className="w-10 h-10 bg-gray-800/50 hover:bg-gray-700/20 rounded-lg flex items-center justify-center transition-all duration-400 ease-out transform hover:scale-110 hover:shadow-lg hover:shadow-gray-700/30"
+            className="w-10 h-10 bg-[var(--surface)] hover:bg-[var(--surface-hover)] rounded-lg flex items-center justify-center transition-all duration-400 ease-out transform hover:scale-110 hover:shadow-lg hover:shadow-[var(--surface-border)]"
             title="Search"
           >
-            <Search className="w-4 h-4 text-gray-400 hover:text-teal-400 transition-all duration-300 ease-out" />
+            <SearchIcon className="w-4 h-4 text-[var(--foreground-muted)] hover:text-[var(--brand-primary)] transition-all duration-300 ease-out" />
           </button>
 
           {/* Chats Button */}
           <button
             onClick={() => setIsCollapsed(false)}
-            className="w-10 h-10 bg-gray-800/50 hover:bg-gray-700/20 rounded-lg flex items-center justify-center transition-all duration-400 ease-out transform hover:scale-110 hover:shadow-lg hover:shadow-gray-700/30"
+            className="w-10 h-10 bg-[var(--surface)] hover:bg-[var(--surface-hover)] rounded-lg flex items-center justify-center transition-all duration-400 ease-out transform hover:scale-110 hover:shadow-lg hover:shadow-[var(--surface-border)]"
             title="View Chats"
           >
-            <MessageSquare className="w-4 h-4 text-gray-400 hover:text-teal-400 transition-all duration-300 ease-out" />
+            <ChatIcon className="w-4 h-4 text-[var(--foreground-muted)] hover:text-[var(--brand-primary)] transition-all duration-300 ease-out" />
           </button>
 
           {/* New Chat Button */}
           <button
             onClick={handleNewSession}
-            className="w-10 h-10 bg-teal-600 hover:bg-teal-700 rounded-lg flex items-center justify-center transition-all duration-400 ease-out transform hover:scale-110 hover:shadow-lg hover:shadow-teal-500/40"
+            className="w-10 h-10 bg-teal-600 hover:bg-teal-700 rounded-lg flex items-center justify-center transition-all duration-400 ease-out transform hover:scale-110 hover:shadow-lg hover:shadow-[var(--brand-primary)]/40"
             title="New Chat"
             disabled={isLoading}
           >
             {isLoading ? (
-              <Loader2 className="w-4 h-4 text-white animate-spin" />
+              <LoaderIcon className="w-4 h-4 text-[var(--foreground)]" />
             ) : (
-              <Plus className="w-4 h-4 text-white transition-transform duration-300 ease-out hover:rotate-90" />
+              <PlusIcon className="w-4 h-4 text-[var(--foreground)] transition-transform duration-300 ease-out hover:rotate-90" />
             )}
           </button>
         </div>
 
         {/* Collapsed User Profile Section */}
         {user && (
-          <div className="mt-auto border-t border-gray-700/20 p-3 animate-in slide-in-from-left-2 duration-500 ease-out">
+          <div className="mt-auto border-t border-[var(--surface-border)] p-3 animate-in slide-in-from-left-2 duration-500 ease-out">
             {/* User Avatar */}
             <div className="flex justify-center mb-3">
               <div className="relative group">
-                <div className="w-8 h-8 rounded-full overflow-hidden bg-gradient-to-br from-teal-400 to-blue-500 flex items-center justify-center hover:scale-125 transition-all duration-400 ease-out hover:shadow-lg hover:shadow-teal-500/40">
-                  <span className="text-white font-medium text-xs transition-all overflow-hidden rounded-full duration-300 ease-out">
+                <div className="w-8 h-8 rounded-full overflow-hidden bg-gradient-to-br from-[var(--brand-primary)] to-[#0ea5e9] flex items-center justify-center hover:scale-125 transition-all duration-400 ease-out hover:shadow-lg hover:shadow-[var(--brand-primary)]/40">
+                  <span className="text-[var(--foreground)] font-medium text-xs transition-all overflow-hidden rounded-full duration-300 ease-out">
                     <Image
                       src={user.photoURL || ""}
                       alt="User Avatar"
@@ -456,7 +513,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 {user.emailVerified && (
                   <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-teal-500 rounded-full flex items-center justify-center transition-all duration-400 ease-out group-hover:scale-150">
                     <svg
-                      className="w-2 h-2 text-white"
+                      className="w-2 h-2 text-[var(--foreground)]"
                       fill="currentColor"
                       viewBox="0 0 20 20"
                     >
@@ -489,7 +546,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       router.push("/agents");
                     }
                   }}
-                  className="w-10 h-10 flex items-center justify-center rounded-lg text-gray-400 hover:text-white hover:bg-gray-700/20 transition-all duration-400 ease-out transform hover:scale-110 hover:shadow-lg hover:shadow-gray-700/30"
+                  className="w-10 h-10 flex items-center justify-center rounded-lg text-[var(--foreground-muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition-all duration-400 ease-out transform hover:scale-110 hover:shadow-lg hover:shadow-[var(--surface-border)]"
                   title={item.label}
                   style={{
                     transitionDelay: `${index * 50}ms`,
@@ -508,10 +565,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
   }
 
   return (
-    <div className="flex flex-col h-full border-r border-gray-700/20 bg-gray-900/15 backdrop-blur-sm transition-all duration-500 ease-in-out w-80">
+    <div className="flex flex-col h-full border-r border-[var(--surface-border)] bg-[var(--background)] backdrop-blur-sm transition-all duration-500 ease-in-out w-80">
       {/* Header with Logo and Toggle */}
-      <div className="p-4 border-b border-gray-700/20 flex items-center justify-between">
-        <h1 className="text-xl font-bold text-white animate-in slide-in-from-left-2 duration-500 ease-out">
+      <div className="p-4 border-b border-[var(--surface-border)] flex items-center justify-between">
+        <h1 className="text-xl font-bold text-[var(--foreground)] animate-in slide-in-from-left-2 duration-500 ease-out">
           Hi-Fi
         </h1>
         <button
@@ -520,20 +577,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
           style={{ backgroundColor: "#00C2AB" }}
           title="Collapse sidebar"
         >
-          <PanelLeftClose className="w-4 h-4 text-white transition-transform duration-300 ease-out" />
+          <PanelLeftIcon className="w-4 h-4 text-[var(--foreground)] transition-transform duration-300 ease-out" />
         </button>
       </div>
 
       {/* Search Bar */}
       <div className="p-4 animate-in slide-in-from-left-2 duration-500 ease-out">
         <div className="relative flex items-center gap-2 group">
-          <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2 duration-300 ease-out group-focus-within:text-teal-400 z-10 pointer-events-none" />
+          <SearchIcon className="w-4 h-4 text-[var(--foreground-muted)] absolute left-3 top-1/2 transform -translate-y-1/2 duration-300 ease-out group-focus-within:text-[var(--brand-primary)] z-10 pointer-events-none" />
           <input
             type="text"
             placeholder="Search sessions..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-600/20 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/30 transition-all duration-400 ease-out backdrop-blur-sm relative z-0"
+            className="w-full pl-10 pr-4 py-2 border border-[var(--surface-border)] rounded-lg text-[var(--foreground)] placeholder-[var(--foreground-subtle)] focus:outline-none focus:border-[var(--brand-primary)] focus:ring-2 focus:ring-[var(--brand-primary-muted)] transition-all duration-400 ease-out backdrop-blur-sm relative z-0"
           />
         </div>
 
@@ -541,12 +598,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <button
           onClick={onNewSession}
           disabled={isLoading}
-          className="w-full mt-3 flex items-center justify-center space-x-2 p-2 bg-teal-600 hover:bg-teal-700 disabled:bg-teal-600/50 disabled:cursor-not-allowed rounded-lg text-white transition-all duration-300 ease-out hover:scale-105 disabled:hover:scale-100"
+          className="w-full mt-3 flex items-center justify-center space-x-2 p-2 bg-teal-600 hover:bg-teal-700 disabled:bg-teal-600/50 disabled:cursor-not-allowed rounded-lg text-[var(--foreground)] transition-all duration-300 ease-out hover:scale-105 disabled:hover:scale-100"
         >
           {isLoading ? (
-            <Loader2 className="w-4 h-4 text-white animate-spin" />
+            <LoaderIcon className="w-4 h-4 text-[var(--foreground)]" />
           ) : (
-            <Plus className="w-4 h-4 text-white" />
+            <PlusIcon className="w-4 h-4 text-[var(--foreground)]" />
           )}
           <span className="text-sm font-medium">
             {isLoading ? "Creating..." : "New Chat"}
@@ -566,7 +623,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Starred Sessions */}
         {!isLoading && !error && filteredStarredSessions.length > 0 && (
           <div className="mb-6">
-            <h3 className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-3 transition-colors duration-300 ease-out hover:text-gray-300">
+            <h3 className="text-xs font-medium text-[var(--foreground-muted)] uppercase tracking-wider mb-3 transition-colors duration-300 ease-out hover:text-[var(--foreground-secondary)]">
               Starred
             </h3>
             <div className="space-y-1">
@@ -588,7 +645,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Chat Sessions */}
         {!isLoading && !error && filteredChatSessions.length > 0 && (
           <div>
-            <h3 className="text-xs font-medium text-gray-400 uppercase tracking-wider mb-3 transition-colors duration-300 ease-out hover:text-gray-300">
+            <h3 className="text-xs font-medium text-[var(--foreground-muted)] uppercase tracking-wider mb-3 transition-colors duration-300 ease-out hover:text-[var(--foreground-secondary)]">
               Chats
             </h3>
             <div className="space-y-1">
@@ -596,9 +653,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <div
                   key={session.id}
                   style={{
-                    animationDelay: `${
-                      (index + filteredStarredSessions.length) * 100
-                    }ms`,
+                    animationDelay: `${(index + filteredStarredSessions.length) * 100
+                      }ms`,
                   }}
                   className="animate-in slide-in-from-left-5 duration-500 ease-out"
                 >
@@ -612,8 +668,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Loading State */}
         {(isLoading || !Array.isArray(sessions)) && (
           <div className="text-center py-8">
-            <Loader2 className="w-6 h-6 text-gray-400 animate-spin mx-auto mb-2" />
-            <p className="text-gray-500 text-sm">Loading sessions...</p>
+            <LoaderIcon className="w-6 h-6 text-[var(--foreground-muted)] mx-auto mb-2" />
+            <p className="text-[var(--foreground-subtle)] text-sm">Loading sessions...</p>
             {!Array.isArray(sessions) && sessions && (
               <p className="text-yellow-500 text-xs mt-1">
                 Invalid session data format detected
@@ -643,7 +699,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           filteredChatSessions.length === 0 &&
           transformedSessions.length > 0 && (
             <div className="text-center py-8 animate-in fade-in duration-600 ease-out">
-              <p className="text-gray-500 text-sm">
+              <p className="text-[var(--foreground-subtle)] text-sm">
                 No sessions match your search
               </p>
             </div>
@@ -656,18 +712,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
           transformedSessions.length === 0 && (
             <div className="text-center py-8 animate-in fade-in duration-600 ease-out">
               <div className="flex flex-col items-center space-y-3">
-                <MessageSquare className="w-12 h-12 text-gray-600" />
+                <ChatIcon className="w-12 h-12 text-[var(--foreground-subtle)]" />
                 <div>
-                  <p className="text-gray-400 text-sm font-medium">
+                  <p className="text-[var(--foreground-muted)] text-sm font-medium">
                     No chat sessions yet
                   </p>
-                  <p className="text-gray-500 text-xs mt-1">
+                  <p className="text-[var(--foreground-subtle)] text-xs mt-1">
                     Start a new conversation to get started
                   </p>
                 </div>
                 <button
                   onClick={handleNewSession}
-                  className="px-4 py-2 bg-teal-600 hover:bg-teal-700 rounded-lg text-white text-sm transition-colors duration-200"
+                  className="px-4 py-2 bg-teal-600 hover:bg-teal-700 rounded-lg text-[var(--foreground)] text-sm transition-colors duration-200"
                   disabled={isLoading}
                 >
                   {isLoading ? "Creating..." : "Start First Chat"}
@@ -679,12 +735,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* User Profile Section */}
       {user && (
-        <div className="border-t border-gray-700/20 p-4 animate-in slide-in-from-bottom-5 duration-600 ease-out">
+        <div className="border-t border-[var(--surface-border)] p-4 animate-in slide-in-from-bottom-5 duration-600 ease-out">
           {/* User Info */}
           <div className="flex items-center space-x-3 mb-4 group">
             <div className="relative">
-              <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-teal-400 to-blue-500 flex items-center justify-center hover:scale-125 transition-all duration-400 ease-out hover:shadow-lg hover:shadow-teal-500/40">
-                <span className="text-white font-medium text-sm transition-all duration-300 ease-out">
+              <div className="w-10 h-10 rounded-full overflow-hidden bg-gradient-to-br from-[var(--brand-primary)] to-[#0ea5e9] flex items-center justify-center hover:scale-125 transition-all duration-400 ease-out hover:shadow-lg hover:shadow-[var(--brand-primary)]/40">
+                <span className="text-[var(--foreground)] font-medium text-sm transition-all duration-300 ease-out">
                   <Image
                     src={user.photoURL || ""}
                     alt="User Avatar"
@@ -697,7 +753,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               {user.emailVerified && (
                 <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-teal-500 rounded-full flex items-center justify-center transition-all duration-400 ease-out group-hover:scale-150">
                   <svg
-                    className="w-2.5 h-2.5 text-white"
+                    className="w-2.5 h-2.5 text-[var(--foreground)]"
                     fill="currentColor"
                     viewBox="0 0 20 20"
                   >
@@ -711,7 +767,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               )}
             </div>
             <div className="flex-1">
-              <p className="text-white font-medium text-sm transition-colors duration-300 ease-out">
+              <p className="text-[var(--foreground)] font-medium text-sm transition-colors duration-300 ease-out">
                 {user.displayName}
               </p>
               {/* {user.role && (
@@ -739,7 +795,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     router.push("/agents");
                   }
                 }}
-                className="w-full flex items-center space-x-3 p-2 rounded-lg text-gray-300 hover:text-white hover:bg-gray-700/20 transition-all duration-400 ease-out text-sm transform hover:scale-[1.02] hover:shadow-md"
+                className="w-full flex items-center space-x-3 p-2 rounded-lg text-[var(--foreground-secondary)] hover:text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition-all duration-400 ease-out text-sm transform hover:scale-[1.02] hover:shadow-md"
                 style={{
                   transitionDelay: `${index * 100}ms`,
                 }}

@@ -1,731 +1,444 @@
 @import "tailwindcss";
 @source "@/node_modules/reablocks";
-/* @import "@/node_modules/reablocks/dist/index.css"; */
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ============================================================================
+   HI-FI FINANCIAL ASSISTANT - FI-INSPIRED MINIMAL THEME
+   A sophisticated dark teal theme for personal finance AI
+   ============================================================================ */
+
+/* ============================================================================
+   ROOT VARIABLES - DARK THEME (Default)
+   ============================================================================ */
+:root,
+.theme-dark,
+[data-theme="dark"] {
+  /* Core backgrounds - Fi-inspired dark teal */
+  --background: #0a1f1c;
+  --background-secondary: #0d2925;
+  --background-tertiary: #12332e;
+  --background-elevated: #153d37;
+  
+  /* Surface colors */
+  --surface: #12332e;
+  --surface-hover: #1a4540;
+  --surface-active: #1f524b;
+  --surface-border: rgba(4, 166, 106, 0.15);
+  
+  /* Text colors - Clean and readable */
+  --foreground: #f0fdf9;
+  --foreground-secondary: #a7c7c1;
+  --foreground-muted: #6b9e94;
+  --foreground-subtle: #4a7d72;
+  
+  /* Brand colors - Fi Green */
+  --brand-primary: #04a66a;
+  --brand-primary-hover: #05c47d;
+  --brand-primary-active: #038a58;
+  --brand-primary-muted: rgba(4, 166, 106, 0.12);
+  
+  /* Accent colors - Warm gold for highlights */
+  --accent-gold: #c9a227;
+  --accent-gold-hover: #ddb62e;
+  --accent-gold-muted: rgba(201, 162, 39, 0.12);
+  
+  /* Status colors - Subtle */
+  --success: #04a66a;
+  --success-bg: rgba(4, 166, 106, 0.1);
+  --warning: #d4a017;
+  --warning-bg: rgba(212, 160, 23, 0.1);
+  --error: #e5484d;
+  --error-bg: rgba(229, 72, 77, 0.1);
+  --info: #0ea5e9;
+  --info-bg: rgba(14, 165, 233, 0.1);
+  
+  /* Gradients - Subtle */
+  --gradient-brand: linear-gradient(135deg, #04a66a 0%, #038a58 100%);
+  --gradient-surface: linear-gradient(180deg, #12332e 0%, #0a1f1c 100%);
+  --gradient-glow: radial-gradient(ellipse at 50% 0%, rgba(4, 166, 106, 0.15) 0%, transparent 60%);
+  
+  /* Shadows - Minimal */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.25);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.3);
+  --shadow-glow: 0 0 40px rgba(4, 166, 106, 0.15);
+  
+  /* Component tokens */
+  --card-bg: var(--surface);
+  --card-border: var(--surface-border);
+  --input-bg: rgba(4, 166, 106, 0.05);
+  --input-border: var(--surface-border);
+  --input-focus: var(--brand-primary);
+  
+  /* Reablocks overrides */
+  --reablocks-theme: dark;
+  --primary: var(--brand-primary);
+  --primary-active: var(--brand-primary-active);
+  --primary-hover: var(--brand-primary-hover);
+  --panel: var(--background);
+  --panel-accent: var(--surface);
+  --text-primary: var(--foreground);
+  --text-secondary: var(--foreground-secondary);
 }
 
+/* ============================================================================
+   LIGHT THEME
+   ============================================================================ */
+.theme-light,
+[data-theme="light"] {
+  /* Core backgrounds */
+  --background: #f7faf9;
+  --background-secondary: #ffffff;
+  --background-tertiary: #eef5f3;
+  --background-elevated: #ffffff;
+  
+  /* Surface colors */
+  --surface: #ffffff;
+  --surface-hover: #eef5f3;
+  --surface-active: #e0ece9;
+  --surface-border: rgba(4, 166, 106, 0.2);
+  
+  /* Text colors */
+  --foreground: #0a1f1c;
+  --foreground-secondary: #2d4a44;
+  --foreground-muted: #4a6b64;
+  --foreground-subtle: #6b8e86;
+  
+  /* Brand colors */
+  --brand-primary: #038a58;
+  --brand-primary-hover: #027048;
+  --brand-primary-active: #025c3b;
+  --brand-primary-muted: rgba(3, 138, 88, 0.08);
+  
+  /* Accent colors */
+  --accent-gold: #a68517;
+  --accent-gold-hover: #8a6f13;
+  --accent-gold-muted: rgba(166, 133, 23, 0.08);
+  
+  /* Status colors */
+  --success: #038a58;
+  --success-bg: rgba(3, 138, 88, 0.06);
+  --warning: #a68517;
+  --warning-bg: rgba(166, 133, 23, 0.06);
+  --error: #c33;
+  --error-bg: rgba(204, 51, 51, 0.06);
+  --info: #0284c7;
+  --info-bg: rgba(2, 132, 199, 0.06);
+  
+  /* Gradients */
+  --gradient-brand: linear-gradient(135deg, #038a58 0%, #025c3b 100%);
+  --gradient-surface: linear-gradient(180deg, #ffffff 0%, #f7faf9 100%);
+  --gradient-glow: radial-gradient(ellipse at 50% 0%, rgba(3, 138, 88, 0.08) 0%, transparent 60%);
+  
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.08);
+  --shadow-glow: 0 0 40px rgba(3, 138, 88, 0.08);
+  
+  /* Component tokens */
+  --card-bg: var(--surface);
+  --card-border: var(--surface-border);
+  --input-bg: #f7faf9;
+  --input-border: var(--surface-border);
+  --input-focus: var(--brand-primary);
+  
+  /* Reablocks overrides */
+  --reablocks-theme: light;
+  --primary: var(--brand-primary);
+  --primary-active: var(--brand-primary-active);
+  --primary-hover: var(--brand-primary-hover);
+  --panel: var(--background);
+  --panel-accent: var(--surface);
+  --text-primary: var(--foreground);
+  --text-secondary: var(--foreground-secondary);
+}
+
+/* ============================================================================
+   TAILWIND THEME INTEGRATION
+   ============================================================================ */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: "Plus Jakarta Sans", "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ============================================================================
+   BASE STYLES
+   ============================================================================ */
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: "Figtree", sans-serif;
+  font-family: "Plus Jakarta Sans", "Inter", system-ui, sans-serif;
+  font-weight: 500;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
-/* Custom gradient utilities for Agents Hub */
-.bg-gradient-radial {
-  background: radial-gradient(circle, var(--tw-gradient-stops));
+/* Headings - Clean and bold */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.25;
+  color: var(--foreground);
 }
 
-/* Text clamp utilities */
+h1 { font-size: 2.25rem; font-weight: 700; }
+h2 { font-size: 1.75rem; }
+h3 { font-size: 1.375rem; }
+h4 { font-size: 1.125rem; }
+
+/* Links - Subtle */
+a {
+  color: var(--brand-primary);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+a:hover {
+  color: var(--brand-primary-hover);
+}
+
+/* ============================================================================
+   UTILITY CLASSES
+   ============================================================================ */
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
-  line-clamp: 2;
   overflow: hidden;
-  text-overflow: ellipsis;
 }
 
 .line-clamp-3 {
   display: -webkit-box;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
-  line-clamp: 3;
   overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-.line-clamp-4 {
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 4;
-  line-clamp: 4;
-  overflow: hidden;
-  text-overflow: ellipsis;
+/* Gradient text */
+.text-gradient-brand {
+  background: var(--gradient-brand);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-/* Agents Page Enhanced Styles */
+/* Card styles - Minimal */
+.card-elevated {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 16px;
+  transition: border-color 0.2s ease;
+}
+
+.card-elevated:hover {
+  border-color: rgba(4, 166, 106, 0.3);
+}
+
+/* Button styles - Clean */
+.btn-primary {
+  background: var(--brand-primary);
+  color: white;
+  font-weight: 600;
+  padding: 0.75rem 1.25rem;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.btn-primary:hover {
+  background: var(--brand-primary-hover);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--foreground);
+  font-weight: 500;
+  padding: 0.75rem 1.25rem;
+  border-radius: 12px;
+  border: 1px solid var(--surface-border);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-secondary:hover {
+  background: var(--surface-hover);
+  border-color: var(--brand-primary);
+}
+
+/* Input styles - Subtle */
+.input-field {
+  background: var(--input-bg);
+  border: 1px solid var(--input-border);
+  border-radius: 12px;
+  padding: 0.875rem 1rem;
+  font-size: 1rem;
+  color: var(--foreground);
+  transition: border-color 0.15s ease;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: var(--brand-primary);
+}
+
+.input-field::placeholder {
+  color: var(--foreground-subtle);
+}
+
+/* ============================================================================
+   SCROLLBAR - Minimal
+   ============================================================================ */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--surface-border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--foreground-subtle);
+}
+
+/* Selection */
+::selection {
+  background: var(--brand-primary);
+  color: white;
+}
+
+/* Focus */
+:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+/* ============================================================================
+   AGENTS PAGE
+   ============================================================================ */
 .agents-page-container {
   position: relative;
   overflow: hidden;
-  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.3) 0%, rgba(17, 24, 39, 0.7) 100%);
+  background: var(--background);
   width: 100vw;
   max-width: 100vw;
 }
 
-.agents-particles-reactbits-bg {
-  background: 
-    radial-gradient(circle at 20% 80%, rgba(255, 215, 0, 0.25) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(255, 107, 53, 0.25) 0%, transparent 50%),
-    radial-gradient(circle at 40% 40%, rgba(0, 206, 209, 0.2) 0%, transparent 50%),
-    linear-gradient(
-      135deg, 
-      rgba(255, 105, 180, 0.1) 0%, 
-      rgba(157, 78, 221, 0.15) 25%,
-      rgba(50, 205, 50, 0.1) 50%,
-      rgba(247, 33, 133, 0.12) 75%,
-      transparent 100%
-    );
-  pointer-events: none;
-  z-index: -1;
-  overflow: hidden;
-}
-
-.agents-page-container canvas {
-  mix-blend-mode: screen !important;
-  opacity: 0.8 !important;
-  pointer-events: none !important;
-  filter: brightness(1.5) contrast(1.2) !important;
-  transform: scale(1) !important;
-  z-index: 1 !important;
-}
-
-.agents-page-container:hover canvas {
-  filter: brightness(2) contrast(1.5) !important;
-  transform: scale(1.02) !important;
-}
-
-.agents-particles-reactbits-bg {
-  background: 
-    radial-gradient(circle at 20% 80%, rgba(255, 215, 0, 0.25) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(255, 107, 53, 0.25) 0%, transparent 50%),
-    radial-gradient(circle at 40% 40%, rgba(0, 206, 209, 0.2) 0%, transparent 50%),
-    linear-gradient(
-      135deg, 
-      rgba(255, 105, 180, 0.1) 0%, 
-      rgba(157, 78, 221, 0.15) 25%,
-      rgba(50, 205, 50, 0.1) 50%,
-      rgba(247, 33, 133, 0.12) 75%,
-      transparent 100%
-    );
-  pointer-events: none;
-  z-index: -1;
-  overflow: hidden;
-}
-
-/* React Bits Style Ambient Glow */
-.agents-particles-reactbits-bg::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: 
-    radial-gradient(circle 200px at 15% 25%, rgba(255, 215, 0, 0.3) 0%, transparent 70%),
-    radial-gradient(circle 250px at 85% 75%, rgba(255, 107, 53, 0.25) 0%, transparent 70%),
-    radial-gradient(circle 180px at 65% 35%, rgba(0, 206, 209, 0.2) 0%, transparent 70%),
-    radial-gradient(circle 220px at 35% 85%, rgba(255, 105, 180, 0.28) 0%, transparent 70%),
-    radial-gradient(circle 160px at 75% 15%, rgba(157, 78, 221, 0.22) 0%, transparent 70%),
-    radial-gradient(circle 190px at 25% 65%, rgba(50, 205, 50, 0.2) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
-  animation: reactBitsGlow 12s ease-in-out infinite;
-  mix-blend-mode: color-dodge;
-}
-
-@keyframes reactBitsGlow {
-  0%, 100% { 
-    opacity: 1;
-    transform: scale(1) rotate(0deg) translateX(0px) translateY(0px); 
-  }
-  16.66% { 
-    opacity: 0.8;
-    transform: scale(1.15) rotate(60deg) translateX(10px) translateY(-5px); 
-  }
-  33.33% { 
-    opacity: 1;
-    transform: scale(0.95) rotate(120deg) translateX(-8px) translateY(12px); 
-  }
-  50% { 
-    opacity: 0.9;
-    transform: scale(1.1) rotate(180deg) translateX(15px) translateY(-10px); 
-  }
-  66.66% { 
-    opacity: 1;
-    transform: scale(1.05) rotate(240deg) translateX(-12px) translateY(8px); 
-  }
-  83.33% { 
-    opacity: 0.85;
-    transform: scale(1.12) rotate(300deg) translateX(7px) translateY(-15px); 
-  }
-}
-
-/* Enhanced cursor behavior with particle interaction */
-.agents-page-container {
-  cursor: default;
-  background-attachment: fixed;
-}
-
-.agents-page-container .agents-card-unique,
-.agents-page-container .agents-scroll-container,
-.agents-page-container button,
-.agents-page-container a {
-  cursor: pointer;
-}
-
-/* Velocity-based particle effects */
-.agents-particles-enhanced-bg {
-  transition: filter 0.3s ease;
-}
-
-.agents-page-container:hover .agents-particles-enhanced-bg {
-  filter: brightness(1.1) contrast(1.05);
-}
-
-/* Enhanced particle interaction zone */
-.agents-particles-unique-background::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), 
-    rgba(255, 255, 255, 0.05) 0%, 
-    rgba(255, 255, 255, 0.02) 20%, 
-    transparent 40%);
-  pointer-events: none;
-  z-index: 1;
-  transition: opacity 0.3s ease;
-  opacity: 0;
-}
-
-.agents-particles-unique-background:hover::before {
-  opacity: 1;
-}
-
 .agents-scroll-container {
   scrollbar-width: thin;
-  scrollbar-color: rgba(16, 185, 129, 0.3) transparent;
+  scrollbar-color: var(--surface-border) transparent;
 }
 
-.agents-scroll-container::-webkit-scrollbar {
-  height: 4px;
+/* ============================================================================
+   CHAT STYLES
+   ============================================================================ */
+.chat-message-user {
+  background: var(--brand-primary);
+  color: white;
 }
 
-@media (min-width: 640px) {
-  .agents-scroll-container::-webkit-scrollbar {
-    height: 6px;
-  }
+.chat-message-assistant {
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  color: var(--foreground);
 }
 
-.agents-scroll-container::-webkit-scrollbar-track {
-  background: rgba(16, 185, 129, 0.1);
-  border-radius: 3px;
+.chat-input-container {
+  background: var(--input-bg);
+  border: 1px solid var(--surface-border);
+  border-radius: 16px;
+  transition: border-color 0.15s ease;
 }
 
-.agents-scroll-container::-webkit-scrollbar-thumb {
-  background: rgba(16, 185, 129, 0.4);
-  border-radius: 3px;
-  transition: background 0.3s ease;
+.chat-input-container:focus-within {
+  border-color: var(--brand-primary);
 }
 
-.agents-scroll-container::-webkit-scrollbar-thumb:hover {
-  background: rgba(16, 185, 129, 0.6);
+/* ============================================================================
+   REABLOCKS OVERRIDES
+   ============================================================================ */
+:root, :host {
+  --primary: var(--brand-primary);
+  --primary-active: var(--brand-primary-active);
+  --primary-hover: var(--brand-primary-hover);
+  --secondary: var(--surface);
+  --panel: var(--background);
+  --panel-accent: var(--surface);
+  --text-primary: var(--foreground);
+  --text-secondary: var(--foreground-secondary);
 }
 
-/* Responsive Agents Page Layout */
-@media (max-width: 1023px) {
-  .agents-page-container {
-    flex-direction: column !important;
-  }
+/* ============================================================================
+   ANIMATIONS - Subtle
+   ============================================================================ */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* Responsive sidebar height on mobile */
-@media (max-width: 1023px) {
-  .agents-page-container .sidebar {
-    height: auto;
-    max-height: 30vh;
-    overflow-y: auto;
-  }
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
 }
 
-.agents-card-unique {
-  flex-shrink: 0;
-}
-
-/* Color tokens */
-:root,
-:host {
-  --reablocks-theme: dark;
-
-  /* Primary colors */
-  --primary: var(--color-blue-500);
-  --primary-active: var(--color-blue-500);
-  --primary-hover: var(--color-blue-400);
-  --primary-inactive: var(--color-blue-200);
-
-  /* Secondary colors */
-  --secondary: var(--color-charade);
-  --secondary-active: var(--color-charade);
-  --secondary-hover: var(--color-gray-700);
-  --secondary-inactive: var(--color-gray-600);
-
-  /* Success colors */
-  --success: var(--color-green-500);
-  --success-active: var(--color-green-500);
-  --success-hover: var(--color-green-400);
-  --success-background: var(--color-green-950);
-
-  /* Error colors */
-  --error: var(--color-red-500);
-  --error-active: var(--color-red-500);
-  --error-hover: var(--color-red-400);
-  --error-background: var(--color-red-950);
-
-  /* Warning colors */
-  --warning: var(--color-orange-500);
-  --warning-active: var(--color-orange-500);
-  --warning-hover: var(--color-orange-400);
-  --warning-background: var(--color-orange-950);
-
-  /* Info colors */
-  --info: var(--color-blue-500);
-  --info-active: var(--color-blue-500);
-  --info-hover: var(--color-blue-400);
-  --info-background: var(--color-blue-950);
-
-  /* Panel colors */
-  --panel: var(--color-black-pearl);
-  --panel-accent: var(--color-charade);
-
-  /* Surface colors */
-  --surface: var(--color-charade);
-  --surface-accent: var(--color-blue-500);
-
-  /* Text colors */
-  --text-primary: var(--color-athens-gray);
-  --text-secondary: var(--color-waterloo);
-
-  /* Custom Backgrounds */
-  --bottom-border-glow: radial-gradient(
-    circle at center,
-    var(--color-anakiwa) 0,
-    blue,
-    transparent 100%
-  );
-  --button-gradient: linear-gradient(
-    283deg,
-    #0808a5 0%,
-    rgba(8, 8, 165, 0) 100%
-  );
-  --button-gradient-hover: linear-gradient(
-    283deg,
-    #44f 0%,
-    rgba(23, 23, 255, 0.1) 100%
-  );
-  --button-gradient-focus: linear-gradient(
-    283deg,
-    #0d0dd2 0%,
-    rgba(23, 23, 255, 0.1) 100%
-  );
-
-  &.theme-light,
-  &[data-theme="light"] {
-    --reablocks-theme: light;
-
-    /* Primary colors */
-    --primary: var(--color-blue-500);
-    --primary-active: var(--color-blue-500);
-    --primary-hover: var(--color-blue-600);
-    --primary-inactive: var(--color-gray-500);
-
-    /* Secondary colors */
-    --secondary: var(--color-blue-200);
-    --secondary-active: var(--color-blue-200);
-    --secondary-hover: var(--color-blue-300);
-    --secondary-inactive: var(--color-waterloo);
-
-    /* Success colors */
-    --success: var(--color-green-500);
-    --success-active: var(--color-green-500);
-    --success-hover: var(--color-green-600);
-    --success-background: var(--color-green-100);
-
-    /* Error colors */
-    --error: var(--color-red-500);
-    --error-active: var(--color-red-400);
-    --error-hover: var(--color-red-600);
-    --error-background: var(--color-red-100);
-
-    /* Warning colors */
-    --warning: var(--color-orange-500);
-    --warning-active: var(--color-orange-500);
-    --warning-hover: var(--color-orange-600);
-    --warning-background: var(--color-orange-100);
-
-    /* Info colors */
-    --info: var(--color-blue-500);
-    --info-active: var(--color-blue-500);
-    --info-hover: var(--color-blue-600);
-    --info-background: var(--color-blue-100);
-
-    /* Panel colors */
-    --panel: var(--color-white);
-    --panel-accent: var(--color-mystic);
-
-    /* Surface colors */
-    --surface: var(--color-gray-300);
-    --surface-accent: var(--color-blue-500);
-
-    /* Text colors */
-    --text-primary: var(--color-vulcan);
-    --text-secondary: var(--color-gray-700);
-  }
-}
-
-/* Custom variants */
+/* ============================================================================
+   CUSTOM VARIANTS
+   ============================================================================ */
 @custom-variant dark (&:where(.theme-dark, .theme-dark *, [data-theme=dark], [data-theme=dark] *));
 @custom-variant light (&:where(.theme-light, .theme-light *, [data-theme=light], [data-theme=light] *));
-@custom-variant disabled-within (&:has(input:is(:disabled), textarea:is(:disabled), button:is(:disabled)));
 
-/* Define theme tokens */
+/* ============================================================================
+   THEME TOKENS
+   ============================================================================ */
 @theme {
-  /* Fonts */
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif,
-    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-  --font-mono: Fira Code, monospace;
+  --font-sans: "Plus Jakarta Sans", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
 
-  /* Font sizes */
-  --text-xs: 0.625rem; /* 10px */
-  --text-xs--line-height: 1rem;
-  --text-sm: 0.75rem; /* 12px */
-  --text-sm--line-height: 1rem;
-  --text-base: 0.875rem; /* 14px */
-  --text-base--line-height: 1.25rem;
-  --text-lg: 1rem; /* 16px */
-  --text-lg--line-height: 1.5rem;
-
-  /* Primary colors */
-  --color-primary: var(--primary);
-  --color-primary-active: var(--primary-active);
-  --color-primary-hover: var(--primary-hover);
-  --color-primary-inactive: var(--primary-inactive);
-
-  /* Secondary colors */
-  --color-secondary: var(--secondary);
-  --color-secondary-active: var(--secondary-active);
-  --color-secondary-hover: var(--secondary-hover);
-  --color-secondary-inactive: var(--secondary-inactive);
-
-  /* Success colors */
-  --color-success: var(--success);
-  --color-success-active: var(--success-active);
-  --color-success-hover: var(--success-hover);
-  --color-success-background: var(--success-background);
-
-  /* Error colors */
-  --color-error: var(--error);
-  --color-error-active: var(--error-active);
-  --color-error-hover: var(--error-hover);
-  --color-error-background: var(--error-background);
-
-  /* Warning colors */
-  --color-warning: var(--warning);
-  --color-warning-active: var(--warning-active);
-  --color-warning-hover: var(--warning-hover);
-  --color-warning-background: var(--warning-background);
-
-  /* Info colors */
-  --color-info: var(--info);
-  --color-info-active: var(--info-active);
-  --color-info-hover: var(--info-hover);
-  --color-info-background: var(--info-background);
-
-  /* Panel colors */
-  --color-panel: var(--panel);
-  --color-panel-accent: var(--panel-accent);
-
-  /* Surface colors */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--brand-primary);
   --color-surface: var(--surface);
-  --color-surface-accent: var(--surface-accent);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-error: var(--error);
 
-  /* Text colors */
-  --color-text-primary: var(--text-primary);
-  --color-text-secondary: var(--text-secondary);
-
-  /* Base colors */
-  --color-white: #ffffff;
-  --color-black: #000000;
+  /* Teal scale - Fi inspired */
+  --color-teal-50: #f0fdf9;
+  --color-teal-100: #ccfbf1;
+  --color-teal-200: #99f6e4;
+  --color-teal-300: #5eead4;
+  --color-teal-400: #04a66a;
+  --color-teal-500: #04a66a;
+  --color-teal-600: #038a58;
+  --color-teal-700: #027048;
+  --color-teal-800: #025c3b;
+  --color-teal-900: #0a1f1c;
+  --color-teal-950: #071512;
 
   /* Gray scale */
-  --color-gray-*: initial;
-  --color-gray-100: #f7f7fa;
-  --color-gray-200: #e6e6f0;
-  --color-gray-300: #c9c9d6;
-  --color-gray-400: #77778c;
-  --color-gray-500: #5c5c73;
-  --color-gray-600: #3d3d4d;
-  --color-gray-700: #242433;
-  --color-gray-800: #1e1e2e;
-  --color-gray-900: #11111f;
-  --color-gray-950: #02020f;
-
-  /* Magenta */
-  --color-magenta-*: initial;
-  --color-magenta-100: #fae5f6;
-  --color-magenta-200: #f1bfe9;
-  --color-magenta-300: #e480d3;
-  --color-magenta-400: #d740be;
-  --color-magenta-500: #c900a8;
-  --color-magenta-600: #ab018f;
-  --color-magenta-700: #8c0276;
-  --color-magenta-800: #6e025c;
-  --color-magenta-900: #4f0343;
-  --color-magenta-950: #31042a;
-
-  /* Pink */
-  --color-pink-*: initial;
-  --color-pink-100: #fde5f1;
-  --color-pink-200: #f9bfdb;
-  --color-pink-300: #f480b7;
-  --color-pink-400: #ee4094;
-  --color-pink-500: #de006b;
-  --color-pink-600: #bb015a;
-  --color-pink-700: #98014a;
-  --color-pink-800: #740239;
-  --color-pink-900: #510229;
-  --color-pink-950: #2e0318;
-
-  /* Lime */
-  --color-lime-*: initial;
-  --color-lime-100: #f4fae5;
-  --color-lime-200: #e3f3bf;
-  --color-lime-300: #c6e880;
-  --color-lime-400: #aadc40;
-  --color-lime-500: #8ed000;
-  --color-lime-600: #78b001;
-  --color-lime-700: #628f01;
-  --color-lime-800: #4c6f02;
-  --color-lime-900: #364e02;
-  --color-lime-950: #202e03;
-
-  /* Teal */
-  --color-teal-*: initial;
-  --color-teal-100: #e5fbf9;
-  --color-teal-200: #bff6f0;
-  --color-teal-300: #80ede0;
-  --color-teal-400: #40e5d1;
-  --color-teal-500: #00dcc2;
-  --color-teal-600: #00c2ab;
-  --color-teal-700: #019a88;
-  --color-teal-800: #017365;
-  --color-teal-900: #024b42;
-  --color-teal-950: #02231f;
-
-  /* Cyan */
-  --color-cyan-*: initial;
-  --color-cyan-100: #e5f9fe;
-  --color-cyan-200: #bff0fb;
-  --color-cyan-300: #80e2f8;
-  --color-cyan-400: #40d3f4;
-  --color-cyan-500: #00c5f0;
-  --color-cyan-600: #01a7cb;
-  --color-cyan-700: #0289a6;
-  --color-cyan-800: #036b82;
-  --color-cyan-900: #044d5d;
-  --color-cyan-950: #052f38;
-
-  /* Violet */
-  --color-violet-*: initial;
-  --color-violet-100: #f0e8fd;
-  --color-violet-200: #dac5f9;
-  --color-violet-300: #b58bf3;
-  --color-violet-400: #9152ee;
-  --color-violet-500: #6c18e8;
-  --color-violet-600: #5b14c5;
-  --color-violet-700: #4b10a1;
-  --color-violet-800: #3a0d7e;
-  --color-violet-900: #2a095b;
-  --color-violet-950: #190537;
-
-  /* Purple */
-  --color-purple-*: initial;
-  --color-purple-100: #f3e5fc;
-  --color-purple-200: #e2bff7;
-  --color-purple-300: #c580f0;
-  --color-purple-400: #a840e8;
-  --color-purple-500: #8b00e0;
-  --color-purple-600: #7501bc;
-  --color-purple-700: #5f0298;
-  --color-purple-800: #490274;
-  --color-purple-900: #330350;
-  --color-purple-950: #1d042d;
-
-  /* Red */
-  --color-red-*: initial;
-  --color-red-100: #fce5e6;
-  --color-red-200: #f7bfc1;
-  --color-red-300: #f08083;
-  --color-red-400: #e84045;
-  --color-red-500: #e00007;
-  --color-red-600: #b70006;
-  --color-red-700: #8e0005;
-  --color-red-800: #660104;
-  --color-red-900: #3d0103;
-  --color-red-950: #200204;
-
-  /* Orange */
-  --color-orange-*: initial;
-  --color-orange-100: #fef3e5;
-  --color-orange-200: #fde1bf;
-  --color-orange-300: #fbc280;
-  --color-orange-400: #f8a340;
-  --color-orange-500: #f68500;
-  --color-orange-600: #cb6e00;
-  --color-orange-700: #9f5701;
-  --color-orange-800: #743f01;
-  --color-orange-900: #482802;
-  --color-orange-950: #251602;
-
-  /* Yellow */
-  --color-yellow-*: initial;
-  --color-yellow-100: #fff9e5;
-  --color-yellow-200: #fff1bf;
-  --color-yellow-300: #ffe380;
-  --color-yellow-400: #ffd440;
-  --color-yellow-500: #ffc600;
-  --color-yellow-600: #d2a300;
-  --color-yellow-700: #a58001;
-  --color-yellow-800: #785e01;
-  --color-yellow-900: #4b3b02;
-  --color-yellow-950: #261f03;
-
-  /* Green */
-  --color-green-*: initial;
-  --color-green-100: #eef8e9;
-  --color-green-200: #d5efc8;
-  --color-green-300: #aadf91;
-  --color-green-400: #80ce5b;
-  --color-green-500: #55be24;
-  --color-green-600: #469d1d;
-  --color-green-700: #377c16;
-  --color-green-800: #275c10;
-  --color-green-900: #183b09;
-  --color-green-950: #091a02;
-
-  /* Blue */
-  --color-blue-*: initial;
-  --color-blue-100: #e7efff;
-  --color-blue-200: #c3d7ff;
-  --color-blue-300: #87aeff;
-  --color-blue-400: #4c86ff;
-  --color-blue-500: #105eff;
-  --color-blue-600: #0d4ed2;
-  --color-blue-700: #0a3da6;
-  --color-blue-800: #082d79;
-  --color-blue-900: #051c4c;
-  --color-blue-950: #041028;
-
-  /* Named colors */
-  --color-black-pearl: #02020f;
-  --color-athens-gray: #f7f7fa;
-  --color-mystic: #e6e6f0;
-  --color-vulcan: #11111f;
-  --color-charade: #242433;
-  --color-waterloo: #77778c;
-  --color-anakiwa: #93b6ff;
-}
-
-/* React Bits Style Cursor Tracking */
-.agents-particles-reactbits-bg {
-  --cursor-glow: radial-gradient(
-    circle 300px at var(--mouse-x, 50%) var(--mouse-y, 50%),
-    rgba(255, 255, 255, calc(0.3 + var(--mouse-velocity, 0) * 0.2)) 0%,
-    rgba(255, 215, 0, calc(0.2 + var(--mouse-velocity, 0) * 0.15)) 25%,
-    rgba(0, 206, 209, calc(0.15 + var(--mouse-velocity, 0) * 0.1)) 50%,
-    transparent 75%
-  );
-  position: relative;
-}
-
-/* Velocity-Based Dynamic Effects */
-.agents-page-container {
-  --particle-intensity: calc(1 + var(--mouse-velocity, 0) * 2);
-  --particle-spread: calc(1 + var(--mouse-velocity, 0) * 0.5);
-}
-
-.agents-reactbits-particles canvas {
-  filter: brightness(calc(1.8 + var(--mouse-velocity, 0) * 0.5)) 
-          contrast(calc(1.3 + var(--mouse-velocity, 0) * 0.3)) 
-          saturate(calc(1.2 + var(--mouse-velocity, 0) * 0.4))
-          hue-rotate(calc(var(--mouse-velocity, 0) * 30deg));
-}
-
-/* Particle movement - responsive to cursor but no gradient overlay */
-.agents-particles-reactbits-bg::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  /* No visible gradient - just enables particle tracking */
-  background: transparent;
-  pointer-events: none;
-  z-index: 1;
-}
-
-/* EXTREME VISIBILITY TEST - React Bits Particles */
-.agents-page-container {
-  background-attachment: fixed !important;
-}
-
-/* Removed global cursor gradient - particles only */
-
-/* Force particle visibility but allow UI interaction */
-.agents-page-container canvas {
-  position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  width: 100vw !important;
-  height: 100vh !important;
-  max-width: 100vw !important;
-  z-index: 0 !important;
-  pointer-events: none !important;
-}
-
-/* Prevent horizontal overflow on agents page */
-.agents-page-container * {
-  box-sizing: border-box;
-}
-
-.agents-page-container {
-  overflow-x: hidden !important;
-}
-
-.agents-section {
-  overflow-x: hidden !important;
-  width: 100% !important;
-  max-width: 100% !important;
-}
-
-/* Ensure all containers stay within viewport */
-.agents-page-container .max-w-7xl {
-  max-width: 100% !important;
-  padding-left: 1rem !important;
-  padding-right: 1rem !important;
-}
-
-@media (min-width: 640px) {
-  .agents-page-container .max-w-7xl {
-    padding-left: 1.5rem !important;
-    padding-right: 1.5rem !important;
-  }
-}
-
-@media (min-width: 1024px) {
-  .agents-page-container .max-w-7xl {
-    max-width: 1280px !important;
-    padding-left: 2rem !important;
-    padding-right: 2rem !important;
-  }
+  --color-gray-50: #f7faf9;
+  --color-gray-100: #eef5f3;
+  --color-gray-200: #e0ece9;
+  --color-gray-300: #a7c7c1;
+  --color-gray-400: #6b9e94;
+  --color-gray-500: #4a7d72;
+  --color-gray-600: #2d4a44;
+  --color-gray-700: #1a4540;
+  --color-gray-800: #12332e;
+  --color-gray-900: #0a1f1c;
+  --color-gray-950: #071512;
 }

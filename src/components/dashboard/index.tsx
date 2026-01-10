@@ -17,4 +17,6 @@ export {
     MessageSkeleton,
     ProcessGroup,
     groupProcessMessages
-} from './CustomMessages'; 
+} from './CustomMessages';
+export { DebtStrategyDisplay } from './DebtStrategyDisplay';
+export type { DebtStrategyData, DebtRecommendedAction } from './DebtStrategyDisplay'; 

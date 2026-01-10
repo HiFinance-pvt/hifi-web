@@ -1,27 +1,20 @@
 import React, { useState, useEffect, useRef } from "react";
-import { MessageCircle, Send, Command, CornerDownLeft, Bot } from "lucide-react";
 import { AGENTS } from "@/constants/mockData";
 
-// Keyboard Shortcut Component
-const KeyboardShortcut = () => (
-  <div className="flex items-center gap-1 text-xs text-gray-500 ml-2">
-    <Command className="h-3 w-3" />
-    <CornerDownLeft className="h-3 w-3" />
-  </div>
+// Minimal SVG Icons
+const MessageIcon = () => (
+  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+  </svg>
 );
 
-// Send Button Component
-const SendButton = ({ onSend, disabled }: { onSend: () => void; disabled: boolean }) => (
-  <button
-    onClick={onSend}
-    disabled={disabled}
-    className="p-3 text-emerald-400 hover:text-emerald-300 disabled:text-gray-500 disabled:cursor-not-allowed transition-colors"
-  >
-    <Send className="h-6 w-6" />
-  </button>
+const SendIcon = () => (
+  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
+  </svg>
 );
 
-// Agent Suggestion Item Component
+// Agent Suggestion Item
 const AgentSuggestionItem = ({ 
   agent, 
   onSelect, 
@@ -31,19 +24,18 @@ const AgentSuggestionItem = ({
   onSelect: (agent: (typeof AGENTS)[0]) => void;
   isSelected: boolean;
 }) => (
-  <div
+  <button
     onClick={() => onSelect(agent)}
-    className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors ${
+    className={`w-full flex items-center gap-3 px-3 py-2.5 text-left transition-colors ${
       isSelected 
-        ? 'bg-emerald-500/20 border-emerald-500/50' 
-        : 'hover:bg-gray-700/50 border-transparent'
-    } border-l-2`}
+        ? 'bg-[var(--brand-primary-muted)]' 
+        : 'hover:bg-[var(--surface-hover)]'
+    }`}
   >
     <div 
-      className="w-8 h-8 rounded-lg border flex items-center justify-center"
+      className="w-8 h-8 rounded-lg flex items-center justify-center"
       style={{
-        backgroundColor: `${agent.color}20`,
-        borderColor: `${agent.color}40`,
+        backgroundColor: `${agent.color}15`,
       }}
     >
       <img
@@ -52,30 +44,28 @@ const AgentSuggestionItem = ({
         className="w-4 h-4 object-contain"
       />
     </div>
-    <div className="flex-1">
-      <div className="font-medium text-white">{agent.name}</div>
-      <div className="text-sm text-gray-400 truncate">{agent.description}</div>
+    <div className="flex-1 min-w-0">
+      <div className="font-medium text-sm text-[var(--foreground)]">{agent.name}</div>
+      <div className="text-xs text-[var(--foreground-muted)] truncate">{agent.description}</div>
     </div>
-  </div>
+  </button>
 );
 
-// Agent Suggestions Dropdown Component
+// Agent Suggestions Dropdown
 const AgentSuggestions = ({ 
   agents, 
   onSelect, 
-  selectedIndex,
-  onClose 
+  selectedIndex 
 }: { 
   agents: (typeof AGENTS)[0][];
   onSelect: (agent: (typeof AGENTS)[0]) => void;
   selectedIndex: number;
-  onClose: () => void;
 }) => (
-  <div className="absolute bottom-full left-0 right-0 mb-2 bg-gray-800 rounded-lg border border-gray-600 shadow-xl max-h-64 overflow-y-auto z-50">
-    <div className="p-2">
-      <div className="text-xs text-gray-400 px-4 py-2 border-b border-gray-700">
-        Select an agent to call:
-      </div>
+  <div className="absolute bottom-full left-0 right-0 mb-2 bg-[var(--surface)] rounded-xl border border-[var(--surface-border)] shadow-lg overflow-hidden">
+    <div className="text-xs text-[var(--foreground-subtle)] px-3 py-2 border-b border-[var(--surface-border)]">
+      Select an agent
+    </div>
+    <div className="max-h-56 overflow-y-auto">
       {agents.map((agent, index) => (
         <AgentSuggestionItem
           key={agent.id}
@@ -106,7 +96,6 @@ const ChatInput = ({
   const [selectedAgentIndex, setSelectedAgentIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Check if message contains @ and show agent suggestions
   useEffect(() => {
     const hasAtSymbol = message.includes('@');
     setShowAgentSuggestions(hasAtSymbol);
@@ -119,7 +108,6 @@ const ChatInput = ({
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       if (showAgentSuggestions) {
-        // Select the currently highlighted agent
         const selectedAgent = AGENTS[selectedAgentIndex];
         handleAgentSelect(selectedAgent);
       } else {
@@ -129,7 +117,6 @@ const ChatInput = ({
       setShowAgentSuggestions(false);
       setMessage(message.replace(/@$/, ''));
     } else if (showAgentSuggestions) {
-      // Handle arrow key navigation
       if (e.key === 'ArrowDown') {
         e.preventDefault();
         setSelectedAgentIndex((prev) => (prev + 1) % AGENTS.length);
@@ -141,12 +128,10 @@ const ChatInput = ({
   };
 
   const handleAgentSelect = (agent: (typeof AGENTS)[0]) => {
-    // Replace @ with the agent name
     const newMessage = message.replace(/@.*$/, `@${agent.name} `);
     setMessage(newMessage);
     setShowAgentSuggestions(false);
     
-    // Call the onAgentSelect callback if provided
     if (onAgentSelect) {
       onAgentSelect(agent);
     }
@@ -156,43 +141,49 @@ const ChatInput = ({
     const newValue = e.target.value;
     setMessage(newValue);
     
-    // If user types something after @, hide suggestions
     if (newValue.includes('@') && !newValue.match(/@\s*$/)) {
       setShowAgentSuggestions(false);
     }
   };
 
   return (
-    <div className="mb-8">
-      <div className="relative w-full mx-auto">
-        <div className="flex items-center bg-gray-700 rounded-lg border border-gray-600 focus-within:border-emerald-500 transition-colors">
-          <div className="flex-1 flex items-center px-4 py-3">
-            <MessageCircle className="h-5 w-5 text-gray-400 mr-3" />
-            <input
-              ref={inputRef}
-              type="text"
-              value={message}
-              onChange={handleInputChange}
-              onKeyPress={handleKeyPress}
-              placeholder="Ask questions, or type '@' to call Agent."
-              className="flex-1 bg-transparent text-white placeholder-gray-400 focus:outline-none"
-              disabled={disabled}
-            />
-            <KeyboardShortcut />
+    <div className="relative w-full">
+      <div className="flex items-center">
+        <div className="flex-1 flex items-center px-4 py-3">
+          <div className="text-[var(--foreground-subtle)] mr-3">
+            <MessageIcon />
           </div>
-          <SendButton onSend={onSend} disabled={disabled || !message.trim()} />
+          <input
+            ref={inputRef}
+            type="text"
+            value={message}
+            onChange={handleInputChange}
+            onKeyDown={handleKeyPress}
+            placeholder="Ask questions, or type '@' to call an agent..."
+            className="flex-1 bg-transparent text-[var(--foreground)] placeholder-[var(--foreground-subtle)] 
+                     focus:outline-none text-base"
+            disabled={disabled}
+          />
         </div>
         
-        {/* Agent Suggestions Dropdown */}
-        {showAgentSuggestions && (
-          <AgentSuggestions
-            agents={AGENTS}
-            onSelect={handleAgentSelect}
-            selectedIndex={selectedAgentIndex}
-            onClose={() => setShowAgentSuggestions(false)}
-          />
-        )}
+        <button
+          onClick={onSend}
+          disabled={disabled || !message.trim()}
+          className="p-3 mr-1 text-[var(--brand-primary)] hover:text-[var(--brand-primary-hover)] 
+                    disabled:text-[var(--foreground-subtle)] disabled:cursor-not-allowed 
+                    transition-colors rounded-xl hover:bg-[var(--brand-primary-muted)]"
+        >
+          <SendIcon />
+        </button>
       </div>
+      
+      {showAgentSuggestions && (
+        <AgentSuggestions
+          agents={AGENTS}
+          onSelect={handleAgentSelect}
+          selectedIndex={selectedAgentIndex}
+        />
+      )}
     </div>
   );
 };

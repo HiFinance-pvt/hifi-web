@@ -3,10 +3,8 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
 import Dither from "@/ui/components/Dither";
-import { set } from "zod";
 import { getCurrentUser } from "@/lib/firebase/firebase";
 import { env } from "@/lib/env";
 import { toast } from "sonner";
@@ -17,7 +15,6 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const { signInWithEmail, signInWithGoogle } = useAuth();
   const router = useRouter();
-  const user = getCurrentUser();
 
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,9 +31,8 @@ export default function LoginPage() {
       toast.success("Successfully signed in!");
       router.push("/dashboard");
     } catch (error: any) {
-      getErrorMessage(error.message);
+      toast.error(getErrorMessage(error.message));
     } finally {
-      // Set the User Token To local storage
       setLoading(false);
     }
   };
@@ -48,7 +44,6 @@ export default function LoginPage() {
       await signInWithGoogle();
       const token = await getCurrentUser()?.getIdToken();
 
-
       if (token) {
         localStorage.setItem(env.NEXT_PUBLIC_SSID, token);
         toast.success("Successfully signed in with Google!");
@@ -59,7 +54,7 @@ export default function LoginPage() {
       }
       router.push("/dashboard");
     } catch (error: any) {
-      getErrorMessage(error.message);
+      toast.error(getErrorMessage(error.message));
     } finally {
       setLoading(false);
     }
@@ -76,128 +71,115 @@ export default function LoginPage() {
       case "Too many failed attempts. Please try again later":
         return "Too many failed attempts. Please try again later";
       default:
-        return;
+        return "An error occurred. Please try again.";
     }
   };
 
   return (
-    <div className="min-h-screen w-full bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-end p-4">
-      <div className="w-full h-full absolute inset-0">
+    <div className="min-h-screen w-full bg-[var(--background)] flex items-center justify-center p-6 relative overflow-hidden">
+      {/* Animated background */}
+      <div className="absolute inset-0 opacity-50">
         <Dither
-          waveColor={[0, 0.5, 0]}
+          waveColor={[0.02, 0.41, 0.33]}
           disableAnimation={false}
           enableMouseInteraction={true}
           mouseRadius={0.3}
-          colorNum={4}
-          waveAmplitude={0.3}
-          waveFrequency={3}
-          waveSpeed={0.05}
-        />
-      </div>
-      {/* Animated background dots */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <motion.div
-          className="absolute top-20 left-20 w-2 h-2 bg-teal-400/20 rounded-full"
-          animate={{ y: [0, -10, 0], opacity: [0.2, 0.5, 0.2] }}
-          transition={{ duration: 4, repeat: Infinity }}
-        />
-        <motion.div
-          className="absolute top-40 right-32 w-1 h-1 bg-blue-400/30 rounded-full"
-          animate={{ scale: [1, 1.5, 1], opacity: [0.3, 0.6, 0.3] }}
-          transition={{ duration: 3, repeat: Infinity, delay: 1 }}
-        />
-        <motion.div
-          className="absolute bottom-32 left-1/4 w-1.5 h-1.5 bg-purple-400/20 rounded-full"
-          animate={{ rotate: [0, 360], scale: [1, 0.8, 1] }}
-          transition={{ duration: 6, repeat: Infinity, delay: 2 }}
+          colorNum={3}
+          waveAmplitude={0.2}
+          waveFrequency={2}
+          waveSpeed={0.03}
         />
       </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="relative w-lg h-full flex items-end justify-end"
-      >
-        {/* Main card */}
-        <div className="flex flex-col w-full h-full items-center rounded-xl justify-center bg-gray-800/50 backdrop-blur-sm border border-gray-700 shadow-2xl p-8">
+      {/* Subtle gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[var(--background)] via-transparent to-[var(--background)]" />
+
+      {/* Main card */}
+      <div className="relative w-full max-w-md">
+        <div className="bg-[var(--surface)] border border-[var(--surface-border)] rounded-2xl p-8">
           {/* Header */}
           <div className="text-center mb-8">
-            <motion.h1
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.2 }}
-              className="text-3xl font-bold text-white mb-2"
-            >
-              Welcome to <span className="text-[#04A66A]">Hi-Fi</span>
-            </motion.h1>
-            <p className="text-gray-400">Sign in to your account</p>
+            <h1 className="text-2xl font-semibold text-[var(--foreground)] mb-1 tracking-tight">
+              Welcome to{" "}
+              <span className="text-[var(--brand-primary)]">Hi-Fi</span>
+            </h1>
+            <p className="text-[var(--foreground-muted)] text-sm">Sign in to your account</p>
           </div>
 
-          {/* Email/Password Form */}
-          <form onSubmit={handleEmailLogin} className="space-y-6 w-full">
+          {/* Form */}
+          <form onSubmit={handleEmailLogin} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+              <label className="block text-sm font-medium text-[var(--foreground-secondary)] mb-1.5">
                 Email
               </label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#04A66A] focus:ring-2 focus:ring-[#04A66A] transition-all duration-200"
+                className="w-full px-4 py-3 bg-[var(--input-bg)] border border-[var(--input-border)] 
+                          rounded-xl text-[var(--foreground)] placeholder-[var(--foreground-subtle)] 
+                          focus:outline-none focus:border-[var(--brand-primary)]
+                          transition-colors duration-150"
                 placeholder="Enter your email"
                 disabled={loading}
               />
             </div>
 
-            <div className="w-full">
-              <label className="block text-sm font-medium text-gray-300 mb-2">
+            <div>
+              <label className="block text-sm font-medium text-[var(--foreground-secondary)] mb-1.5">
                 Password
               </label>
               <input
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:border-[#04A66A] focus:ring-2 focus:ring-[#04A66A] transition-all duration-200"
+                className="w-full px-4 py-3 bg-[var(--input-bg)] border border-[var(--input-border)] 
+                          rounded-xl text-[var(--foreground)] placeholder-[var(--foreground-subtle)] 
+                          focus:outline-none focus:border-[var(--brand-primary)]
+                          transition-colors duration-150"
                 placeholder="Enter your password"
                 disabled={loading}
               />
             </div>
 
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+            <button
               type="submit"
               disabled={loading}
-              className="w-full bg-[#04A66A] hover:bg-[#04A66A]/80 disabled:bg-gray-600 disabled:cursor-not-allowed text-white font-medium py-3 px-4 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#04A66A]/50"
+              className="w-full py-3 px-4 mt-2 rounded-xl font-medium text-white
+                        bg-[var(--brand-primary)] hover:bg-[var(--brand-primary-hover)]
+                        disabled:opacity-50 disabled:cursor-not-allowed
+                        transition-colors duration-150"
             >
               {loading ? (
-                <div className="flex items-center justify-center">
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin mr-2"></div>
-                  Signing in...
+                <div className="flex items-center justify-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span>Signing in...</span>
                 </div>
               ) : (
                 "Sign In"
               )}
-            </motion.button>
+            </button>
           </form>
 
           {/* Divider */}
           <div className="my-6 flex items-center">
-            <div className="flex-1 border-t border-gray-600"></div>
-            <span className="px-4 text-gray-400 text-sm">or</span>
-            <div className="flex-1 border-t border-gray-600"></div>
+            <div className="flex-1 border-t border-[var(--surface-border)]" />
+            <span className="px-4 text-[var(--foreground-subtle)] text-xs font-medium">or</span>
+            <div className="flex-1 border-t border-[var(--surface-border)]" />
           </div>
 
           {/* Google Sign In */}
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+          <button
             onClick={handleGoogleLogin}
             disabled={loading}
-            className="w-full bg-white hover:bg-gray-100 disabled:bg-gray-600 disabled:cursor-not-allowed text-gray-900 font-medium py-3 px-4 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500/50 flex items-center justify-center"
+            className="w-full bg-white hover:bg-gray-50 
+                      disabled:opacity-50 disabled:cursor-not-allowed 
+                      text-gray-800 font-medium py-3 px-4 rounded-xl 
+                      border border-gray-200
+                      transition-colors duration-150 
+                      flex items-center justify-center gap-3"
           >
-            <svg className="w-5 h-5 mr-3" viewBox="0 0 24 24">
+            <svg className="w-5 h-5" viewBox="0 0 24 24">
               <path
                 fill="#4285F4"
                 d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -216,25 +198,22 @@ export default function LoginPage() {
               />
             </svg>
             Continue with Google
-          </motion.button>
+          </button>
 
           {/* Sign up link */}
           <div className="mt-6 text-center">
-            <p className="text-gray-400">
+            <p className="text-[var(--foreground-muted)] text-sm">
               Don't have an account?{" "}
               <Link
                 href="/signup"
-                className="text-[#04A66A] hover:text-[#04A66A]/80 font-medium transition-colors"
+                className="text-[var(--brand-primary)] hover:underline font-medium"
               >
                 Sign up
               </Link>
             </p>
           </div>
         </div>
-
-        {/* Decorative glow */}
-        <div className="absolute -inset-0.5 bg-gradient-to-r from-teal-500/20 to-blue-500/20 rounded-2xl blur opacity-20 -z-10"></div>
-      </motion.div>
+      </div>
     </div>
   );
 }
