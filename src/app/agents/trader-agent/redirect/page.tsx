@@ -14,7 +14,12 @@ export default function KiteRedirect() {
   const { data, isPending } = useKiteRedirect(requestToken);
 
   if (data) {
-    router.push("/dashboard");
+    if (window.opener) {
+      window.opener.postMessage("kite-connected", "*");
+      window.close();
+    } else {
+      router.push("/dashboard");
+    }
   }
 
   if (isPending) {

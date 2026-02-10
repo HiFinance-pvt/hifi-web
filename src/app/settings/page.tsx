@@ -6,10 +6,12 @@ import { env } from "@/lib/env";
 import { toast } from "sonner";
 // We import local components and libs
 import { Kite } from "@/lib/api/kite";
+import { useKiteConnect } from "@/hooks/use-kite";
 
 export default function SettingsPage() {
+  const { mutate: connectToKite, isPending: isConnecting } = useKiteConnect();
   const [zerodhaStatus, setZerodhaStatus] = useState<"connected" | "disconnected">("disconnected");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isDisconnecting, setIsDisconnecting] = useState(false);
 
   // Check connection status on mount (Mocking this for now)
   useEffect(() => {
@@ -21,42 +23,29 @@ export default function SettingsPage() {
      checkStatus();
   }, []);
 
-  const handleZerodhaConnect = async () => {
-    setIsLoading(true);
-    try {
-        const connectUrl = `${env.NEXT_PUBLIC_API_URL}/connect/zerodha`;
-        
-        toast.info("Connecting to Zerodha...", {
-            description: "Redirecting to secure login...",
-        });
-
-        setTimeout(() => {
-            window.location.href = connectUrl;
-        }, 1000);
-
-    } catch (error) {
-        console.error("Connection failed", error);
-        toast.error("Failed to initiate connection");
-        setIsLoading(false);
-    }
+  const handleZerodhaConnect = () => {
+    toast.info("Connecting to Zerodha...", {
+        description: "Redirecting to secure login...",
+    });
+    connectToKite();
   };
 
   const handleZerodhaDisconnect = async () => {
-      setIsLoading(true);
+      setIsDisconnecting(true);
       try {
           if (!confirm("Are you sure you want to disconnect your Zerodha account?")) {
-              setIsLoading(false);
+              setIsDisconnecting(false);
               return;
           }
 
            setTimeout(() => {
             setZerodhaStatus("disconnected");
             toast.success("Disconnected from Zerodha");
-            setIsLoading(false);
+            setIsDisconnecting(false);
         }, 1000);
       } catch (error) {
           toast.error("Failed to disconnect");
-          setIsLoading(false);
+          setIsDisconnecting(false);
       }
   }
 
@@ -98,7 +87,7 @@ export default function SettingsPage() {
                 status={zerodhaStatus}
                 onConnect={handleZerodhaConnect}
                 onDisconnect={handleZerodhaDisconnect}
-                isLoading={isLoading}
+                isLoading={isConnecting || isDisconnecting}
             />
             
             {/* Placeholder for 'Coming Soon' Integration */}
