@@ -7,71 +7,143 @@ import { useSessionStore } from "@/stores/sessionStore";
 import { useDeleteSessionMutation } from "@/hooks/adk";
 // Minimal SVG Icons
 const PlusIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
-  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+  <svg
+    className={className}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={1.5}
+  >
     <path d="M12 5v14m-7-7h14" />
   </svg>
 );
 
 const SearchIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
-  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+  <svg
+    className={className}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={1.5}
+  >
     <circle cx="11" cy="11" r="7" />
     <path d="M21 21l-4.35-4.35" />
   </svg>
 );
 
 const ChatIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
-  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+  <svg
+    className={className}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={1.5}
+  >
     <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
   </svg>
 );
 
 const SettingsIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
-  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+  <svg
+    className={className}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={1.5}
+  >
     <circle cx="12" cy="12" r="3" />
     <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z" />
   </svg>
 );
 
 const LogOutIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
-  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+  <svg
+    className={className}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={1.5}
+  >
     <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" />
   </svg>
 );
 
-const StarIcon = ({ className = "w-4 h-4", filled = false }: { className?: string; filled?: boolean }) => (
-  <svg className={className} fill={filled ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+const StarIcon = ({
+  className = "w-4 h-4",
+  filled = false,
+}: {
+  className?: string;
+  filled?: boolean;
+}) => (
+  <svg
+    className={className}
+    fill={filled ? "currentColor" : "none"}
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={1.5}
+  >
     <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
   </svg>
 );
 
 const PanelLeftIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
-  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+  <svg
+    className={className}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={1.5}
+  >
     <rect x="3" y="3" width="18" height="18" rx="2" />
     <path d="M9 3v18" />
   </svg>
 );
 
 const EditIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
-  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+  <svg
+    className={className}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={1.5}
+  >
     <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" />
   </svg>
 );
 
 const TrashIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
-  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+  <svg
+    className={className}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={1.5}
+  >
     <path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6h14z" />
   </svg>
 );
 
 const LoaderIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
-  <svg className={`${className} animate-spin`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+  <svg
+    className={`${className} animate-spin`}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={1.5}
+  >
     <circle cx="12" cy="12" r="10" strokeOpacity={0.25} />
     <path d="M12 2a10 10 0 019.5 7" strokeOpacity={1} />
   </svg>
 );
 
 const BotIcon = ({ className = "w-4 h-4" }: { className?: string }) => (
-  <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+  <svg
+    className={className}
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke="currentColor"
+    strokeWidth={1.5}
+  >
     <rect x="4" y="4" width="16" height="16" rx="4" />
     <circle cx="9" cy="11" r="1.5" />
     <circle cx="15" cy="11" r="1.5" />
@@ -126,17 +198,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
   useEffect(() => {
     const initializeSessions = async () => {
       try {
-        // Fetch sessions if we don't have any valid sessions
-        if (!Array.isArray(sessions) || sessions.length === 0) {
-          await fetchSessions();
-        }
+        // Fetch sessions only if we don't have any, or if they're stale
+        // This prevents unnecessary refetches when switching between sessions
+        await fetchSessions(false, false); // Don't show loading, use cache if available
       } catch (err) {
         console.error("Error initializing sessions:", err);
       }
     };
 
     initializeSessions();
-  }, [fetchSessions, sessions]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // Only run once on mount
 
   // Transform API sessions to ChatSession format with proper error handling
   const transformedSessions: ChatSession[] = useMemo(() => {
@@ -146,12 +218,45 @@ export const Sidebar: React.FC<SidebarProps> = ({
       return [];
     }
 
+    const parseDate = (value: any): Date => {
+      if (!value) return new Date();
+
+      // If it's already a Date object, return it
+      if (value instanceof Date) return value;
+
+      // If it's a number (timestamp), convert it
+      if (typeof value === "number") {
+        // Check if it's in seconds (Unix timestamp) or milliseconds
+        // Timestamps before year 2001 in milliseconds would be < 1000000000000
+        // If the number is less than that, it's likely in seconds
+        const timestamp = value < 10000000000 ? value * 1000 : value;
+        return new Date(timestamp);
+      }
+
+      // If it's a string, try to parse it
+      if (typeof value === "string") {
+        const parsed = new Date(value);
+        // Check if the date is valid
+        if (!isNaN(parsed.getTime())) {
+          return parsed;
+        }
+      }
+
+      // Fallback to current date if parsing failed
+      console.warn("Failed to parse date:", value);
+      return new Date();
+    };
+
     return sessions
       .filter(
         (session: any) => session && typeof session === "object" && session.id
       )
       .map((session: any) => {
         try {
+          const timestamp =
+            session.lastUpdateTime || session.updatedAt || session.createdAt;
+          const parsedDate = parseDate(timestamp);
+
           return {
             id: session.id,
             title:
@@ -160,16 +265,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
               session.title ||
               `Session ${session.id.slice(0, 8)}`,
             category: "chats" as const,
-            createdAt: session.lastUpdateTime
-              ? new Date(session.lastUpdateTime)
-              : session.createdAt
-                ? new Date(session.createdAt)
-                : new Date(),
-            updatedAt: session.lastUpdateTime
-              ? new Date(session.lastUpdateTime)
-              : session.updatedAt
-                ? new Date(session.updatedAt)
-                : new Date(),
+            createdAt: parsedDate,
+            updatedAt: parsedDate,
             conversations: [],
           };
         } catch (err) {
@@ -185,9 +282,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
     (session) => session.category === "starred" && session.id
   );
 
-  const filteredChatSessions = transformedSessions.filter(
-    (session) => session.category === "chats" && session.id
-  );
+  const filteredChatSessions = transformedSessions
+    .filter((session) => session.category === "chats" && session.id)
+    .sort((a, b) => {
+      // Sort by updatedAt in descending order (newest first)
+      return b.updatedAt.getTime() - a.updatedAt.getTime();
+    });
 
   const formatDate = (date: Date | number) => {
     const dateObj = typeof date === "number" ? new Date(date) : date;
@@ -215,7 +315,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
     }
 
     // Use custom minimal icons
-    const iconMap: { [key: string]: React.ComponentType<{ className?: string }> } = {
+    const iconMap: {
+      [key: string]: React.ComponentType<{ className?: string }>;
+    } = {
       Bot: BotIcon,
       Settings: SettingsIcon,
       LogOut: LogOutIcon,
@@ -248,7 +350,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       // Call parent handler to update UI state
       onDeleteSession(sessionId);
-
     } catch (error) {
       console.error("Failed to delete session:", error);
       // You might want to show a toast notification or error message here
@@ -315,10 +416,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
     return (
       <div
         onClick={() => !isEditing && handleSessionClick(session.id)}
-        className={`group flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all duration-400 ease-out transform hover:scale-[1.02] ${activeSessionId === session.id
-          ? "bg-teal-500/20 border border-[var(--brand-primary)]/50 shadow-lg shadow-teal-500/10"
-          : "hover:bg-[var(--surface-hover)] border border-transparent hover:border-[var(--surface-border)]"
-          } ${isDeleting ? "opacity-50 pointer-events-none" : ""}`}
+        className={`group flex items-center justify-between p-2 rounded-lg cursor-pointer transition-all duration-400 ease-out transform hover:scale-[1.02] ${
+          activeSessionId === session.id
+            ? "bg-teal-500/20 border border-[var(--brand-primary)]/50 shadow-lg shadow-teal-500/10"
+            : "hover:bg-[var(--surface-hover)] border border-transparent hover:border-[var(--surface-border)]"
+        } ${isDeleting ? "opacity-50 pointer-events-none" : ""}`}
       >
         <div className="flex-1 min-w-0">
           {isEditing ? (
@@ -336,10 +438,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
             />
           ) : (
             <p
-              className={`text-sm truncate transition-colors duration-300 ease-out ${activeSessionId === session.id
-                ? "text-teal-300"
-                : "text-[var(--foreground)]"
-                }`}
+              className={`text-sm truncate transition-colors duration-300 ease-out ${
+                activeSessionId === session.id
+                  ? "text-teal-300"
+                  : "text-[var(--foreground)]"
+              }`}
             >
               {session.title}
             </p>
@@ -360,10 +463,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
               disabled={isDeleting}
             >
               <StarIcon
-                className={`w-3 h-3 transition-all duration-300 ease-out ${isStarred
-                  ? "text-[var(--accent-gold)] fill-yellow-400 scale-110"
-                  : "text-[var(--foreground-muted)] hover:text-[var(--accent-gold)] hover:scale-110"
-                  }`}
+                className={`w-3 h-3 transition-all duration-300 ease-out ${
+                  isStarred
+                    ? "text-[var(--accent-gold)] fill-yellow-400 scale-110"
+                    : "text-[var(--foreground-muted)] hover:text-[var(--accent-gold)] hover:scale-110"
+                }`}
               />
             </button>
             <button
@@ -653,8 +757,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <div
                   key={session.id}
                   style={{
-                    animationDelay: `${(index + filteredStarredSessions.length) * 100
-                      }ms`,
+                    animationDelay: `${
+                      (index + filteredStarredSessions.length) * 100
+                    }ms`,
                   }}
                   className="animate-in slide-in-from-left-5 duration-500 ease-out"
                 >
@@ -669,7 +774,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {(isLoading || !Array.isArray(sessions)) && (
           <div className="text-center py-8">
             <LoaderIcon className="w-6 h-6 text-[var(--foreground-muted)] mx-auto mb-2" />
-            <p className="text-[var(--foreground-subtle)] text-sm">Loading sessions...</p>
+            <p className="text-[var(--foreground-subtle)] text-sm">
+              Loading sessions...
+            </p>
             {!Array.isArray(sessions) && sessions && (
               <p className="text-yellow-500 text-xs mt-1">
                 Invalid session data format detected

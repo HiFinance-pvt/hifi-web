@@ -309,7 +309,10 @@ export type ListSessionsData = z.infer<typeof ListSessionsDataSchema>;
 // Define the schema for the entire list-sessions response
 export const ListSessionsResponseSchema = z.object({
   message: z.string(), // "successfully fetched sessions"
-  data: ListSessionsDataSchema, // The data object containing the sessions array
+  data: z.union([z.array(SessionSchema), ListSessionsDataSchema]),
+  total: z.number().optional(),
+  limit: z.number().optional(),
+  offset: z.number().optional(),
 });
 
 export type ListSessionsResponse = z.infer<typeof ListSessionsResponseSchema>;

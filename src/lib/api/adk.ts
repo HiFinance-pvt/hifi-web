@@ -88,9 +88,22 @@ export class Adk {
     }
   }
 
-  async listSessions(): Promise<ListSessionsResponse> {
+  async listSessions(
+    sortBy: string = "lastUpdateTime",
+    order: string = "desc",
+    limit: number = 100,
+    offset: number = 0
+  ): Promise<ListSessionsResponse> {
     const response = await this.axios.get<typeof ListSessionsResponseSchema>(
-      `/adk/list-sessions`
+      `/adk/list-sessions`,
+      {
+        params: {
+          sort_by: sortBy,
+          order,
+          limit,
+          offset,
+        },
+      }
     );
     const normalized = this.normalizeResponseForParsing(
       response.data,

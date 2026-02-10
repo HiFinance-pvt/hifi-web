@@ -22,6 +22,8 @@ export interface SessionStore {
   error: string | null;
   lastSyncTime: number | null;
   currentUserId: string | null;
+  sortBy: string;
+  sortOrder: "asc" | "desc";
 
   // Actions
   setSessions: (sessions: SessionData[]) => void;
@@ -32,6 +34,8 @@ export interface SessionStore {
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
   setCurrentUserId: (userId: string | null) => void;
+  setSortBy: (sortBy: string) => void;
+  setSortOrder: (order: "asc" | "desc") => void;
   clearSessions: () => void;
   checkUserChange: () => void;
 
@@ -72,6 +76,8 @@ export const useSessionStore = create<SessionStore>()(
       error: null,
       lastSyncTime: null,
       currentUserId: null,
+      sortBy: "lastUpdateTime",
+      sortOrder: "desc" as "asc" | "desc",
 
       // Basic actions
       setSessions: (sessions) => set({ sessions }),
@@ -103,6 +109,8 @@ export const useSessionStore = create<SessionStore>()(
       setLoading: (loading) => set({ isLoading: loading }),
       setError: (error) => set({ error }),
       setCurrentUserId: (userId) => set({ currentUserId: userId }),
+      setSortBy: (sortBy) => set({ sortBy }),
+      setSortOrder: (order) => set({ sortOrder: order }),
       clearSessions: () => set({ sessions: [] }),
 
       // Check if user has changed and clear sessions if needed
@@ -113,7 +121,6 @@ export const useSessionStore = create<SessionStore>()(
         if (currentUser) {
           const newUserId = currentUser.uid;
           if (currentUserId && currentUserId !== newUserId) {
-
             clearSessions();
             setCurrentUserId(newUserId);
           } else if (!currentUserId) {
@@ -136,6 +143,8 @@ export const useSessionStore = create<SessionStore>()(
           sessions,
           lastSyncTime,
           currentUserId,
+          sortBy,
+          sortOrder,
         } = get();
 
         // Get current user ID if not already set
@@ -167,8 +176,20 @@ export const useSessionStore = create<SessionStore>()(
         setError(null);
 
         try {
-          const response = await api.adk.listSessions();
-          const allSessions = response.data.sessions || [];
+          const response = await api.adk.listSessions(
+            sortBy,
+            sortOrder,
+            100,
+            0
+          );
+
+          // Handle both array and object response formats
+          let allSessions: any[] = [];
+          if (Array.isArray(response.data)) {
+            allSessions = response.data;
+          } else if (response.data && "sessions" in response.data) {
+            allSessions = (response.data as any).sessions || [];
+          }
 
           // Filter sessions by current user ID
           const userSessions = allSessions.filter(
@@ -268,7 +289,13 @@ export const useSessionStore = create<SessionStore>()(
       },
 
       createSession: async () => {
-        const { setLoading, setError, addSession, currentUserId, clearSessions } = get();
+        const {
+          setLoading,
+          setError,
+          addSession,
+          currentUserId,
+          clearSessions,
+        } = get();
 
         // ALWAYS get the current user from Firebase to ensure we have the correct user
         const currentUser = getCurrentUser();
@@ -279,7 +306,7 @@ export const useSessionStore = create<SessionStore>()(
         }
 
         const userId = currentUser.uid;
-        
+
         // Check if user has changed and clear stale data
         if (currentUserId && currentUserId !== userId) {
           console.log("User changed, clearing stale session data");
@@ -288,7 +315,7 @@ export const useSessionStore = create<SessionStore>()(
           lastCreateTimestamp = null;
           lastCreatedSession = null;
         }
-        
+
         // Update currentUserId in store
         if (currentUserId !== userId) {
           set({ currentUserId: userId });
