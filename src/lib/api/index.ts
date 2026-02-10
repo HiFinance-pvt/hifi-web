@@ -6,7 +6,7 @@ import { AxiosConfig } from "../../config/axios";
 import { Adk } from "./adk";
 import { env } from "@/lib/env";
 import { getCurrentUser } from "@/lib/firebase/firebase";
-import { Kite } from "./kite.";
+import { Kite } from "./kite";
 
 
 class ApiSdk {
