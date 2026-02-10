@@ -23,6 +23,7 @@ const ContentPartSchema = z.object({
         .object({
           result: z.union([
             z.string().optional(),
+            z.number().optional(),
             z
               .object({
                 content: z
@@ -92,6 +93,7 @@ const FunctionResponseResultSchema = z.union([
     isError: z.boolean(),
   }),
   z.string(),
+  z.number(),
   z.null(),
   z.undefined(),
 ]);
