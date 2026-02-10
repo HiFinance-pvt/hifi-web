@@ -21,14 +21,29 @@ export class Kite {
   }
   
   async redirect(request_token: string) {
-    const { data } = await this.axios.get("/kite/redirect", {
-      params: {
-        request_token: request_token
-      },
+    const { data } = await this.axios.post("/kite/redirect", { request_token }, {
       headers: {
         "Authorization": `Bearer ${await getCurrentUser()?.getIdToken()}`
       }
     });
-    return data
+    return data;
+  }
+
+  async getIntegrationStatus() {
+    const { data } = await this.axios.get("/kite/status", {
+      headers: {
+        "Authorization": `Bearer ${await getCurrentUser()?.getIdToken()}`
+      }
+    });
+    return data;
+  }
+
+  async disconnect() {
+    const { data } = await this.axios.post("/kite/disconnect", {}, {
+      headers: {
+        "Authorization": `Bearer ${await getCurrentUser()?.getIdToken()}`
+      }
+    });
+    return data;
   }
 }

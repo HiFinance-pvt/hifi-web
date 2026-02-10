@@ -1,28 +1,40 @@
 "use client";
 
-import { useKiteRedirect } from "@/hooks/useKite";
+import { useKiteIntegration } from "@/hooks/use-kite";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useRef } from "react";
 
 export default function KiteRedirect() {
   const params = useSearchParams();
   const router = useRouter();
   const requestToken = params.get("request_token");
-  if (!requestToken) {
-    router.push("/dashboard");
-    return null;
-  }
-  const { data, isPending } = useKiteRedirect(requestToken);
+  
+  const { connect, isConnecting } = useKiteIntegration();
+  const hasConnected = useRef(false);
 
-  if (data) {
-    if (window.opener) {
-      window.opener.postMessage("kite-connected", "*");
-      window.close();
-    } else {
-      router.push("/dashboard");
+  useEffect(() => {
+    if (requestToken && !hasConnected.current) {
+      hasConnected.current = true;
+      connect(requestToken, {
+        onSuccess: () => {
+          if (window.opener) {
+            window.opener.postMessage("kite-connected", "*");
+            window.close();
+          } else {
+            router.push("/dashboard");
+          }
+        },
+        onError: () => {
+             // Handle error, maybe show a message or redirect
+             setTimeout(() => router.push("/settings"), 3000);
+        }
+      });
+    } else if (!requestToken) {
+        router.push("/dashboard");
     }
-  }
+  }, [requestToken, connect, router]);
 
-  if (isPending) {
+  if (isConnecting || (requestToken && !hasConnected.current)) {
     return (
       <div className="min-h-screen min-w-screen bg-gray-900 flex items-center justify-center">
         <div className="relative">
@@ -32,4 +44,6 @@ export default function KiteRedirect() {
       </div>
     );
   }
+
+  return null;
 }

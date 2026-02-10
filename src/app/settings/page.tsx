@@ -1,27 +1,16 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { IntegrationCard } from "@/components/settings/IntegrationCard";
 import { env } from "@/lib/env";
 import { toast } from "sonner";
 // We import local components and libs
-import { Kite } from "@/lib/api/kite";
-import { useKiteConnect } from "@/hooks/use-kite";
+
+import { useKiteConnect, useKiteIntegration } from "@/hooks/use-kite";
 
 export default function SettingsPage() {
-  const { mutate: connectToKite, isPending: isConnecting } = useKiteConnect();
-  const [zerodhaStatus, setZerodhaStatus] = useState<"connected" | "disconnected">("disconnected");
-  const [isDisconnecting, setIsDisconnecting] = useState(false);
-
-  // Check connection status on mount (Mocking this for now)
-  useEffect(() => {
-     const checkStatus = async () => {
-         // simulate check
-         // const isConnected = await checkZerodhaConnection(); 
-         // setZerodhaStatus(isConnected ? 'connected' : 'disconnected');
-     }
-     checkStatus();
-  }, []);
+  const { mutate: connectToKite, isPending: isConnectingKite } = useKiteConnect();
+  const { status: zerodhaStatus, disconnect: disconnectKite, isDisconnecting, lastVerifiedAt } = useKiteIntegration();
 
   const handleZerodhaConnect = () => {
     toast.info("Connecting to Zerodha...", {
@@ -31,22 +20,10 @@ export default function SettingsPage() {
   };
 
   const handleZerodhaDisconnect = async () => {
-      setIsDisconnecting(true);
-      try {
-          if (!confirm("Are you sure you want to disconnect your Zerodha account?")) {
-              setIsDisconnecting(false);
-              return;
-          }
-
-           setTimeout(() => {
-            setZerodhaStatus("disconnected");
-            toast.success("Disconnected from Zerodha");
-            setIsDisconnecting(false);
-        }, 1000);
-      } catch (error) {
-          toast.error("Failed to disconnect");
-          setIsDisconnecting(false);
+      if (!confirm("Are you sure you want to disconnect your Zerodha account?")) {
+          return;
       }
+      disconnectKite();
   }
 
   return (
@@ -87,7 +64,7 @@ export default function SettingsPage() {
                 status={zerodhaStatus}
                 onConnect={handleZerodhaConnect}
                 onDisconnect={handleZerodhaDisconnect}
-                isLoading={isConnecting || isDisconnecting}
+                isLoading={isConnectingKite || isDisconnecting}
             />
             
             {/* Placeholder for 'Coming Soon' Integration */}
