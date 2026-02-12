@@ -14,15 +14,20 @@ export default function ClientLayoutWrapper({ children }: { children: React.Reac
   const pathname = usePathname();
 
   // Routes that should NOT have the header
-  const excludedRoutes = ["/login", "/signup", "/overview"];
+  const excludedRoutes = ["/login", "/signup", "/overview", "/"];
   const shouldShowHeader = !excludedRoutes.includes(pathname);
+  const isLandingPage = pathname === "/";
 
   return (
     <ThemeProvider>
       <ReablocksThemeProvider theme={theme}>
         <QueryClientProvider client={queryClient}>
           <AuthProvider>
-            <div className="flex h-screen bg-[var(--background)] transition-colors duration-300">
+            <div 
+              className={`bg-[var(--background)] transition-colors duration-300 ${
+                isLandingPage ? "min-h-screen block" : "flex h-screen"
+              }`}
+            >
               {/* Shared Header Controls */}
               {shouldShowHeader && <HeaderControls />}
               {children}

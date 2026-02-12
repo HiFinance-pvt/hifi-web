@@ -4,6 +4,8 @@ import remarkGfm from 'remark-gfm';
 import { ProcessedMessage } from '@/lib/validations/adk.schema';
 import { MessageFiles } from 'reachat';
 import { DebtStrategyDisplay, DebtStrategyData } from './DebtStrategyDisplay';
+import { TaxMitraMessage } from './TaxMitraMessage';
+import { isTaxMitraResponse, TaxMitraResponse } from '@/types/tax-mitra';
 
 // Minimal SVG Icons
 const UserIcon = () => (
@@ -89,6 +91,46 @@ const parseDebtStrategyData = (text: string): DebtStrategyData | null => {
     return null;
 };
 
+// Helper function to detect and parse Tax Mitra JSON from response
+const parseTaxMitraData = (text: string): TaxMitraResponse | null => {
+    if (!text) return null;
+
+    let jsonStr = text.trim();
+
+    // Check if it's wrapped in code blocks
+    const codeBlockMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)```/);
+    if (codeBlockMatch) {
+        jsonStr = codeBlockMatch[1].trim();
+    }
+
+    try {
+        // Try parsing the entire text as JSON first
+        const parsed = JSON.parse(jsonStr);
+        if (isTaxMitraResponse(parsed)) {
+            return parsed as TaxMitraResponse;
+        }
+    } catch {
+        // Not pure JSON, try extracting JSON from text
+    }
+
+    // Try to find a JSON object embedded in text
+    try {
+        const firstBrace = text.indexOf('{');
+        const lastBrace = text.lastIndexOf('}');
+        if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+            const potentialJson = text.substring(firstBrace, lastBrace + 1);
+            const parsed = JSON.parse(potentialJson);
+            if (isTaxMitraResponse(parsed)) {
+                return parsed as TaxMitraResponse;
+            }
+        }
+    } catch {
+        // Extraction failed
+    }
+
+    return null;
+};
+
 // Custom User Message Component
 export const CustomMessageQuestion: React.FC<{ question: string; files?: any[] }> = ({ question, files }) => (
     <div className="flex justify-end mb-4">
@@ -111,9 +153,12 @@ export const CustomMessageQuestion: React.FC<{ question: string; files?: any[] }
 );
 
 // Custom Assistant Message Component
-export const CustomMessageResponse: React.FC<{ response: string }> = ({ response }) => {
+export const CustomMessageResponse: React.FC<{ response: string; onSendMessage?: (message: string) => void; isInteractive?: boolean }> = ({ response, onSendMessage, isInteractive = true }) => {
     // Check if the response contains debt strategy JSON data
     const debtStrategyData = useMemo(() => parseDebtStrategyData(response), [response]);
+
+    // Check if the response contains Tax Mitra JSON data
+    const taxMitraData = useMemo(() => parseTaxMitraData(response), [response]);
 
     // If it's a debt strategy response, render the special component
     if (debtStrategyData) {
@@ -127,6 +172,35 @@ export const CustomMessageResponse: React.FC<{ response: string }> = ({ response
                     </div>
                     <div className="flex-1 min-w-0">
                         <DebtStrategyDisplay data={debtStrategyData} />
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // If it's a Tax Mitra response, render the TaxMitraMessage component
+    if (taxMitraData) {
+        return (
+            <div className="flex justify-start mb-4">
+                <div className="flex items-start gap-3 w-full">
+                    <div className="flex-shrink-0">
+                        <div className="w-8 h-8 bg-[var(--surface-hover)] rounded-xl flex items-center justify-center text-[var(--brand-primary)]">
+                            <BotIcon />
+                        </div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <TaxMitraMessage
+                            response={taxMitraData}
+                            isInteractive={isInteractive}
+                            onAnswerSubmit={(answers) => {
+                                if (onSendMessage) {
+                                    const formatted = Object.entries(answers)
+                                        .map(([key, value]) => `${key} ${value}`)
+                                        .join("\n");
+                                    onSendMessage(formatted);
+                                }
+                            }}
+                        />
                     </div>
                 </div>
             </div>
@@ -347,12 +421,12 @@ export const CustomMessageSource: React.FC<{ title?: string; url?: string; image
 );
 
 // Main Message Renderer
-export const MessageRenderer: React.FC<{ message: ProcessedMessage }> = ({ message }) => {
+export const MessageRenderer: React.FC<{ message: ProcessedMessage; onSendMessage?: (message: string) => void; isInteractive?: boolean }> = ({ message, onSendMessage, isInteractive }) => {
     switch (message.type) {
         case 'user':
             return <CustomMessageQuestion question={message.text || ''} />;
         case 'assistant':
-            return <CustomMessageResponse response={message.text || ''} />;
+            return <CustomMessageResponse response={message.text || ''} onSendMessage={onSendMessage} isInteractive={isInteractive} />;
         case 'function_call':
             return <CustomFunctionCall message={message} />;
         case 'function_response':
@@ -360,7 +434,7 @@ export const MessageRenderer: React.FC<{ message: ProcessedMessage }> = ({ messa
         case 'thought':
             return <CustomThoughtProcess message={message} />;
         default:
-            return <CustomMessageResponse response={message.text || ''} />;
+            return <CustomMessageResponse response={message.text || ''} onSendMessage={onSendMessage} isInteractive={isInteractive} />;
     }
 };
 
@@ -510,8 +584,21 @@ export const groupProcessMessages = (messages: ProcessedMessage[]): (ProcessedMe
 };
 
 // Grouped Message Renderer
-export const GroupedMessageRenderer: React.FC<{ messages: ProcessedMessage[] }> = ({ messages }) => {
+export const GroupedMessageRenderer: React.FC<{ messages: ProcessedMessage[]; onSendMessage?: (message: string) => void }> = ({ messages, onSendMessage }) => {
     const groupedMessages = groupProcessMessages(messages);
+
+    // Determine which assistant messages are "interactive" (no user message after them)
+    const flatItems = groupedMessages.filter((item): item is ProcessedMessage => !Array.isArray(item));
+    const lastAssistantIndex = (() => {
+        for (let i = flatItems.length - 1; i >= 0; i--) {
+            if (flatItems[i].type === 'assistant') return i;
+        }
+        return -1;
+    })();
+    const lastAssistantId = lastAssistantIndex >= 0 ? flatItems[lastAssistantIndex].id : null;
+
+    // Check if there's a user message after the last assistant message
+    const hasUserAfterLastAssistant = lastAssistantIndex >= 0 && flatItems.slice(lastAssistantIndex + 1).some(m => m.type === 'user');
 
     return (
         <>
@@ -519,7 +606,9 @@ export const GroupedMessageRenderer: React.FC<{ messages: ProcessedMessage[] }> 
                 if (Array.isArray(item)) {
                     return <ProcessGroup key={`process-${index}`} messages={item} />;
                 }
-                return <MessageRenderer key={`message-${item.id}-${index}`} message={item} />;
+                // Only the last assistant message is interactive, and only if no user message follows it
+                const isInteractive = item.type === 'assistant' && item.id === lastAssistantId && !hasUserAfterLastAssistant;
+                return <MessageRenderer key={`message-${item.id}-${index}`} message={item} onSendMessage={onSendMessage} isInteractive={isInteractive} />;
             })}
         </>
     );

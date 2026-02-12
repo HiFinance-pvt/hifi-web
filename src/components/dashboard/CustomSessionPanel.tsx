@@ -51,6 +51,7 @@ export const CustomSessionPanel: React.FC<CustomSessionPanelProps> = ({
                   key={conversation.id}
                   conversation={conversation}
                   isLast={index === activeSession.conversations.length - 1}
+                  onSendMessage={handleSendMessage}
                 />
               ))}
             </div>

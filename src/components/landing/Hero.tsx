@@ -62,7 +62,7 @@ export default function Hero() {
           transition={{ duration: 0.8 }}
         >
           {/* TextPressure Component for HiFi */}
-          <div className="mb-6">
+          <div className="mb-8 relative h-[200px] w-full max-w-4xl mx-auto">
             <TextPressure
               text="HiFi"
               flex={true}

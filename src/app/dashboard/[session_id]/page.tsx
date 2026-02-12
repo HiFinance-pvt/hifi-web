@@ -135,6 +135,7 @@ export default function HiFiDashboard() {
           // Single refetch after streaming completes
           setTimeout(() => {
             refetchMessages();
+            stopStreaming();
           }, 800);
         });
       } catch (error) {
@@ -343,7 +344,7 @@ export default function HiFiDashboard() {
     }
 
     // Add streaming message
-    if (isStreaming && streamingText) {
+    if (streamingText) {
       messages.push({
         id: `streaming-${Date.now()}`,
         author: "assistant",
@@ -430,7 +431,7 @@ export default function HiFiDashboard() {
               onScroll={handleScroll}
             >
               <div className="max-w-4xl mx-auto space-y-4">
-                <GroupedMessageRenderer messages={displayMessages} />
+                <GroupedMessageRenderer messages={displayMessages} onSendMessage={handleSendMessage} />
               </div>
             </div>
           )}

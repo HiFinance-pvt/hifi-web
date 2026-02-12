@@ -6,10 +6,13 @@ import {
   FunctionCall,
   AdkMessage,
 } from "@/types/chat";
+import { TaxMitraMessage } from "./TaxMitraMessage";
+import { isTaxMitraResponse, TaxMitraResponse } from "@/types/tax-mitra";
 
 interface CustomSessionMessageProps {
   conversation: ChatConversation;
   isLast?: boolean;
+  onSendMessage?: (message: string) => void;
 }
 
 // Function Call Badge Component
@@ -227,6 +230,7 @@ const JsonDialog = ({
 export const CustomSessionMessage: React.FC<CustomSessionMessageProps> = ({
   conversation,
   isLast = false,
+  onSendMessage,
 }) => {
   const [jsonDialogOpen, setJsonDialogOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -309,6 +313,47 @@ export const CustomSessionMessage: React.FC<CustomSessionMessageProps> = ({
 
   const { text, functionCalls, jsonData } = getResponseData();
 
+  // Helper to try parsing TaxMitra response from text
+  // Helper to try parsing TaxMitra response from text
+  const tryParseTaxMitraResponse = (
+    textString: string
+  ): Record<string, any> | null => {
+    console.log("Parsing text for TaxMitra:", textString.substring(0, 50) + "...");
+    try {
+      // 1. Try finding JSON object block
+      const jsonMatch = textString.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+         try {
+            const parsed = JSON.parse(jsonMatch[0]);
+            console.log("Parsed from regex:", parsed);
+            if (isTaxMitraResponse(parsed)) return parsed;
+         } catch (e) { console.log("Regex match failed parse", e); }
+      }
+
+      // 2. Fallback to simple brace search
+      const firstBrace = textString.indexOf("{");
+      const lastBrace = textString.lastIndexOf("}");
+
+      if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+        const potentialJson = textString.substring(firstBrace, lastBrace + 1);
+        const parsed = JSON.parse(potentialJson);
+        console.log("Parsed from substring:", parsed);
+        if (isTaxMitraResponse(parsed)) {
+          return parsed;
+        }
+      }
+    } catch (e) {
+      console.error("Parse error:", e);
+    }
+    return null;
+  };
+
+  const extractedTaxMitraData = jsonData && isTaxMitraResponse(jsonData)
+    ? jsonData
+    : tryParseTaxMitraResponse(text);
+
+  const isTaxMitra = !!extractedTaxMitraData;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -374,48 +419,65 @@ export const CustomSessionMessage: React.FC<CustomSessionMessageProps> = ({
                     : "bg-gray-800/90 border border-gray-700/50"
                 }`}
               >
-                <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                  {text}
-                </p>
+                {/* Render Tax Mitra Component if matching response found */}
+                {isTaxMitra && extractedTaxMitraData ? (
+                  <TaxMitraMessage
+                    response={extractedTaxMitraData as TaxMitraResponse}
+                    onAnswerSubmit={(answers) => {
+                      if (onSendMessage) {
+                        const formatted = Object.entries(answers)
+                          .map(([key, value]) => `${key} ${value}`)
+                          .join("\n");
+                        onSendMessage(formatted);
+                      }
+                    }}
+                  />
+                ) : (
+                  <>
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap">
+                      {text}
+                    </p>
 
-                {/* Enhanced JSON Data Box */}
-                {jsonData && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    className="mt-4 p-3 bg-gray-700/30 rounded-lg border border-gray-600/50"
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                        <span className="text-xs text-gray-400 font-medium">
-                          Function response data available
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          ({Object.keys(jsonData).length} keys)
-                        </span>
-                      </div>
-                      <button
-                        onClick={() => setJsonDialogOpen(true)}
-                        className="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-700/50 hover:bg-gray-600/50 border border-gray-600 rounded-lg text-xs text-gray-300 hover:text-white transition-all duration-200 hover:scale-105"
+                    {/* Enhanced JSON Data Box */}
+                    {jsonData && (
+                      <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        className="mt-4 p-3 bg-gray-700/30 rounded-lg border border-gray-600/50"
                       >
-                        <svg
-                          className="w-4 h-4"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                          />
-                        </svg>
-                        View JSON
-                      </button>
-                    </div>
-                  </motion.div>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                            <span className="text-xs text-gray-400 font-medium">
+                              Function response data available
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              ({Object.keys(jsonData).length} keys)
+                            </span>
+                          </div>
+                          <button
+                            onClick={() => setJsonDialogOpen(true)}
+                            className="inline-flex items-center gap-2 px-3 py-1.5 bg-gray-700/50 hover:bg-gray-600/50 border border-gray-600 rounded-lg text-xs text-gray-300 hover:text-white transition-all duration-200 hover:scale-105"
+                          >
+                            <svg
+                              className="w-4 h-4"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                              />
+                            </svg>
+                            View JSON
+                          </button>
+                        </div>
+                      </motion.div>
+                    )}
+                  </>
                 )}
               </div>
               <div className="flex justify-start mt-1">
