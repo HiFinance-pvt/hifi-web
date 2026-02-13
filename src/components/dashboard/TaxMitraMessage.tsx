@@ -5,14 +5,20 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import {
   TaxMitraResponse,
+  TaxMitraResponseData,
   QuestionOption,
-  TaxCalculationResult,
+  TaxCalculationSummary,
+  DeductionBreakdown,
+  OptimizationSuggestion,
+  RegimeComparison,
   ITRSubmissionResult,
   RefundTrackingResult,
   isQuestionOptions,
-  isTaxCalculationResult,
-  isITRSubmissionResult,
-  isRefundTrackingResult,
+  hasTaxCalculationSummary,
+  hasRegimeComparison,
+  hasITRSubmission,
+  hasRefundTracking,
+  formatINR,
 } from "@/types/tax-mitra";
 
 // ─── Minimal SVG Icons ───────────────────────────────────────────────
@@ -34,12 +40,6 @@ const ChevronIcon = ({ isOpen }: { isOpen: boolean }) => (
   </svg>
 );
 
-const FileTextIcon = () => (
-  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-  </svg>
-);
-
 const ReceiptIcon = () => (
   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
     <path d="M9 14l6-6M9 8h.01M15 14h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -49,6 +49,18 @@ const ReceiptIcon = () => (
 const RefundIcon = () => (
   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
     <path d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+  </svg>
+);
+
+const CompareIcon = () => (
+  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <path d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2z" />
+  </svg>
+);
+
+const LightbulbIcon = () => (
+  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+    <path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
   </svg>
 );
 
@@ -165,9 +177,14 @@ const QuestionRenderer = ({
   );
 };
 
-// ─── Tax Calculation Breakdown ────────────────────────────────────────
-const TaxBreakdownRenderer = ({ data }: { data: TaxCalculationResult }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
+// ─── Tax Calculation Summary ──────────────────────────────────────────
+const TaxSummaryRenderer = ({ summary, deductions, taxBreakdown }: {
+  summary: TaxCalculationSummary;
+  deductions?: DeductionBreakdown;
+  taxBreakdown?: Record<string, number | undefined>;
+}) => {
+  const [isDeductionsExpanded, setIsDeductionsExpanded] = useState(false);
+  const [isTaxSlabsExpanded, setIsTaxSlabsExpanded] = useState(false);
 
   return (
     <div className="bg-[var(--surface)] border border-[var(--surface-border)] rounded-2xl overflow-hidden">
@@ -179,7 +196,6 @@ const TaxBreakdownRenderer = ({ data }: { data: TaxCalculationResult }) => {
           </div>
           <div>
             <h4 className="text-base font-semibold text-[var(--foreground)]">Tax Calculation Summary</h4>
-            <p className="text-xs text-[var(--foreground-muted)]">{data.tax_regime} Tax Regime</p>
           </div>
         </div>
       </div>
@@ -188,40 +204,179 @@ const TaxBreakdownRenderer = ({ data }: { data: TaxCalculationResult }) => {
       <div className="grid grid-cols-2 gap-px bg-[var(--surface-border)]">
         <div className="bg-[var(--surface)] p-4">
           <p className="text-xs text-[var(--foreground-muted)] mb-1">Gross Income</p>
-          <p className="text-lg font-semibold text-[var(--foreground)]">₹{data.gross_income.toLocaleString()}</p>
+          <p className="text-lg font-semibold text-[var(--foreground)]">{formatINR(summary.gross_income)}</p>
+        </div>
+        <div className="bg-[var(--surface)] p-4">
+          <p className="text-xs text-[var(--foreground-muted)] mb-1">Total Deductions</p>
+          <p className="text-lg font-semibold text-[var(--success)]">{formatINR(summary.total_deductions)}</p>
         </div>
         <div className="bg-[var(--surface)] p-4">
           <p className="text-xs text-[var(--foreground-muted)] mb-1">Taxable Income</p>
-          <p className="text-lg font-semibold text-[var(--foreground)]">₹{data.taxable_income.toLocaleString()}</p>
+          <p className="text-lg font-semibold text-[var(--foreground)]">{formatINR(summary.taxable_income)}</p>
         </div>
         <div className="bg-[var(--surface)] p-4">
           <p className="text-xs text-[var(--foreground-muted)] mb-1">Total Tax</p>
-          <p className="text-lg font-bold text-[var(--brand-primary)]">₹{data.total_tax.toLocaleString()}</p>
+          <p className="text-lg font-bold text-[var(--brand-primary)]">{formatINR(summary.total_tax)}</p>
         </div>
-        <div className="bg-[var(--surface)] p-4">
-          <p className="text-xs text-[var(--foreground-muted)] mb-1">Deductions</p>
-          <p className="text-lg font-semibold text-[var(--success)]">
-            {data.deductions ? `₹${data.deductions.toLocaleString()}` : "—"}
-          </p>
-        </div>
+        {summary.tds_paid !== undefined && (
+          <div className="bg-[var(--surface)] p-4">
+            <p className="text-xs text-[var(--foreground-muted)] mb-1">TDS Paid</p>
+            <p className="text-lg font-semibold text-[var(--foreground)]">{formatINR(summary.tds_paid)}</p>
+          </div>
+        )}
+        {summary.refund_amount !== undefined && summary.refund_amount > 0 && (
+          <div className="bg-[var(--surface)] p-4">
+            <p className="text-xs text-[var(--foreground-muted)] mb-1">Refund</p>
+            <p className="text-lg font-bold text-[var(--success)]">{formatINR(summary.refund_amount)}</p>
+          </div>
+        )}
+        {summary.tax_payable !== undefined && summary.tax_payable > 0 && (
+          <div className="bg-[var(--surface)] p-4">
+            <p className="text-xs text-[var(--foreground-muted)] mb-1">Tax Payable</p>
+            <p className="text-lg font-bold text-[var(--error)]">{formatINR(summary.tax_payable)}</p>
+          </div>
+        )}
       </div>
 
-      {/* Breakdown Toggle */}
+      {/* Deduction Breakdown Toggle */}
+      {deductions && Object.keys(deductions).length > 0 && (
+        <>
+          <button
+            onClick={() => setIsDeductionsExpanded(!isDeductionsExpanded)}
+            className="w-full flex items-center justify-between p-4 text-sm font-medium text-[var(--foreground-muted)]
+                       hover:text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition-all duration-200
+                       border-t border-[var(--surface-border)]"
+          >
+            <span>Deduction Breakdown</span>
+            <ChevronIcon isOpen={isDeductionsExpanded} />
+          </button>
+
+          {isDeductionsExpanded && (
+            <div className="px-4 pb-4 space-y-2 animate-fade-in">
+              {Object.entries(deductions)
+                .filter(([, value]) => value !== undefined && value > 0)
+                .map(([key, value]) => (
+                  <div key={key} className="flex justify-between items-center py-2 border-b border-[var(--surface-border)] last:border-0">
+                    <span className="text-sm text-[var(--foreground-secondary)] capitalize">{key.replace(/_/g, " ")}</span>
+                    <span className="text-sm font-medium text-[var(--foreground)]">{formatINR(value as number)}</span>
+                  </div>
+                ))}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Tax Slab Breakdown Toggle */}
+      {taxBreakdown && Object.keys(taxBreakdown).length > 0 && (
+        <>
+          <button
+            onClick={() => setIsTaxSlabsExpanded(!isTaxSlabsExpanded)}
+            className="w-full flex items-center justify-between p-4 text-sm font-medium text-[var(--foreground-muted)]
+                       hover:text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition-all duration-200
+                       border-t border-[var(--surface-border)]"
+          >
+            <span>Slab-wise Breakdown</span>
+            <ChevronIcon isOpen={isTaxSlabsExpanded} />
+          </button>
+
+          {isTaxSlabsExpanded && (
+            <div className="px-4 pb-4 space-y-2 animate-fade-in">
+              {Object.entries(taxBreakdown)
+                .filter(([, value]) => value !== undefined && value > 0)
+                .map(([key, value]) => (
+                  <div key={key} className="flex justify-between items-center py-2 border-b border-[var(--surface-border)] last:border-0">
+                    <span className="text-sm text-[var(--foreground-secondary)] capitalize">{key.replace(/_/g, " ")}</span>
+                    <span className="text-sm font-medium text-[var(--foreground)]">{formatINR(value as number)}</span>
+                  </div>
+                ))}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+};
+
+// ─── Regime Comparison ────────────────────────────────────────────────
+const RegimeComparisonRenderer = ({ comparison }: { comparison: RegimeComparison }) => (
+  <div className="bg-[var(--surface)] border border-[var(--surface-border)] rounded-2xl overflow-hidden">
+    <div className="bg-gradient-to-r from-blue-500/10 to-transparent p-5 border-b border-[var(--surface-border)]">
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400">
+          <CompareIcon />
+        </div>
+        <div>
+          <h4 className="text-base font-semibold text-[var(--foreground)]">Regime Comparison</h4>
+          {comparison.recommended && (
+            <p className="text-xs text-[var(--foreground-muted)]">
+              Recommended: <span className="text-[var(--brand-primary)] font-medium">{comparison.recommended === "old" ? "Old" : "New"} Regime</span>
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+
+    <div className="grid grid-cols-2 gap-px bg-[var(--surface-border)]">
+      <div className={`bg-[var(--surface)] p-4 ${comparison.recommended === "old" ? "ring-1 ring-inset ring-[var(--brand-primary)]/30" : ""}`}>
+        <p className="text-xs text-[var(--foreground-muted)] mb-1">Old Regime Tax</p>
+        <p className="text-lg font-semibold text-[var(--foreground)]">{formatINR(comparison.old_regime_tax)}</p>
+        {comparison.savings_with_old !== undefined && comparison.savings_with_old > 0 && (
+          <p className="text-xs text-[var(--success)] mt-1">Save {formatINR(comparison.savings_with_old)}</p>
+        )}
+      </div>
+      <div className={`bg-[var(--surface)] p-4 ${comparison.recommended === "new" ? "ring-1 ring-inset ring-[var(--brand-primary)]/30" : ""}`}>
+        <p className="text-xs text-[var(--foreground-muted)] mb-1">New Regime Tax</p>
+        <p className="text-lg font-semibold text-[var(--foreground)]">{formatINR(comparison.new_regime_tax)}</p>
+        {comparison.savings_with_new !== undefined && comparison.savings_with_new > 0 && (
+          <p className="text-xs text-[var(--success)] mt-1">Save {formatINR(comparison.savings_with_new)}</p>
+        )}
+      </div>
+    </div>
+  </div>
+);
+
+// ─── Optimization Suggestions ─────────────────────────────────────────
+const OptimizationSuggestionsRenderer = ({ suggestions }: { suggestions: OptimizationSuggestion[] }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  return (
+    <div className="bg-[var(--surface)] border border-[var(--surface-border)] rounded-2xl overflow-hidden">
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center justify-between p-4 text-sm font-medium text-[var(--foreground-muted)]
-                   hover:text-[var(--foreground)] hover:bg-[var(--surface-hover)] transition-all duration-200"
+        className="w-full flex items-center justify-between p-4 text-sm font-medium text-[var(--foreground)]
+                   hover:bg-[var(--surface-hover)] transition-all duration-200"
       >
-        <span>Slab-wise Breakdown</span>
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-[var(--warning)]/10 border border-[var(--warning)]/30 flex items-center justify-center text-[var(--warning)]">
+            <LightbulbIcon />
+          </div>
+          <span>Tax Optimization Suggestions ({suggestions.length})</span>
+        </div>
         <ChevronIcon isOpen={isExpanded} />
       </button>
 
       {isExpanded && (
-        <div className="px-4 pb-4 space-y-2 animate-fade-in">
-          {Object.entries(data.breakdown).map(([key, value]) => (
-            <div key={key} className="flex justify-between items-center py-2 border-b border-[var(--surface-border)] last:border-0">
-              <span className="text-sm text-[var(--foreground-secondary)] capitalize">{key.replace(/_/g, " ")}</span>
-              <span className="text-sm font-medium text-[var(--foreground)]">₹{(value as number).toLocaleString()}</span>
+        <div className="px-4 pb-4 space-y-3 animate-fade-in border-t border-[var(--surface-border)] pt-3">
+          {suggestions.map((suggestion, idx) => (
+            <div key={idx} className="bg-[var(--background)] rounded-xl p-4 border border-[var(--surface-border)]">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-[var(--foreground)]">{suggestion.type}</span>
+                {suggestion.tax_saving > 0 && (
+                  <span className="text-xs font-medium text-[var(--success)] bg-[var(--success)]/10 px-2 py-0.5 rounded-full">
+                    Save {formatINR(suggestion.tax_saving)}
+                  </span>
+                )}
+              </div>
+              {suggestion.description && (
+                <p className="text-xs text-[var(--foreground-muted)] mb-2">{suggestion.description}</p>
+              )}
+              <div className="flex gap-4 text-xs text-[var(--foreground-secondary)]">
+                <span>Current: {formatINR(suggestion.current)}</span>
+                <span>Limit: {formatINR(suggestion.max_limit)}</span>
+                {suggestion.potential_additional > 0 && (
+                  <span className="text-[var(--brand-primary)]">+{formatINR(suggestion.potential_additional)} available</span>
+                )}
+              </div>
             </div>
           ))}
         </div>
@@ -292,7 +447,7 @@ const RefundStatusRenderer = ({ data }: { data: RefundTrackingResult }) => {
         {data.refund_amount && (
           <div className="flex justify-between items-center">
             <span className="text-sm text-[var(--foreground-muted)]">Refund Amount</span>
-            <span className="text-sm font-semibold text-[var(--brand-primary)]">₹{data.refund_amount.toLocaleString()}</span>
+            <span className="text-sm font-semibold text-[var(--brand-primary)]">{formatINR(data.refund_amount)}</span>
           </div>
         )}
         {data.expected_date && (
@@ -330,16 +485,149 @@ const ProgressBar = ({ current, total, stepName }: { current: number; total: num
   );
 };
 
+// ─── Login Card (interactive login flow) ──────────────────────────────
+const extractLoginUrl = (text: string): string | null => {
+  // Match URLs that look like login/auth links
+  const urlMatch = text.match(/https?:\/\/[^\s)]+/);
+  return urlMatch ? urlMatch[0] : null;
+};
+
+const isLoginStep = (message: string, progress?: { step_name: string } | null): boolean => {
+  const loginKeywords = ['log in', 'login', 'sign in', 'authenticate', 'authorization'];
+  const msgLower = message.toLowerCase();
+  const stepLower = progress?.step_name?.toLowerCase() || '';
+  return loginKeywords.some(kw => msgLower.includes(kw) || stepLower.includes(kw));
+};
+
+const LoginCard = ({
+  loginUrl,
+  onConfirm,
+  isInteractive,
+}: {
+  loginUrl: string;
+  onConfirm: () => void;
+  isInteractive: boolean;
+}) => {
+  const [confirmed, setConfirmed] = useState(false);
+  const [opened, setOpened] = useState(false);
+
+  const handleOpenLogin = () => {
+    window.open(loginUrl, '_blank', 'noopener,noreferrer');
+    setOpened(true);
+  };
+
+  const handleConfirm = () => {
+    setConfirmed(true);
+    onConfirm();
+  };
+
+  if (confirmed || !isInteractive) {
+    return (
+      <div className="flex items-center gap-3 p-4 bg-[var(--success-bg)] border border-[var(--success)]/20 rounded-2xl animate-fade-in">
+        <CheckCircleIcon />
+        <span className="text-sm font-medium text-[var(--success)]">Login confirmed</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-[var(--surface)] border border-[var(--surface-border)] rounded-2xl overflow-hidden">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-blue-500/10 to-transparent p-5 border-b border-[var(--surface-border)]">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/30 flex items-center justify-center text-blue-400">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+            </svg>
+          </div>
+          <div>
+            <h4 className="text-base font-semibold text-[var(--foreground)]">Login Required</h4>
+            <p className="text-xs text-[var(--foreground-muted)]">Connect your account to proceed</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="p-5 space-y-3">
+        <button
+          onClick={handleOpenLogin}
+          className="w-full flex items-center justify-center gap-2.5
+                     bg-[var(--brand-primary)] text-white font-medium py-3 px-4 rounded-xl
+                     hover:bg-[var(--brand-primary-hover)] active:scale-[0.98]
+                     transition-all duration-200 shadow-lg shadow-[var(--brand-primary)]/20"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+          </svg>
+          Open Login Page
+        </button>
+
+        {opened && (
+          <button
+            onClick={handleConfirm}
+            className="w-full flex items-center justify-center gap-2.5
+                       bg-[var(--success)]/10 text-[var(--success)] font-medium py-3 px-4 rounded-xl
+                       border border-[var(--success)]/30
+                       hover:bg-[var(--success)]/20 active:scale-[0.98]
+                       transition-all duration-200 animate-fade-in"
+          >
+            <CheckCircleIcon />
+            I&apos;ve Logged In
+          </button>
+        )}
+
+        {!opened && (
+          <p className="text-xs text-center text-[var(--foreground-muted)]">
+            Click above to open the login page in a new tab
+          </p>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// ─── Rich Data Renderer ───────────────────────────────────────────────
+const DataRenderer = ({ data }: { data: TaxMitraResponseData }) => {
+  const comparison = data.quick_comparison || data.regime_comparison;
+
+  return (
+    <>
+      {hasTaxCalculationSummary(data) && (
+        <TaxSummaryRenderer
+          summary={data.summary}
+          deductions={data.deduction_breakdown}
+          taxBreakdown={data.tax_breakdown}
+        />
+      )}
+      {comparison && <RegimeComparisonRenderer comparison={comparison} />}
+      {data.optimization_suggestions && data.optimization_suggestions.length > 0 && (
+        <OptimizationSuggestionsRenderer suggestions={data.optimization_suggestions} />
+      )}
+      {hasITRSubmission(data) && <ITRSubmissionRenderer data={data.itr_submission} />}
+      {hasRefundTracking(data) && <RefundStatusRenderer data={data.refund_tracking} />}
+    </>
+  );
+};
+
 // ─── Main Component ───────────────────────────────────────────────────
 export const TaxMitraMessage: React.FC<TaxMitraMessageProps> = ({ response, onAnswerSubmit, isInteractive = true }) => {
   const { message, questions, data, progress, status, action } = response;
 
+  // Detect login flow
+  const loginUrl = message ? extractLoginUrl(message) : null;
+  const showLoginCard = loginUrl && isLoginStep(message, progress);
+
+  // Strip raw URL from the message for cleaner rendering when login card is shown
+  const displayMessage = showLoginCard && loginUrl
+    ? message.replace(loginUrl, '').replace(/Please click on this link to log in:\s*/i, '').replace(/\s*Once you've successfully logged in[\s\S]*$/i, '').trim()
+    : message;
+
   return (
-    <div className="w-full space-y-4 animate-fade-in">
+    <div className="w-full min-w-0 space-y-4 animate-fade-in">
       {/* Main Message */}
-      {message && (
-        <div className="bg-[var(--surface)] text-[var(--foreground)] rounded-2xl rounded-tl-md px-4 py-3 border border-[var(--surface-border)]">
-          <div className="prose prose-sm max-w-none">
+      {displayMessage && (
+        <div className="bg-[var(--surface)] text-[var(--foreground)] rounded-2xl rounded-tl-md px-4 py-3 border border-[var(--surface-border)] overflow-hidden">
+          <div className="prose prose-sm max-w-none break-words">
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={{
@@ -352,13 +640,28 @@ export const TaxMitraMessage: React.FC<TaxMitraMessageProps> = ({ response, onAn
                 li: ({ children }) => <li className="mb-1">{children}</li>,
                 strong: ({ children }) => <strong className="font-semibold text-[var(--foreground)]">{children}</strong>,
                 em: ({ children }) => <em className="italic text-[var(--foreground-muted)]">{children}</em>,
-                code: ({ children }) => <code className="bg-[var(--brand-primary-muted)] px-1.5 py-0.5 rounded text-sm text-[var(--brand-primary)] font-mono">{children}</code>,
+                code: ({ children }) => <code className="bg-[var(--brand-primary-muted)] px-1.5 py-0.5 rounded text-sm text-[var(--brand-primary)] font-mono break-all whitespace-pre-wrap">{children}</code>,
+                pre: ({ children }) => <pre className="overflow-x-auto rounded-lg p-3 bg-[var(--background)] border border-[var(--surface-border)] text-sm">{children}</pre>,
+                a: ({ href, children }) => <a href={href} target="_blank" rel="noopener noreferrer" className="text-[var(--brand-primary)] underline underline-offset-2 hover:text-[var(--brand-primary-hover)] break-all">{children}</a>,
               }}
             >
-              {message}
+              {displayMessage}
             </ReactMarkdown>
           </div>
         </div>
+      )}
+
+      {/* Login Card — interactive login flow */}
+      {showLoginCard && loginUrl && (
+        <LoginCard
+          loginUrl={loginUrl}
+          isInteractive={isInteractive}
+          onConfirm={() => {
+            if (onAnswerSubmit) {
+              onAnswerSubmit({ login_status: "I have successfully logged in. Please proceed." });
+            }
+          }}
+        />
       )}
 
       {/* Status Badge */}
@@ -381,7 +684,7 @@ export const TaxMitraMessage: React.FC<TaxMitraMessageProps> = ({ response, onAn
       )}
 
       {/* Interactive Questions — only shown when this is the active message */}
-      {questions && questions.length > 0 && isQuestionOptions(questions as any) && (
+      {!showLoginCard && questions && questions.length > 0 && isQuestionOptions(questions as any) && (
         isInteractive ? (
           <QuestionRenderer
             questions={questions as QuestionOption[]}
@@ -396,13 +699,8 @@ export const TaxMitraMessage: React.FC<TaxMitraMessageProps> = ({ response, onAn
       )}
 
       {/* Rich Data Displays */}
-      {data && (
-        <>
-          {isTaxCalculationResult(data) && <TaxBreakdownRenderer data={data} />}
-          {isITRSubmissionResult(data) && <ITRSubmissionRenderer data={data} />}
-          {isRefundTrackingResult(data) && <RefundStatusRenderer data={data} />}
-        </>
-      )}
+      {data && <DataRenderer data={data} />}
     </div>
   );
 };
+

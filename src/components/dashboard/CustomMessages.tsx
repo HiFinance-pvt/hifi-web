@@ -6,6 +6,10 @@ import { MessageFiles } from 'reachat';
 import { DebtStrategyDisplay, DebtStrategyData } from './DebtStrategyDisplay';
 import { TaxMitraMessage } from './TaxMitraMessage';
 import { isTaxMitraResponse, TaxMitraResponse } from '@/types/tax-mitra';
+import { TraderAgentMessage } from './TraderAgentMessage';
+import { TraderAgentResponse } from '@/types/trader-agent';
+import { robustJsonParse } from '@/lib/parsers/json-utils';
+import { parseTraderAgentResponse } from '@/lib/parsers/trader-agent-parser';
 
 // Minimal SVG Icons
 const UserIcon = () => (
@@ -91,6 +95,7 @@ const parseDebtStrategyData = (text: string): DebtStrategyData | null => {
     return null;
 };
 
+
 // Helper function to detect and parse Tax Mitra JSON from response
 const parseTaxMitraData = (text: string): TaxMitraResponse | null => {
     if (!text) return null;
@@ -103,29 +108,26 @@ const parseTaxMitraData = (text: string): TaxMitraResponse | null => {
         jsonStr = codeBlockMatch[1].trim();
     }
 
-    try {
-        // Try parsing the entire text as JSON first
-        const parsed = JSON.parse(jsonStr);
-        if (isTaxMitraResponse(parsed)) {
-            return parsed as TaxMitraResponse;
-        }
-    } catch {
-        // Not pure JSON, try extracting JSON from text
+    // Try parsing the entire text as JSON
+    const directParsed = robustJsonParse(jsonStr);
+    if (directParsed && isTaxMitraResponse(directParsed)) {
+        return directParsed as TaxMitraResponse;
     }
 
-    // Try to find a JSON object embedded in text
-    try {
-        const firstBrace = text.indexOf('{');
-        const lastBrace = text.lastIndexOf('}');
-        if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
-            const potentialJson = text.substring(firstBrace, lastBrace + 1);
-            const parsed = JSON.parse(potentialJson);
-            if (isTaxMitraResponse(parsed)) {
-                return parsed as TaxMitraResponse;
-            }
+    // Try to find a JSON object embedded in text (text before/after JSON)
+    const firstBrace = text.indexOf('{');
+    const lastBrace = text.lastIndexOf('}');
+    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+        const potentialJson = text.substring(firstBrace, lastBrace + 1);
+        const extractedParsed = robustJsonParse(potentialJson);
+        if (extractedParsed && isTaxMitraResponse(extractedParsed)) {
+            return extractedParsed as TaxMitraResponse;
         }
-    } catch {
-        // Extraction failed
+    }
+
+    // Debug: log when text looks like it might be Tax Mitra JSON but failed to parse
+    if (text.includes('"action"') && text.includes('"message"')) {
+        console.warn('[TaxMitra] Text looks like TaxMitra JSON but failed to parse:', text.substring(0, 200));
     }
 
     return null;
@@ -159,6 +161,9 @@ export const CustomMessageResponse: React.FC<{ response: string; onSendMessage?:
 
     // Check if the response contains Tax Mitra JSON data
     const taxMitraData = useMemo(() => parseTaxMitraData(response), [response]);
+
+    // Check if the response contains Trader Agent JSON data
+    const traderAgentData = useMemo(() => parseTraderAgentResponse(response), [response]);
 
     // If it's a debt strategy response, render the special component
     if (debtStrategyData) {
@@ -198,6 +203,38 @@ export const CustomMessageResponse: React.FC<{ response: string; onSendMessage?:
                                         .map(([key, value]) => `${key} ${value}`)
                                         .join("\n");
                                     onSendMessage(formatted);
+                                }
+                            }}
+                        />
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // If it's a Trader Agent response, render the TraderAgentMessage component
+    if (traderAgentData) {
+        return (
+            <div className="flex justify-start mb-4">
+                <div className="flex items-start gap-3 w-full">
+                    <div className="flex-shrink-0">
+                        <div className="w-8 h-8 bg-[var(--surface-hover)] rounded-xl flex items-center justify-center text-[var(--brand-primary)]">
+                            <BotIcon />
+                        </div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                        <TraderAgentMessage
+                            response={traderAgentData}
+                            isInteractive={isInteractive}
+                            onSendMessage={onSendMessage}
+                            onConfirm={() => {
+                                if (onSendMessage) {
+                                    onSendMessage("Confirm");
+                                }
+                            }}
+                            onCancel={() => {
+                                if (onSendMessage) {
+                                    onSendMessage("Cancel");
                                 }
                             }}
                         />

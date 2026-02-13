@@ -70,63 +70,67 @@ export interface Progress {
 }
 
 /**
- * Main structured response format for Tax Mitra agent
+ * Tax calculation summary data
  */
-export interface TaxMitraResponse {
-  /** The main response message to display to the user */
-  message: string;
-
-  /** Questions to ask the user - can be simple strings or rich question objects */
-  questions?: string[] | QuestionOption[];
-
-  /** Any additional data or results to display */
-  data?: Record<string, any>;
-
-  /** Status of the response */
-  status?: Status;
-
-  /** What action is expected next */
-  action?: Action;
-
-  /** Progress information for multi-step processes */
-  progress?: Progress;
+export interface TaxCalculationSummary {
+  gross_income: number;
+  total_deductions: number;
+  taxable_income: number;
+  total_tax: number;
+  tds_paid?: number;
+  refund_amount?: number;
+  tax_payable?: number;
 }
 
 /**
- * Tax breakdown by income slabs
+ * Breakdown of deductions
  */
-export interface TaxBreakdown {
-  up_to_250000?: number;
-  "250001_to_500000"?: number;
-  "500001_to_1000000"?: number;
-  above_1000000?: number;
+export interface DeductionBreakdown {
+  standard_deduction?: number;
+  section_80c?: number;
+  section_80d?: number;
+  section_80e?: number;
+  section_80g?: number;
+  section_24?: number;
+  hra_exemption?: number;
   [key: string]: number | undefined;
 }
 
 /**
- * Result of tax calculation
+ * Tax slab-wise breakdown
  */
-export interface TaxCalculationResult {
-  /** Total gross income */
-  gross_income: number;
+export interface TaxBreakdown {
+  slab_0_to_250000?: number;
+  slab_250000_to_500000?: number;
+  slab_500000_to_1000000?: number;
+  slab_1000000_to_1500000?: number;
+  slab_above_1000000?: number;
+  cess_4_percent?: number;
+  surcharge?: number;
+  [key: string]: number | undefined;
+}
 
-  /** Total taxable income after deductions and exemptions */
-  taxable_income: number;
+/**
+ * Tax optimization suggestion
+ */
+export interface OptimizationSuggestion {
+  type: string;
+  current: number;
+  max_limit: number;
+  potential_additional: number;
+  tax_saving: number;
+  description?: string;
+}
 
-  /** Total tax liability */
-  total_tax: number;
-
-  /** Tax regime used (old or new) */
-  tax_regime: string;
-
-  /** Detailed breakdown of tax by slabs */
-  breakdown: TaxBreakdown;
-
-  /** Total deductions claimed */
-  deductions?: number;
-
-  /** Total exemptions claimed */
-  exemptions?: number;
+/**
+ * Tax regime comparison
+ */
+export interface RegimeComparison {
+  old_regime_tax: number;
+  new_regime_tax: number;
+  savings_with_old?: number;
+  savings_with_new?: number;
+  recommended?: "old" | "new";
 }
 
 /**
@@ -170,67 +174,64 @@ export interface RefundTrackingResult {
 }
 
 /**
- * Deduction details by sections
- */
-export interface Deductions {
-  "80C"?: number;
-  "80D"?: number;
-  "80E"?: number;
-  "80G"?: number;
-  "80EEA"?: number;
-  "80CCD(1B)"?: number;
-  standard_deduction?: number;
-  hra_exemption?: number;
-  [key: string]: number | undefined;
-}
-
-/**
  * Income source details
  */
 export interface IncomeSource {
-  /** Source of income (salary, business, etc.) */
-  source: string;
-
-  /** Amount from this source */
+  type: string;
   amount: number;
-
-  /** Additional details specific to the source */
+  source?: string;
+  employer_tan?: string;
   [key: string]: any;
 }
 
 /**
- * Complete tax data for ITR filing
+ * Extended data that can be included in responses
  */
-export interface TaxData {
-  /** User's PAN number */
-  pan: string;
+export interface TaxMitraResponseData {
+  // Tax calculation data
+  summary?: TaxCalculationSummary;
+  deduction_breakdown?: DeductionBreakdown;
+  tax_breakdown?: TaxBreakdown;
+  optimization_suggestions?: OptimizationSuggestion[];
 
-  /** Assessment year */
-  assessment_year: string;
+  // Comparison data
+  quick_comparison?: RegimeComparison;
+  regime_comparison?: RegimeComparison;
 
-  /** All income sources */
-  income_sources: IncomeSource[];
+  // Income data
+  income_sources?: IncomeSource[];
+  detected_deductions?: Record<string, number>;
+  remaining_potential?: string[];
 
-  /** Total gross income */
-  gross_income: number;
+  // Submission/tracking data
+  itr_submission?: ITRSubmissionResult;
+  refund_tracking?: RefundTrackingResult;
 
-  /** Deductions claimed */
-  deductions: Deductions;
-
-  /** Taxable income */
-  taxable_income: number;
-
-  /** Tax regime chosen */
-  tax_regime: "old" | "new";
-
-  /** Total tax liability */
-  total_tax: number;
-
-  /** Tax already paid (TDS, advance tax, etc.) */
-  tax_paid?: number;
-
-  /** Any additional fields */
+  // Additional flexible data
   [key: string]: any;
+}
+
+/**
+ * Main structured response format for Tax Mitra agent
+ */
+export interface TaxMitraResponse {
+  /** The main response message to display to the user */
+  message: string;
+
+  /** Questions to ask the user - can be simple strings or rich question objects */
+  questions?: string[] | QuestionOption[];
+
+  /** Any additional data or results to display */
+  data?: TaxMitraResponseData;
+
+  /** Status of the response */
+  status?: Status;
+
+  /** What action is expected next */
+  action?: Action;
+
+  /** Progress information for multi-step processes */
+  progress?: Progress;
 }
 
 /**
@@ -243,52 +244,65 @@ export function isQuestionOptions(
 }
 
 /**
- * Type guard to check if data contains tax calculation result
+ * Type guard to check if data contains tax calculation summary
  */
-export function isTaxCalculationResult(
-  data: Record<string, any>
-): data is TaxCalculationResult {
-  return (
-    typeof data.gross_income === "number" &&
-    typeof data.taxable_income === "number" &&
-    typeof data.total_tax === "number" &&
-    typeof data.tax_regime === "string"
-  );
+export function hasTaxCalculationSummary(
+  data: TaxMitraResponseData | undefined
+): data is TaxMitraResponseData & { summary: TaxCalculationSummary } {
+  return !!data?.summary;
+}
+
+/**
+ * Type guard to check if data contains regime comparison
+ */
+export function hasRegimeComparison(
+  data: TaxMitraResponseData | undefined
+): data is TaxMitraResponseData & {
+  quick_comparison: RegimeComparison;
+} {
+  return !!data?.quick_comparison || !!data?.regime_comparison;
 }
 
 /**
  * Type guard to check if data contains ITR submission result
  */
-export function isITRSubmissionResult(
-  data: Record<string, any>
-): data is ITRSubmissionResult {
-  return (
-    typeof data.acknowledgement_number === "string" &&
-    typeof data.submission_date === "string" &&
-    typeof data.itr_form_type === "string"
-  );
+export function hasITRSubmission(
+  data: TaxMitraResponseData | undefined
+): data is TaxMitraResponseData & { itr_submission: ITRSubmissionResult } {
+  return !!data?.itr_submission;
 }
 
 /**
  * Type guard to check if data contains refund tracking result
  */
-export function isRefundTrackingResult(
-  data: Record<string, any>
-): data is RefundTrackingResult {
-  return (
-    typeof data.acknowledgement_number === "string" &&
-    typeof data.refund_status === "string"
-  );
+export function hasRefundTracking(
+  data: TaxMitraResponseData | undefined
+): data is TaxMitraResponseData & { refund_tracking: RefundTrackingResult } {
+  return !!data?.refund_tracking;
 }
 
-// Global type guard for the entire response structure
+/**
+ * Helper to format Indian currency
+ */
+export function formatINR(amount: number): string {
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0,
+  }).format(amount);
+}
+
+/**
+ * Global type guard for the entire response structure.
+ * Requires both `message` (string) AND `action` (valid Action enum value)
+ * to avoid false positives on generic assistant text responses.
+ */
 export function isTaxMitraResponse(data: any): data is TaxMitraResponse {
   return (
     data &&
     typeof data === "object" &&
-    (typeof data.message === "string" ||
-      Array.isArray(data.questions) ||
-      typeof data.status === "string" ||
-      typeof data.action === "string")
+    typeof data.message === "string" &&
+    typeof data.action === "string" &&
+    ["input_required", "processing", "completed", "error"].includes(data.action)
   );
 }

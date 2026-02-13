@@ -8,6 +8,8 @@ import {
 } from "@/types/chat";
 import { TaxMitraMessage } from "./TaxMitraMessage";
 import { isTaxMitraResponse, TaxMitraResponse } from "@/types/tax-mitra";
+import { TraderAgentMessage } from "./TraderAgentMessage";
+import { isTraderAgentResponse, TraderAgentResponse } from "@/types/trader-agent";
 
 interface CustomSessionMessageProps {
   conversation: ChatConversation;
@@ -354,6 +356,39 @@ export const CustomSessionMessage: React.FC<CustomSessionMessageProps> = ({
 
   const isTaxMitra = !!extractedTaxMitraData;
 
+  // Helper to try parsing Trader Agent response from text
+  const tryParseTraderAgentResponse = (
+    textString: string
+  ): Record<string, any> | null => {
+    try {
+      const jsonMatch = textString.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        try {
+          const parsed = JSON.parse(jsonMatch[0]);
+          if (isTraderAgentResponse(parsed)) return parsed;
+        } catch { /* noop */ }
+      }
+
+      const firstBrace = textString.indexOf("{");
+      const lastBrace = textString.lastIndexOf("}");
+
+      if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+        const potentialJson = textString.substring(firstBrace, lastBrace + 1);
+        const parsed = JSON.parse(potentialJson);
+        if (isTraderAgentResponse(parsed)) {
+          return parsed;
+        }
+      }
+    } catch { /* noop */ }
+    return null;
+  };
+
+  const extractedTraderAgentData = jsonData && isTraderAgentResponse(jsonData)
+    ? jsonData
+    : !isTaxMitra ? tryParseTraderAgentResponse(text) : null;
+
+  const isTraderAgent = !!extractedTraderAgentData;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -429,6 +464,20 @@ export const CustomSessionMessage: React.FC<CustomSessionMessageProps> = ({
                           .map(([key, value]) => `${key} ${value}`)
                           .join("\n");
                         onSendMessage(formatted);
+                      }
+                    }}
+                  />
+                ) : isTraderAgent && extractedTraderAgentData ? (
+                  <TraderAgentMessage
+                    response={extractedTraderAgentData as TraderAgentResponse}
+                    onConfirm={() => {
+                      if (onSendMessage) {
+                        onSendMessage("Confirm");
+                      }
+                    }}
+                    onCancel={() => {
+                      if (onSendMessage) {
+                        onSendMessage("Cancel");
                       }
                     }}
                   />
