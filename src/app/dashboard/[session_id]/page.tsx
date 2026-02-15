@@ -132,10 +132,11 @@ export default function HiFiDashboard() {
         await startStreaming(message, () => {
           // Mark when streaming completed to avoid immediate refetch
           lastStreamingCompleteRef.current = Date.now();
-          // Single refetch after streaming completes
+          // Refetch first, then clear streaming only after new messages are in (avoids dialog disappearing)
           setTimeout(() => {
-            refetchMessages();
-            stopStreaming();
+            refetchMessages().then(() => {
+              stopStreaming();
+            });
           }, 800);
         });
       } catch (error) {
@@ -143,7 +144,7 @@ export default function HiFiDashboard() {
         sendAdkMessage(message);
       }
     },
-    [startStreaming, refetchMessages, sendAdkMessage]
+    [startStreaming, refetchMessages, sendAdkMessage, stopStreaming]
   );
 
   const handleQuickAction = useCallback(

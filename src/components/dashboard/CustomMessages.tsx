@@ -154,8 +154,18 @@ export const CustomMessageQuestion: React.FC<{ question: string; files?: any[] }
     </div>
 );
 
+// Detect if content looks like raw JSON (so we don't show it while streaming)
+const looksLikeRawJson = (text: string): boolean => {
+    if (!text || text.length < 2) return false;
+    const t = text.trim();
+    return t.startsWith('{') || t.startsWith('[');
+};
+
 // Custom Assistant Message Component
-export const CustomMessageResponse: React.FC<{ response: string; onSendMessage?: (message: string) => void; isInteractive?: boolean }> = ({ response, onSendMessage, isInteractive = true }) => {
+export const CustomMessageResponse: React.FC<{ response: string; onSendMessage?: (message: string) => void; isInteractive?: boolean; isPartial?: boolean }> = ({ response, onSendMessage, isInteractive = true, isPartial = false }) => {
+    // While streaming, don't show raw JSON – show placeholder until we have parseable or plain text
+    const hideRawJson = isPartial && looksLikeRawJson(response);
+
     // Check if the response contains debt strategy JSON data
     const debtStrategyData = useMemo(() => parseDebtStrategyData(response), [response]);
 
@@ -238,6 +248,31 @@ export const CustomMessageResponse: React.FC<{ response: string; onSendMessage?:
                                 }
                             }}
                         />
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // While streaming, if content looks like raw JSON, show typing indicator instead of raw JSON
+    if (hideRawJson) {
+        return (
+            <div className="flex justify-start mb-4">
+                <div className="flex items-start gap-3 max-w-2xl">
+                    <div className="flex-shrink-0">
+                        <div className="w-8 h-8 bg-[var(--surface-hover)] rounded-xl flex items-center justify-center text-[var(--brand-primary)]">
+                            <BotIcon />
+                        </div>
+                    </div>
+                    <div className="bg-[var(--surface)] rounded-2xl rounded-tl-md px-4 py-3 border border-[var(--surface-border)]">
+                        <div className="flex items-center gap-2">
+                            <div className="flex gap-1">
+                                <div className="w-2 h-2 bg-[var(--brand-primary)] rounded-full animate-pulse" style={{ animationDelay: '0ms' }} />
+                                <div className="w-2 h-2 bg-[var(--brand-primary)] rounded-full animate-pulse" style={{ animationDelay: '150ms' }} />
+                                <div className="w-2 h-2 bg-[var(--brand-primary)] rounded-full animate-pulse" style={{ animationDelay: '300ms' }} />
+                            </div>
+                            <span className="text-sm text-[var(--foreground-muted)]">Thinking...</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -459,11 +494,12 @@ export const CustomMessageSource: React.FC<{ title?: string; url?: string; image
 
 // Main Message Renderer
 export const MessageRenderer: React.FC<{ message: ProcessedMessage; onSendMessage?: (message: string) => void; isInteractive?: boolean }> = ({ message, onSendMessage, isInteractive }) => {
+    const isPartial = 'isPartial' in message && message.isPartial === true;
     switch (message.type) {
         case 'user':
             return <CustomMessageQuestion question={message.text || ''} />;
         case 'assistant':
-            return <CustomMessageResponse response={message.text || ''} onSendMessage={onSendMessage} isInteractive={isInteractive} />;
+            return <CustomMessageResponse response={message.text || ''} onSendMessage={onSendMessage} isInteractive={isInteractive} isPartial={isPartial} />;
         case 'function_call':
             return <CustomFunctionCall message={message} />;
         case 'function_response':
@@ -471,7 +507,7 @@ export const MessageRenderer: React.FC<{ message: ProcessedMessage; onSendMessag
         case 'thought':
             return <CustomThoughtProcess message={message} />;
         default:
-            return <CustomMessageResponse response={message.text || ''} onSendMessage={onSendMessage} isInteractive={isInteractive} />;
+            return <CustomMessageResponse response={message.text || ''} onSendMessage={onSendMessage} isInteractive={isInteractive} isPartial={isPartial} />;
     }
 };
 

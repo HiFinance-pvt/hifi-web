@@ -4,7 +4,7 @@ import {
   Content,
   ProcessedMessage,
 } from "../lib/validations/adk.schema";
-import { useMemo, useState, useEffect, useCallback } from "react";
+import { useMemo, useState, useEffect, useCallback, useRef } from "react";
 import api from "@/lib/api";
 import { parseStringToJson } from "@/utils";
 
@@ -220,14 +220,14 @@ export function useSessionMessagesQuery(sessionId: string | undefined) {
     gcTime: 5 * 60 * 1000, // Keep in cache for 5 minutes
   });
 
-  // Manual refetch function
+  // Manual refetch function – returns Promise so callers can await before clearing streaming state
   const refetchMessages = useCallback(() => {
-    if (sessionId) {
-      queryClient.invalidateQueries({
-        queryKey: ["adk", "session-messages", sessionId],
-      });
-    }
-  }, [sessionId, queryClient]);
+    if (!sessionId) return Promise.resolve(undefined);
+    queryClient.invalidateQueries({
+      queryKey: ["adk", "session-messages", sessionId],
+    });
+    return query.refetch();
+  }, [sessionId, queryClient, query.refetch]);
 
   return {
     messages: query.data || [],
@@ -237,11 +237,90 @@ export function useSessionMessagesQuery(sessionId: string | undefined) {
   };
 }
 
+/**
+ * Extracts displayable text from a stream chunk. Handles:
+ * - NDJSON lines: {"text": "..."}, {"delta": "..."}, {"content": "..."}
+ * - OpenAI-style: {"choices":[{"delta":{"content":"..."}}]}
+ * - SSE-style lines: data: {...}
+ * - Plain text: passed through as-is
+ */
+function extractTextFromStreamChunk(
+  chunk: string,
+  bufferRef: { current: string }
+): string {
+  const buffer = bufferRef.current + chunk;
+  const lines = buffer.split("\n");
+  // Last element may be incomplete; keep it in buffer
+  bufferRef.current = lines.pop() ?? "";
+  let extracted = "";
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    // SSE prefix
+    const dataLine = trimmed.startsWith("data: ") ? trimmed.slice(6) : trimmed;
+    if (dataLine === "[DONE]" || dataLine === "") continue;
+    const textFromLine = parseJsonText(dataLine);
+    if (textFromLine !== null) {
+      extracted += textFromLine;
+    } else if (!dataLine.startsWith("{") && !dataLine.startsWith("[")) {
+      // Plain text line (not JSON) – show as-is so streaming is visible
+      extracted += line + "\n";
+    }
+    // Skip adding raw JSON when we couldn't extract text (avoids showing then hiding it)
+  }
+  // If we have buffered content that is a complete JSON object, try to extract text (single JSON chunk)
+  if (bufferRef.current.trim()) {
+    try {
+      const parsed = JSON.parse(bufferRef.current.trim());
+      const textFromLine = getTextFromParsed(parsed);
+      if (typeof textFromLine === "string") {
+        extracted += textFromLine;
+        bufferRef.current = "";
+      }
+    } catch {
+      // Incomplete or invalid JSON; keep in buffer
+    }
+  }
+  return extracted;
+}
+
+function getTextFromParsed(parsed: unknown): string | null {
+  if (!parsed || typeof parsed !== "object") return null;
+  const obj = parsed as Record<string, unknown>;
+  if (typeof obj.text === "string") return obj.text;
+  if (typeof obj.delta === "string") return obj.delta;
+  if (typeof obj.content === "string") return obj.content;
+  if (typeof obj.message === "string") return obj.message;
+  // Nested content array, e.g. content: [{ text: "..." }]
+  const contentArr = obj.content;
+  if (Array.isArray(contentArr) && contentArr.length > 0) {
+    const first = contentArr[0];
+    if (first && typeof first === "object" && "text" in first && typeof (first as { text: string }).text === "string") {
+      return (first as { text: string }).text;
+    }
+  }
+  const content =
+    (obj.choices as Array<{ delta?: { content?: string }; message?: { content?: string } }>)?.[0]?.delta
+      ?.content ??
+    (obj.choices as Array<{ message?: { content?: string } }>)?.[0]?.message?.content;
+  return typeof content === "string" ? content : null;
+}
+
+function parseJsonText(dataLine: string): string | null {
+  try {
+    const parsed = JSON.parse(dataLine);
+    return getTextFromParsed(parsed);
+  } catch {
+    return null;
+  }
+}
+
 // New hook for streaming messages
 export function useStreamingMessage(sessionId: string | undefined) {
   const [streamingText, setStreamingText] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const [streamingError, setStreamingError] = useState<Error | null>(null);
+  const streamBufferRef = useRef({ current: "" });
 
   const startStreaming = async (message: string, onComplete?: () => void) => {
     if (!sessionId) {
@@ -252,10 +331,20 @@ export function useStreamingMessage(sessionId: string | undefined) {
     setStreamingText("");
     setIsStreaming(true);
     setStreamingError(null);
+    streamBufferRef.current = { current: "" };
 
     try {
       for await (const chunk of api.adk.sendMessageStream(sessionId, message)) {
-        setStreamingText((prev) => prev + chunk);
+        const textPart = extractTextFromStreamChunk(chunk, streamBufferRef.current);
+        if (textPart) {
+          setStreamingText((prev) => prev + textPart);
+        } else if (chunk.trim()) {
+          // Only show chunk as plain text if it doesn't look like JSON (avoid flashing raw JSON)
+          const trimmed = chunk.trim();
+          if (!trimmed.startsWith("{") && !trimmed.startsWith("[")) {
+            setStreamingText((prev) => prev + chunk);
+          }
+        }
       }
       // Streaming completed successfully
       if (onComplete) {
