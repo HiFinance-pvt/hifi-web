@@ -15,13 +15,40 @@ export const useKiteConnect = () => {
         const height = 800;
         const left = window.screen.width / 2 - width / 2;
         const top = window.screen.height / 2 - height / 2;
-        
-        window.open(
+
+        const popup = window.open(
           data.data.url,
           "zerodha_login",
           `width=${width},height=${height},left=${left},top=${top}`
         );
-        queryClient.invalidateQueries({ queryKey: ["kite-status"] });
+
+        // Poll for status changes after backend processes the callback
+        const pollInterval = setInterval(async () => {
+          const result = await queryClient.fetchQuery({
+            queryKey: ["kite-status"],
+            queryFn: async () => {
+              try {
+                return await api.kite.getIntegrationStatus();
+              } catch (error) {
+                return { status: "disconnected" };
+              }
+            },
+          });
+
+          const connectedStatus = result?.status || result?.data?.status;
+
+          // Stop polling if connected or popup is closed
+          if (connectedStatus === "connected" || popup?.closed) {
+            clearInterval(pollInterval);
+            if (connectedStatus === "connected") {
+              toast.success("Successfully connected to Zerodha");
+              queryClient.invalidateQueries({ queryKey: ["kite-status"] });
+            }
+          }
+        }, 2000); // Check every 2 seconds
+
+        // Cleanup polling after 5 minutes to prevent infinite polling
+        setTimeout(() => clearInterval(pollInterval), 5 * 60 * 1000);
       } else {
         toast.error("Failed to get connection URL");
       }
@@ -44,7 +71,7 @@ export const useKiteIntegration = () => {
       }
     },
     // Don't refetch too aggressively, let user actions drive updates or page loads
-    staleTime: 60 * 1000, 
+    staleTime: 60 * 1000,
   });
 
   useEffect(() => {
@@ -58,8 +85,14 @@ export const useKiteIntegration = () => {
   }, [refetchStatus]);
 
   const connectMutation = useMutation({
-    mutationFn: async (requestToken: string) => {
-      return await api.kite.redirect(requestToken);
+    mutationFn: async ({
+      requestToken,
+      userId,
+    }: {
+      requestToken: string;
+      userId: string;
+    }) => {
+      return await api.kite.redirect(requestToken, userId);
     },
     onSuccess: () => {
       toast.success("Successfully connected to Zerodha");
@@ -85,7 +118,8 @@ export const useKiteIntegration = () => {
     },
   });
 
-  const currentStatus = status?.status || status?.data?.status || "disconnected";
+  const currentStatus =
+    status?.status || status?.data?.status || "disconnected";
   const lastVerified = status?.lastVerifiedAt || status?.data?.lastVerifiedAt;
 
   return {

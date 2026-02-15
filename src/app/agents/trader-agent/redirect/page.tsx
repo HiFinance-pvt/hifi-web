@@ -8,14 +8,16 @@ export default function KiteRedirect() {
   const params = useSearchParams();
   const router = useRouter();
   const requestToken = params.get("request_token");
+  const userId = params.get("user_id");
+  console.log("params: ", params)
   
   const { connect, isConnecting } = useKiteIntegration();
   const hasConnected = useRef(false);
 
   useEffect(() => {
-    if (requestToken && !hasConnected.current) {
+    if (requestToken && userId && !hasConnected.current) {
       hasConnected.current = true;
-      connect(requestToken, {
+      connect({requestToken, userId }, {
         onSuccess: () => {
           if (window.opener) {
             window.opener.postMessage("kite-connected", "*");

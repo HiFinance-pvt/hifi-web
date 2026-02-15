@@ -20,8 +20,8 @@ export class Kite {
     return data
   }
   
-  async redirect(request_token: string) {
-    const { data } = await this.axios.post("/kite/redirect", { request_token }, {
+  async redirect(request_token: string, user_id: string) {
+    const { data } = await this.axios.post("/kite/redirect", { request_token, user_id }, {
       headers: {
         "Authorization": `Bearer ${await getCurrentUser()?.getIdToken()}`
       }
