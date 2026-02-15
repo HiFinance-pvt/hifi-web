@@ -236,19 +236,15 @@ export default function HiFiDashboard() {
     }
   }, [sessionId, sessions, currentSession?.id, createSession, router, setCurrentSession]);
 
-  // Effect 3: Clear pending message when messages arrive or streaming ends
+  // Effect 3: Clear pending message only when it appears in session data (avoids user message disappearing before refetch)
   useEffect(() => {
     if (!pendingUserMsg) return;
 
-    // Clear if we have the message in session data
     const hasMessage = adkMessages.some(
       (msg) => msg.author === "user" && msg.text === pendingUserMsg
     );
 
-    // Clear if streaming just completed
-    const streamingJustCompleted = !isStreaming && streamingText;
-
-    if (hasMessage || streamingJustCompleted) {
+    if (hasMessage) {
       setPendingUserMsg(null);
       return;
     }
@@ -266,7 +262,7 @@ export default function HiFiDashboard() {
         clearTimeout(pendingMessageTimeoutRef.current);
       }
     };
-  }, [pendingUserMsg, adkMessages, isStreaming, streamingText]);
+  }, [pendingUserMsg, adkMessages]);
 
   // Effect 4: Auto-scroll on new content
   useEffect(() => {
