@@ -92,7 +92,7 @@ export const useKiteIntegration = () => {
       requestToken: string;
       userId: string;
     }) => {
-      return await api.kite.redirect(requestToken, userId);
+      return await api.kite.redirect(requestToken);
     },
     onSuccess: () => {
       toast.success("Successfully connected to Zerodha");
