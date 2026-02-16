@@ -4,7 +4,7 @@ import React from "react";
 import { Download, Smartphone, Apple } from "lucide-react";
 import { motion } from "framer-motion";
 
-const ANDROID_APK_LINK = "#"; // TODO: Replace with actual APK link
+const ANDROID_APK_LINK = "https://d3u0uf6tnodpp9.cloudfront.net/mobile/android/app-release.apk"; 
 const IOS_APP_LINK = "#"; // Placeholder for future iOS link
 
 export default function MobileAppSection() {
