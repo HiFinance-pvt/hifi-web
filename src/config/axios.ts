@@ -12,6 +12,7 @@ type Headers = CreateAxiosDefaults["headers"];
 const baseHeaders: Headers = {
   "Content-Type": "application/json",
   Accept: "application/json",
+  "ngrok-skip-browser-warning": "true",
 };
 
 interface AxiosConfigProps {
